@@ -1,0 +1,41 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Getting Started/Introduction" />
+
+# Birdie Stays — Design System
+
+A **themed Quasar component library** for a consumer **hotel booking &
+reservation** experience, documented and QA'd in Storybook.
+
+Every example, label, and edge case is written around the booking journey:
+searching destinations, choosing dates and guests, comparing rooms and
+amenities, reviewing properties, paying, and managing trips. The library spans
+the **mobile booking app, desktop web, lobby check-in kiosks, and host/admin
+dashboards**.
+
+## The booking journey (how to read this library)
+
+`Search` (Patterns) → `Results + Filters` → `Hotel detail` (Tabs) →
+`Choose room` (Inputs) → `Guest details` (Forms) → `Payment` →
+`Confirmation` (Confirmation Flows) → `My Trips` (Data Tables).
+
+## Where to customize
+
+| What you want to change | File |
+| --- | --- |
+| Brand colors, base font, global radius | `src/css/quasar.variables.scss` |
+| Spacing / radius / type design tokens | `src/css/tokens.scss` |
+| Per-component overrides & global CSS | `src/css/app.scss` |
+| Add components to the gallery | `src/stories/*.stories.js` |
+
+## Workflow
+
+1. Run `pnpm storybook` and open <a href="http://localhost:6006" target="_blank">localhost:6006</a>.
+2. Edit a file above — the canvas hot-reloads instantly.
+3. Use the **Controls** tab on each story to QA props/variants.
+4. When happy, `pnpm build-storybook` produces a static site in `storybook-static/`.
+
+## Deploy later
+
+The build output is a plain static site, ready for GitHub Pages, Netlify, or any
+static host. See `README.md` for the GitHub Pages steps when you're ready.

@@ -1,0 +1,36 @@
+// =============================================================
+// Quasar SASS variables — THE control panel for your brand.
+// This file is injected ahead of Quasar's own SASS, so anything
+// you set here overrides Quasar's defaults globally.
+// Docs: https://quasar.dev/style/sass-scss-variables
+// =============================================================
+
+// --- Brand color palette -------------------------------------
+// Tier-3 bridge: Quasar brand vars mapped to Atlassian (ADS) light
+// SEMANTIC values so every Quasar component reskins. The full token
+// system lives in ds-palette.scss + ds-color-tokens.scss.
+// (Quasar's SASS color fns need solid hex, so literals are used here;
+//  alpha tokens stay as CSS custom properties only.)
+// Brand = Zinc (Tailwind). Primary is the bold near-black step for strong
+// contrast on actions; status colors use the palette's designated defaults.
+$primary:   #18181B;   // background.brand.bold → Zinc 900
+$secondary: #71717A;   // Zinc 500
+$accent:    #3F3F46;   // Zinc 700 (kept monochrome with the brand)
+
+$dark:      #18181B;   // Zinc 900
+$dark-page: #09090B;   // Zinc 950
+
+$positive:  #16A34A;   // success.bold → Green 600
+$negative:  #DC2626;   // danger.bold  → Red 600
+$info:      #2563EB;   // info.bold    → Blue 600
+$warning:   #FACC15;   // warning.bold → Yellow 400 (needs dark text)
+
+// --- Typography ----------------------------------------------
+// Font family is imported in app.scss; here we tell Quasar to use it.
+$typography-font-family: 'Poppins', -apple-system, BlinkMacSystemFont,
+  'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+// --- Shape / spacing tokens ----------------------------------
+$generic-border-radius: 10px;   // global radius used by many components
+$button-border-radius:  10px;
+$button-font-weight:    600;

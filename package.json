@@ -1,0 +1,31 @@
+{
+  "name": "presto-ds",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A themed Quasar component library, documented and QA'd in Storybook.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build -o storybook-static"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.12",
+    "quasar": "^2.17.4",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@quasar/vite-plugin": "^1.9.0",
+    "@storybook/addon-essentials": "^8.6.18",
+    "@storybook/addon-themes": "^8.6.18",
+    "@storybook/blocks": "^8.6.18",
+    "@storybook/vue3": "^8.6.18",
+    "@storybook/vue3-vite": "^8.6.18",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "sass-embedded": "^1.83.0",
+    "storybook": "^8.6.18",
+    "vite": "^6.0.0"
+  }
+}

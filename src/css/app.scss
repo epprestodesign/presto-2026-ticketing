@@ -1,0 +1,151 @@
+// =============================================================
+// Global styles + COMPONENT-LEVEL OVERRIDES.
+// This is where you reshape individual Quasar components beyond
+// what the SASS variables expose. Loaded after Quasar's CSS.
+// =============================================================
+
+// @use rules must come first in Sass.
+@use './tokens.scss';
+@use './typography.scss';
+// Atlassian-derived color system (auto-generated): primitives → semantic → utilities.
+@use './ds-palette.scss';        // Tier 1 — raw hue ramps (--ds-palette-*)
+@use './ds-color-tokens.scss';   // Tier 2 — semantic roles (--ds-color-*)
+@use './ds-utilities.scss';      // Tier 3 — bg-ds-*/text-ds-*/border-ds-* helpers
+
+// Custom font (swap for your own / a self-hosted file later).
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--ds-color-text);
+  background-color: var(--ds-color-surface);
+}
+
+// --- Example component overrides -----------------------------
+// Buttons: softer corners, no shouting caps, tighter weight.
+.q-btn {
+  border-radius: var(--ds-radius-md);
+  text-transform: none;
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0;
+
+  &.q-btn--rounded {
+    border-radius: var(--ds-radius-pill);
+  }
+}
+
+// --- Flat-by-default: no elevation on buttons / button groups -
+// Quasar renders button elevation on the `:before` pseudo-element, and
+// bumps it on hover/active. Flatten it in every state so the unelevated
+// look is the default.
+.q-btn--standard:before,
+.q-btn--push:before,
+.q-btn--standard:hover:before,
+.q-btn--standard:focus:before,
+.q-btn--standard:active:before,
+.q-btn--standard.q-btn--active:before,
+.q-btn--push:hover:before,
+.q-btn--push:active:before,
+.q-btn-group--standard:before,
+.q-btn-group--push:before,
+.q-btn-group--standard,
+.q-btn-group--push,
+.q-btn-group {
+  box-shadow: none !important;
+}
+
+// Button group: a light divider between buttons to separate them. Uses the
+// button's own text color at 35% so it reads as a light line on both the dark
+// (Zinc) filled group and the light outline group.
+.q-btn-group > .q-btn-item:not(:first-child) {
+  border-left: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+}
+
+// Inputs: no shadow. The "standout" variant is shadow-based — flatten it
+// so fields stay on the same elevation as the rest of the form.
+.q-field--standout .q-field__control,
+.q-field--standout.q-field--highlighted .q-field__control {
+  box-shadow: none !important;
+}
+// Standout focus: Quasar hardcodes a #000 background (unreadable with our
+// near-black brand). Use a subtle light grey + dark text instead.
+.q-field--standout.q-field--highlighted .q-field__control {
+  background: var(--ds-palette-zinc-100);
+}
+.q-field--standout.q-field--highlighted .q-field__native,
+.q-field--standout.q-field--highlighted .q-field__input,
+.q-field--standout.q-field--highlighted .q-field__prefix,
+.q-field--standout.q-field--highlighted .q-field__suffix,
+.q-field--standout.q-field--highlighted .q-field__prepend,
+.q-field--standout.q-field--highlighted .q-field__append {
+  color: var(--ds-color-text);
+}
+
+// Cards: custom radius + elevation token.
+.q-card {
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-2);
+}
+
+// Inputs (outlined): consistent radius with the rest of the system.
+.q-field--outlined .q-field__control {
+  border-radius: var(--ds-radius-md);
+}
+
+// Rating: no drop shadow on the icons, and default to the brand color
+// (Quasar ships a text-shadow + amber grade color).
+.q-rating__icon {
+  text-shadow: none;
+}
+.q-rating {
+  color: var(--q-primary);
+}
+
+// Alerts (QBanner): smaller, modern leading icon. Quasar defaults the
+// avatar-slot icon to 40px; bring it to 24px.
+.q-banner__avatar > .q-icon {
+  font-size: 24px;
+}
+// Vertically center the leading icon with the message (Quasar top-aligns
+// the avatar column by default).
+.q-banner__avatar {
+  align-self: center;
+}
+// 8px gap between the message and the action buttons when they stack below
+// (e.g. Banner with "Dismiss" / "Learn more").
+.q-banner__actions.col-all {
+  padding-top: 8px;
+}
+.q-banner__actions.col-all .q-btn-item {
+  margin-top: 0;
+}
+
+// Chips: medium (500) label + fixed 20px icons (leading, trailing, remove).
+// Quasar defaults chip text to 400 and icons to 1.5em (1.25em dense); we
+// lock the weight to medium and icons to 20px for consistency.
+.q-chip {
+  font-weight: var(--ds-font-weight-medium); // 500
+  // ~2px more padding all around: taller (2px top+bottom via height) and
+  // wider (2px each side). Quasar's fixed height caps vertical padding,
+  // so we grow the height too.
+  height: calc(2em + 4px);
+  padding-left: 0.9em;                 // 2px tighter on the left so it hugs content
+  padding-right: calc(0.9em + 2px);
+}
+.q-chip--dense {
+  height: calc(1.5em + 4px);
+}
+.q-chip__icon {
+  font-size: 20px;
+}
+// +2px gap between chip text and its icons (leading, trailing, remove).
+.q-chip__icon--left {
+  margin-right: calc(0.2em + 2px);
+}
+.q-chip__icon--right {
+  margin-left: calc(0.2em + 2px);
+}
+.q-chip__icon--remove {
+  margin-left: calc(0.1em + 2px);
+}
