@@ -31,7 +31,7 @@ export const SideNav = {
       <q-layout view="lHh Lpr lFf" container style="height:420px" class="shadow-2 rounded-borders">
         <q-header class="bg-primary text-white"><q-toolbar>
           <q-btn flat round dense icon="menu" @click="drawer = !drawer" />
-          <q-toolbar-title>Presto Stays</q-toolbar-title>
+          <q-toolbar-title>Presto Design System</q-toolbar-title>
         </q-toolbar></q-header>
         <q-drawer v-model="drawer" show-if-above :width="240" bordered>
           <q-list padding>
