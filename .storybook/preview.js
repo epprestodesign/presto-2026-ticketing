@@ -82,7 +82,7 @@ const preview = {
             'Tabs', 'Menu', 'Breadcrumbs', 'Pagination', 'Stepper', 'App Navigation',
           ],
           'Patterns', [
-            'Forms', 'Search & Filters', 'Empty States', 'Loading States',
+            'Booking Widget', 'Hotel Listing Card', 'Forms', 'Search & Filters', 'Empty States', 'Loading States',
             'Data Tables', 'Dashboards', 'App Shell', 'Side Panels', 'Confirmation Flows',
           ],
           '*',
