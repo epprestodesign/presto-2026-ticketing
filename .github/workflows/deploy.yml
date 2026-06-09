@@ -42,6 +42,9 @@ jobs:
           STORYBOOK_DISABLE_TELEMETRY: "1"
           # Public URL of the separately-hosted imagery library (no secret).
           VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
+          # Google Maps JS key for the Hotel Map pattern. Stored as a repo secret;
+          # restrict it by HTTP referrer + Maps JS API in Google Cloud Console.
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
