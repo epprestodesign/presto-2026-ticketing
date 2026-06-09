@@ -186,7 +186,9 @@ onMounted(async () => {
 .hlc__now { font-size: 1.875rem; font-weight: 700; color: var(--ds-color-text); line-height: 1; }
 .hlc__totals { color: var(--ds-color-text-subtle); font-size: 0.8125rem; margin-top: 6px; line-height: 1.35; }
 .hlc__urgency { color: var(--ds-palette-rose-600); font-weight: 600; font-size: 0.8125rem; margin-top: 8px; }
-.hlc__cta { margin-top: 16px; height: 48px; padding: 0 22px; border-radius: var(--ds-radius-md); background: var(--ds-color-background-brand-bold); color: #fff; font-weight: 600; }
+/* `auto` consumes the price column's free height so the CTA always anchors to
+   the bottom; the column's flex-end keeps it pinned to the right. */
+.hlc__cta { margin-top: auto; height: 48px; padding: 0 22px; border-radius: var(--ds-radius-md); background: var(--ds-color-background-brand-bold); color: #fff; font-weight: 600; }
 .hlc__cta--disabled { pointer-events: none; background: var(--ds-palette-zinc-200) !important; color: var(--ds-color-text-subtle) !important; }
 
 /* Skeleton */
@@ -203,5 +205,6 @@ onMounted(async () => {
 .hlc--vertical .hlc__price { align-items: stretch; text-align: left; min-width: 0; }
 .hlc--vertical .hlc__deal { align-self: flex-start; }
 .hlc--vertical .hlc__totals { margin-bottom: 4px; }
-.hlc--vertical .hlc__cta { width: 100%; }
+/* Stacked card has no spare height to absorb, so restore an explicit gap. */
+.hlc--vertical .hlc__cta { width: 100%; margin-top: 16px; }
 </style>
