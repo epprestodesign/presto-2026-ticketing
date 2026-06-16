@@ -29,6 +29,20 @@ const props = defineProps({
   orientation: { type: String, default: 'horizontal' }, // horizontal | vertical
   loading: { type: Boolean, default: false },
   ctaLabel: { type: String, default: 'Choose your room' },
+
+  // --- Room-rate booking variants (vertical only) ---
+  // When `bookingMode` is set, the vertical card renders a room-rate detail
+  // body below the carousel instead of the standard listing body:
+  //   'reserve' → "Book Reservations": nights availability + Reserve Room CTA
+  //   'hold'    → "Hold Rooms for Group or Team": per-night quantity steppers
+  //               + Add to Cart CTA
+  bookingMode: { type: String, default: null }, // null | 'reserve' | 'hold'
+  roomType: { type: String, default: '' },      // room title (falls back to `name`)
+  bedConfig: { type: String, default: '' },     // e.g. "1 King Bed, Separate Living Room"
+  maxOccupancy: { type: Number, default: null },
+  roomDetails: { type: Array, default: () => [] }, // [{ label, value }]
+  nights: { type: Array, default: () => [] },      // [{ date, roomsLeft, price }]
+  roomCount: { type: Number, default: 1 },         // reserve summary ("N room…")
 })
 
 // Soft badge tones mapped to DS palette ramps.
@@ -65,6 +79,19 @@ onMounted(async () => {
   }
   loaded.value = out
 })
+
+// --- Room-rate booking variants ---
+const isRoomRate = computed(() => !!props.bookingMode && props.orientation === 'vertical')
+const isReserve = computed(() => props.bookingMode === 'reserve')
+// Two-decimal currency for the room-rate pricing block (e.g. "269.00").
+const fmt2 = (n) => Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+// Per-night room quantities for the 'hold' stepper. Clamped to [0, roomsLeft].
+const qty = ref(props.nights.map(() => 0))
+const inc = (i) => { if (qty.value[i] < props.nights[i].roomsLeft) qty.value[i]++ }
+const dec = (i) => { if (qty.value[i] > 0) qty.value[i]-- }
+const totalSelected = computed(() => qty.value.reduce((a, b) => a + b, 0))
+const startingPrice = computed(() => props.nights.length ? Math.min(...props.nights.map((n) => n.price)) : props.price)
 </script>
 
 <template>
@@ -106,7 +133,70 @@ onMounted(async () => {
         <div v-if="soldout" class="hlc__sold">Sold out</div>
       </div>
 
-      <div class="hlc__body">
+      <!-- ROOM-RATE BODY — vertical booking variants ('reserve' / 'hold') -->
+      <div v-if="isRoomRate" class="hlc__rr">
+        <div class="hlc__rr-head">
+          <h3 class="hlc__rr-title">{{ roomType || name }}</h3>
+          <div v-if="bedConfig" class="hlc__rr-bed">{{ bedConfig }}</div>
+          <div v-if="maxOccupancy != null" class="hlc__rr-occ">
+            <q-icon name="king_bed" size="18px" /> Max Occupancy: {{ maxOccupancy }}
+          </div>
+          <div v-if="roomDetails.length" class="hlc__rr-details">
+            <p v-for="d in roomDetails" :key="d.label"><strong>{{ d.label }}:</strong> {{ d.value }}</p>
+          </div>
+        </div>
+
+        <div class="hlc__rr-nights">
+          <h4 class="hlc__rr-h">{{ isReserve ? 'Nights' : 'Rooms per Night' }}</h4>
+
+          <template v-if="isReserve">
+            <div v-for="(n, i) in nights" :key="i" class="hlc__rr-night">
+              <span class="hlc__rr-date">{{ n.date }}</span>
+              <span class="hlc__rr-avail">{{ n.roomsLeft }} room{{ n.roomsLeft === 1 ? '' : 's' }} left</span>
+            </div>
+          </template>
+
+          <template v-else>
+            <div v-for="(n, i) in nights" :key="i" class="hlc__rr-night hlc__rr-night--hold">
+              <div class="hlc__rr-ndate">
+                <span class="hlc__rr-date">{{ n.date }}</span>
+                <span class="hlc__rr-nrate">{{ currency }}{{ fmt2(n.price) }} / night</span>
+              </div>
+              <span class="hlc__rr-avail hlc__rr-avail--sm">{{ n.roomsLeft }} left</span>
+              <div class="hlc__step" role="group" aria-label="Rooms for this night">
+                <button class="hlc__step-btn" :disabled="qty[i] === 0" aria-label="Decrease rooms" @click="dec(i)">−</button>
+                <span class="hlc__step-val">{{ qty[i] }}</span>
+                <button class="hlc__step-btn" :disabled="qty[i] >= n.roomsLeft" aria-label="Increase rooms" @click="inc(i)">+</button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div class="hlc__rr-foot">
+          <template v-if="isReserve">
+            <div class="hlc__rr-rate">{{ currency }}{{ fmt2(price) }} USD / room / night</div>
+            <div class="hlc__rr-total">{{ currency }}{{ fmt2(total) }} USD total</div>
+            <div class="hlc__rr-sub">{{ roomCount }} room{{ roomCount === 1 ? '' : 's' }} · incl. taxes &amp; fees</div>
+            <div class="hlc__rr-actions">
+              <button class="hlc__rr-link">Price Details ›</button>
+              <q-btn unelevated no-caps class="hlc__rr-reserve" label="Reserve Room" />
+            </div>
+          </template>
+          <template v-else>
+            <div class="hlc__rr-starting">Starting price</div>
+            <div class="hlc__rr-total">{{ currency }}{{ fmt2(startingPrice) }} <span class="hlc__rr-pernight">/ night</span></div>
+            <q-btn
+              unelevated no-caps
+              class="hlc__rr-cart"
+              :class="{ 'hlc__rr-cart--ready': totalSelected > 0 }"
+              :tabindex="totalSelected > 0 ? 0 : -1"
+              :label="totalSelected > 0 ? `Add ${totalSelected} to Cart` : 'Add to Cart'"
+            />
+          </template>
+        </div>
+      </div>
+
+      <div v-else class="hlc__body">
         <div class="hlc__main">
           <h3 class="hlc__name">{{ name }}</h3>
           <div v-if="location" class="hlc__loc">{{ location }}</div>
@@ -207,4 +297,48 @@ onMounted(async () => {
 .hlc--vertical .hlc__totals { margin-bottom: 4px; }
 /* Stacked card has no spare height to absorb, so restore an explicit gap. */
 .hlc--vertical .hlc__cta { width: 100%; margin-top: 16px; }
+
+/* --- Room-rate booking variants (vertical: 'reserve' / 'hold') --- */
+.hlc__rr { display: flex; flex-direction: column; flex: 1; }
+/* Sections divide full-bleed, so each carries its own padding. */
+.hlc__rr-head, .hlc__rr-nights, .hlc__rr-foot { padding: 18px 20px; }
+.hlc__rr-nights, .hlc__rr-foot { border-top: 1px solid var(--ds-color-border); }
+
+.hlc__rr-head { display: flex; flex-direction: column; gap: 8px; }
+.hlc__rr-title { font-size: 1.25rem; font-weight: 700; line-height: 1.2; margin: 0; color: var(--ds-color-text); }
+.hlc__rr-bed { color: var(--ds-color-text-subtle); font-size: 0.9375rem; }
+.hlc__rr-occ { display: inline-flex; align-items: center; gap: 6px; color: var(--ds-color-text); font-size: 0.9375rem; }
+.hlc__rr-details { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.hlc__rr-details p { margin: 0; font-size: 0.875rem; line-height: 1.4; color: var(--ds-color-text-subtle); }
+.hlc__rr-details strong { color: var(--ds-color-text); font-weight: 600; }
+
+.hlc__rr-h { font-size: 1.0625rem; font-weight: 700; margin: 0 0 12px; color: var(--ds-color-text); }
+.hlc__rr-night { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; }
+.hlc__rr-night--hold { gap: 10px; }
+.hlc__rr-ndate { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.hlc__rr-date { color: var(--ds-color-text); font-size: 0.9375rem; }
+.hlc__rr-nrate { color: var(--ds-color-text-subtlest); font-size: 0.8125rem; }
+.hlc__rr-avail { color: var(--ds-color-text-success); font-weight: 700; font-size: 0.9375rem; }
+.hlc__rr-avail--sm { font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
+
+/* Stepper — single rounded container, muted +/−, dark value (per reference). */
+.hlc__step { display: inline-flex; align-items: center; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md); background: var(--ds-color-surface); }
+.hlc__step-btn { width: 32px; height: 32px; border: 0; background: transparent; color: var(--ds-color-text-subtlest); font-size: 1.125rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: var(--ds-radius-md); transition: color var(--ds-duration-fast) var(--ds-ease-standard), background var(--ds-duration-fast) var(--ds-ease-standard); }
+.hlc__step-btn:hover:not(:disabled) { color: var(--ds-color-text); background: var(--ds-palette-zinc-100); }
+.hlc__step-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.hlc__step-val { min-width: 28px; text-align: center; font-weight: 600; font-size: 0.9375rem; color: var(--ds-color-text); }
+
+.hlc__rr-foot { display: flex; flex-direction: column; }
+.hlc__rr-rate { color: var(--ds-color-text-subtle); font-size: 0.9375rem; }
+.hlc__rr-total { font-size: 1.375rem; font-weight: 700; color: var(--ds-color-text); margin-top: 2px; }
+.hlc__rr-pernight { font-size: 0.9375rem; font-weight: 500; color: var(--ds-color-text-subtle); }
+.hlc__rr-sub { color: var(--ds-color-text-subtlest); font-size: 0.8125rem; margin-top: 4px; }
+.hlc__rr-starting { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ds-color-text-subtle); }
+.hlc__rr-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+.hlc__rr-link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--ds-color-text-info); font-weight: 600; font-size: 0.9375rem; }
+.hlc__rr-link:hover { text-decoration: underline; }
+.hlc__rr-reserve { height: 46px; padding: 0 22px; border-radius: var(--ds-radius-md); background: var(--ds-palette-blue-900); color: #fff; font-weight: 600; }
+/* Cart CTA is muted until at least one room is selected, then activates navy. */
+.hlc__rr-cart { width: 100%; height: 46px; margin-top: 14px; border-radius: var(--ds-radius-md); background: var(--ds-palette-slate-400); color: #fff; font-weight: 600; pointer-events: none; transition: background var(--ds-duration-fast) var(--ds-ease-standard); }
+.hlc__rr-cart--ready { background: var(--ds-palette-blue-900); pointer-events: auto; }
 </style>

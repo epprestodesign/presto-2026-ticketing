@@ -31,6 +31,27 @@ const wrap = (extra = {}, style = 'max-width:1100px') => ({
   template: `<div style="${style}"><hotel-listing-card v-bind="args" /></div>`,
 })
 
+// Room-rate content shared by the two vertical booking variants (reserve / hold).
+const roomRate = {
+  roomType: 'Two-Room Suite King',
+  bedConfig: '1 King Bed, Separate Living Room',
+  maxOccupancy: 4,
+  roomDetails: [
+    { label: 'Entertainment', value: '2× 55" Smart TV, Premium Channels, High-Speed WiFi' },
+    { label: 'Food & Drink', value: 'Coffee Maker, Mini Bar, Microwave, Mini Fridge' },
+    { label: 'Need to know', value: 'Complimentary evening reception (drinks & snacks)' },
+    { label: 'Non-smoking', value: 'Yes' },
+  ],
+  nights: [
+    { date: 'Tue, 6/23/2026', roomsLeft: 4, price: 269 },
+    { date: 'Wed, 6/24/2026', roomsLeft: 5, price: 269 },
+    { date: 'Thu, 6/25/2026', roomsLeft: 6, price: 269 },
+  ],
+  price: 269,
+  total: 970.26,
+  roomCount: 1,
+}
+
 export default {
   title: 'Patterns/Hotel Listing Card',
   component: HotelListingCard,
@@ -38,6 +59,7 @@ export default {
   argTypes: {
     orientation: { control: 'inline-radio', options: ['horizontal', 'vertical'] },
     availability: { control: 'inline-radio', options: ['available', 'limited', 'soldout'] },
+    bookingMode: { control: 'inline-radio', options: [null, 'reserve', 'hold'] },
     rating: { control: 'number' },
     loading: { control: 'boolean' },
   },
@@ -55,6 +77,10 @@ and results pages. A single component renders many states through props:
 - **Trust badge** — \`Preferred Hotel\`, \`Member Price\`, \`New\`, or none.
 - **Rating or New** — falls back to a "New" pill when \`rating\` is null.
 - **Layout** — \`horizontal\` (row) or \`vertical\` (grid card) via \`orientation\`.
+- **Booking variants** (vertical only) — \`bookingMode\` swaps the body for a
+  room-rate detail card: \`reserve\` ("Book Reservations" → nights list +
+  Reserve Room) or \`hold\` ("Hold Rooms for Group or Team" → per-night
+  quantity steppers + Add to Cart).
 - **Loading** — shimmer skeleton.
 
 Built on DS tokens (Zinc/Poppins, palette ramps, radius/shadow tokens).
@@ -108,6 +134,45 @@ export const VerticalCard = {
     components: { HotelListingCard },
     setup: () => ({ args: { ...base, orientation: 'vertical' } }),
     template: `<hotel-listing-card v-bind="args" />`,
+  }),
+}
+
+/**
+ * Vertical booking variant — **Book Reservations** mode. Below the carousel:
+ * room details, a "Nights" availability list, a pricing summary, and a
+ * "Price Details" link beside the navy **Reserve Room** CTA.
+ */
+export const BookReservation = {
+  render: () => ({
+    components: { HotelListingCard },
+    setup: () => ({ args: { ...base, ...roomRate, orientation: 'vertical', bookingMode: 'reserve' } }),
+    template: `<hotel-listing-card v-bind="args" />`,
+  }),
+}
+
+/**
+ * Vertical booking variant — **Hold Rooms for Group or Team** mode. Each night
+ * gets a functional − / + quantity stepper (clamped to rooms left); the
+ * **Add to Cart** CTA stays muted until at least one room is selected, then
+ * activates and shows the running count.
+ */
+export const HoldRoomsForGroup = {
+  render: () => ({
+    components: { HotelListingCard },
+    setup: () => ({ args: { ...base, ...roomRate, orientation: 'vertical', bookingMode: 'hold' } }),
+    template: `<hotel-listing-card v-bind="args" />`,
+  }),
+}
+
+/** Both booking variants side by side for comparison. */
+export const BookingModes = {
+  render: () => ({
+    components: { HotelListingCard },
+    setup: () => ({
+      reserve: { ...base, ...roomRate, orientation: 'vertical', bookingMode: 'reserve' },
+      hold: { ...base, ...roomRate, orientation: 'vertical', bookingMode: 'hold', seed: 2 },
+    }),
+    template: `<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start"><hotel-listing-card v-bind="reserve" /><hotel-listing-card v-bind="hold" /></div>`,
   }),
 }
 

@@ -79,10 +79,10 @@ const preview = {
             'Box', 'Container', 'Grid', 'Stack', 'Image List', 'Section Header',
           ],
           'Navigation', [
-            'Tabs', 'Menu', 'Breadcrumbs', 'Pagination', 'Stepper', 'App Navigation',
+            'Global Nav', 'Tabs', 'Menu', 'Breadcrumbs', 'Pagination', 'Stepper', 'App Navigation',
           ],
           'Patterns', [
-            'Booking Widget', 'Hotel Listing Card', 'Hotel Map', 'Forms', 'Search & Filters', 'Empty States', 'Loading States',
+            'Booking Widget', 'Hotel Listing Card', 'Room Booking Dialog', 'Hotel Map', 'Forms', 'Search & Filters', 'Empty States', 'Loading States',
             'Data Tables', 'Dashboards', 'App Shell', 'Side Panels', 'Confirmation Flows',
           ],
           '*',
