@@ -31,27 +31,6 @@ const wrap = (extra = {}, style = 'max-width:1100px') => ({
   template: `<div style="${style}"><hotel-listing-card v-bind="args" /></div>`,
 })
 
-// Room-rate content shared by the two vertical booking variants (reserve / hold).
-const roomRate = {
-  roomType: 'Two-Room Suite King',
-  bedConfig: '1 King Bed, Separate Living Room',
-  maxOccupancy: 4,
-  roomDetails: [
-    { label: 'Entertainment', value: '2× 55" Smart TV, Premium Channels, High-Speed WiFi' },
-    { label: 'Food & Drink', value: 'Coffee Maker, Mini Bar, Microwave, Mini Fridge' },
-    { label: 'Need to know', value: 'Complimentary evening reception (drinks & snacks)' },
-    { label: 'Non-smoking', value: 'Yes' },
-  ],
-  nights: [
-    { date: 'Tue, 6/23/2026', roomsLeft: 4, price: 269 },
-    { date: 'Wed, 6/24/2026', roomsLeft: 5, price: 269 },
-    { date: 'Thu, 6/25/2026', roomsLeft: 6, price: 269 },
-  ],
-  price: 269,
-  total: 970.26,
-  roomCount: 1,
-}
-
 export default {
   title: 'Browse Hotels/Hotel Listing Card',
   component: HotelListingCard,
@@ -76,14 +55,13 @@ and results pages. A single component renders many states through props:
   (CTA disabled + overlay).
 - **Trust badge** — \`Preferred Hotel\`, \`Member Price\`, \`New\`, or none.
 - **Rating or New** — falls back to a "New" pill when \`rating\` is null.
-- **Layout** — \`horizontal\` (row) or \`vertical\` (grid card) via \`orientation\`.
-- **Booking variants** (vertical only) — \`bookingMode\` swaps the body for a
-  room-rate detail card: \`reserve\` ("Book Reservations" → nights list +
-  Reserve Room) or \`hold\` ("Hold Rooms for Group or Team" → per-night
-  quantity steppers + Add to Cart).
 - **Loading** — shimmer skeleton.
 
 Built on DS tokens (Zinc/Poppins, palette ramps, radius/shadow tokens).
+
+> **Note:** This card is now **horizontal-only**. The room-rate booking
+> variants (reserve / hold) moved to **Hotel Details / Room Card**, and the
+> \`vertical\` orientation is **deprecated** — see the Vertical Card story below.
 ` } } },
 }
 
@@ -128,65 +106,33 @@ export const TrustBadges = {
 /** Loading skeleton. */
 export const Loading = { render: () => wrap({ loading: true }) }
 
-/** Vertical grid card — image top, content stacked. */
+/**
+ * **Deprecated.** The vertical grid card (image top, content stacked).
+ *
+ * Kept for reference only. The listing experience now uses horizontal cards,
+ * and the vertical room-rate variants moved to **Hotel Details / Room Card**.
+ * Avoid using `orientation: 'vertical'` in new work.
+ */
 export const VerticalCard = {
   render: () => ({
     components: { HotelListingCard },
     setup: () => ({ args: { ...base, orientation: 'vertical' } }),
     template: `<hotel-listing-card v-bind="args" />`,
   }),
+  parameters: { docs: { description: { story: 'Deprecated — use horizontal cards for listings and Hotel Details / Room Card for room rates.' } } },
 }
 
-/**
- * Vertical booking variant — **Book Reservations** mode. Below the carousel:
- * room details, a "Nights" availability list, a pricing summary, and a
- * "Price Details" link beside the navy **Reserve Room** CTA.
- */
-export const BookReservation = {
-  render: () => ({
-    components: { HotelListingCard },
-    setup: () => ({ args: { ...base, ...roomRate, orientation: 'vertical', bookingMode: 'reserve' } }),
-    template: `<hotel-listing-card v-bind="args" />`,
-  }),
-}
-
-/**
- * Vertical booking variant — **Hold Rooms for Group or Team** mode. Each night
- * gets a functional − / + quantity stepper (clamped to rooms left); the
- * **Add to Cart** CTA stays muted until at least one room is selected, then
- * activates and shows the running count.
- */
-export const HoldRoomsForGroup = {
-  render: () => ({
-    components: { HotelListingCard },
-    setup: () => ({ args: { ...base, ...roomRate, orientation: 'vertical', bookingMode: 'hold' } }),
-    template: `<hotel-listing-card v-bind="args" />`,
-  }),
-}
-
-/** Both booking variants side by side for comparison. */
-export const BookingModes = {
-  render: () => ({
-    components: { HotelListingCard },
-    setup: () => ({
-      reserve: { ...base, ...roomRate, orientation: 'vertical', bookingMode: 'reserve' },
-      hold: { ...base, ...roomRate, orientation: 'vertical', bookingMode: 'hold', seed: 2 },
-    }),
-    template: `<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start"><hotel-listing-card v-bind="reserve" /><hotel-listing-card v-bind="hold" /></div>`,
-  }),
-}
-
-/** Results grid of vertical cards. */
+/** Results list — the horizontal cards as they stack on a results page. */
 export const ResultsGrid = {
   render: () => ({
     components: { HotelListingCard },
     setup: () => ({
       cards: [
-        { ...base, orientation: 'vertical', seed: 0 },
-        { ...base, name: 'Omni Nashville Hotel', orientation: 'vertical', availability: 'limited', roomsLeft: 3, discountLabel: '', originalPrice: null, badge: { label: 'Member Price', tone: 'blue' }, seed: 1 },
-        { ...base, name: 'The Bellwether Nashville', orientation: 'vertical', rating: null, reviews: 0, discountLabel: '', originalPrice: null, badge: { label: 'New', tone: 'emerald' }, seed: 4 },
+        { ...base, seed: 0 },
+        { ...base, name: 'Omni Nashville Hotel', availability: 'limited', roomsLeft: 3, discountLabel: '', originalPrice: null, badge: { label: 'Member Price', tone: 'blue' }, seed: 1 },
+        { ...base, name: 'The Bellwether Nashville', rating: null, reviews: 0, discountLabel: '', originalPrice: null, badge: { label: 'New', tone: 'emerald' }, seed: 4 },
       ],
     }),
-    template: `<div style="display:flex;gap:20px;flex-wrap:wrap"><hotel-listing-card v-for="(c,i) in cards" :key="i" v-bind="c" /></div>`,
+    template: `<div style="max-width:1100px;display:flex;flex-direction:column;gap:18px"><hotel-listing-card v-for="(c,i) in cards" :key="i" v-bind="c" /></div>`,
   }),
 }

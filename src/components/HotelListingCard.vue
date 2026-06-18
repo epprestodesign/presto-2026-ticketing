@@ -265,7 +265,10 @@ const startingPrice = computed(() => props.nights.length ? Math.min(...props.nig
 </template>
 
 <style scoped>
-.hlc { display: flex; background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); overflow: hidden; box-shadow: var(--ds-shadow-1); }
+.hlc { display: flex; background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); overflow: hidden; box-shadow: var(--ds-shadow-1); transition: box-shadow var(--ds-duration-base) var(--ds-ease-standard); }
+/* Horizontal cards hold the reference proportions so the media never squishes. */
+.hlc:not(.hlc--vertical) { min-height: 240px; }
+.hlc:not(.hlc--vertical):hover { box-shadow: var(--ds-shadow-3); }
 .hlc--soldout { opacity: 0.92; }
 
 /* Media / carousel */

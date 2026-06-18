@@ -67,7 +67,7 @@ const preview = {
             'Rating', 'Quantity Stepper', 'Transfer List',
           ],
           'Data Display', [
-            'Avatar', 'Badge', 'Chip', 'Divider', 'Icon',
+            'Amenity', 'Avatar', 'Badge', 'Chip', 'Divider', 'Icon',
             'List', 'List Item', 'Accordion', 'Rating', 'Table', 'Tooltip', 'Typography',
           ],
           'Feedback', [
@@ -81,7 +81,11 @@ const preview = {
             'Global Nav', 'Tabs', 'Menu', 'Breadcrumbs', 'Pagination', 'Stepper', 'App Navigation',
           ],
           'Browse Hotels', [
-            'Booking Widget', 'Hotel Listing Card', 'Room Booking Dialog', 'Hotel Map', 'Search & Filters', 'Forms', 'Empty States', 'Loading States',
+            'Booking Widget', 'Hotel Listing Card', 'Hotel Map', 'Search & Filters', 'Forms', 'Empty States', 'Loading States',
+          ],
+          'Hotel Details', [
+            'Hotel Detail Page', 'Photo Gallery', 'Detail Tabs', 'Hotel Summary Header',
+            'Rooms', 'Room Card', 'Room Booking Dialog', 'Amenities', 'Policies & Property',
           ],
           'Your Trips', [
             'Saved Items',
