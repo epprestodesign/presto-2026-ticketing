@@ -38,15 +38,23 @@ existing work.
 | A toast / banner | `Feedback / Toast` · `Feedback / Banner` | `ds-toast--*` classes; Banner hue map |
 | Save/bookmark a hotel | `Browse Hotels / Hotel Listing Card` | `HotelListingCard` bookmark + toast |
 | Show saved hotels | `Your Trips / Saved Items` | `SavedItems`, `SavedFlyout` |
-| Filter or sort results | `Browse Hotels / Search & Filters` | `browse/Filter.vue` (`type` prop), `browse/SortDropdown.vue` |
-| A cart / order summary | `Checkout` & nav | `CartReview` (body) + `CartFlyout` (chrome) |
+| Filter or sort results | `Browse Hotels / Search & Filters` | `browse/Filter.vue` (`type` prop), `browse/AllFiltersDialog.vue`, `browse/SortDropdown.vue` |
+| A consolidated "All filters" modal | `Browse Hotels / Search & Filters` | `browse/AllFiltersDialog.vue` (accordion sections + live count) |
+| A cart / order summary | `Checkout` & nav | `CartReview` (body — `reserve` / `hold` / `reservations`) + `CartFlyout` (chrome) |
 | A stepped checkout | `Checkout Experience / *` | `checkout/CheckoutPage.vue` + `checkout/steps/*` |
 | A phone field w/ country code | (forms) | `checkout/PhoneField.vue` |
 | A quantity control | `Inputs / Quantity Stepper` | `QuantityStepper.vue` |
 | A payment card form / logos | `Checkout / Payment Dialogs` | `checkout/AddPaymentDialog.vue`, `lib/paymentLogos.js` |
 | A toast / snackbar | `Feedback / Toast` | `$q.notify({ classes: 'ds-toast ds-toast--success' })` |
 | A map with pins | `Browse Hotels / Hotel Map` | `HotelMap.vue` (+ `lib/googleMaps.js`) |
+| A map **search-radius** overlay | `Browse Hotels / Hotel Map` | `HotelMap.vue` (`searchRadius` + `radiusUnit`) |
+| Group-booking availability inventory | `Browse Hotels / Availability Dialog` | `AvailabilityDialog.vue` (summary + hold rooms carousel) |
 | Hotel imagery | `Foundations / Imagery` | `lib/imagery.js` (`loadImagery()`) |
+| A full hotel detail screen | `Hotel Details / Hotel Detail Page` | `details/HotelDetailPage.vue` |
+| A room card / "select your room" carousel | `Hotel Details / Room Card` · `Rooms` | `details/RoomCard.vue`, `details/RoomsCarousel.vue` |
+| A hero photo gallery (mosaic + modal) | `Hotel Details / Photo Gallery` | `details/GalleryHero.vue` (+ `DsImageList`) |
+| An amenity (icon + label) / amenity list | `Data Display / Amenity` | `Amenity.vue` + `lib/amenities.js` (catalog) |
+| Per-room reservation guest info | `Checkout / Steps / Contact Info` | `checkout/ReservationGuests.vue` |
 | The account page | `Manage Booking / Account` | `managebooking/ManageBooking.vue` + `ProfileEditModal.vue` |
 
 ---
@@ -55,11 +63,11 @@ existing work.
 
 | Path | Holds |
 | --- | --- |
-| `src/components/*.vue` | Top-level components — primitives (`Ds*`) and core booking pieces (`HotelListingCard`, `HotelMap`, `BookingWidget`, `CartReview`, `CartFlyout`, `GlobalNav`, `RoomBookingDialog`, `QuantityStepper`, `DateRangeCalendar`). |
-| `src/components/<area>/` | Flow components: `browse/`, `checkout/` (+ `steps/`), `confirmation/`, `yourtrips/`, `managebooking/`. |
+| `src/components/*.vue` | Top-level components — primitives (`Ds*`, `Amenity`) and core booking pieces (`HotelListingCard`, `AvailabilityDialog`, `HotelMap`, `BookingWidget`, `CartReview`, `CartFlyout`, `GlobalNav`, `RoomBookingDialog`, `QuantityStepper`, `DateRangeCalendar`). |
+| `src/components/<area>/` | Flow components: `browse/`, `details/` (the Hotel Details screen + pieces), `checkout/` (+ `steps/`), `confirmation/`, `yourtrips/`, `managebooking/`. |
 | `src/stories/<category>/*.stories.js` | One story file per component; the folder ≈ the sidebar category. |
 | `src/stories/*.mdx` | Docs-only pages (this file, Introduction). |
-| `src/lib/` | Non-visual helpers: `imagery.js`, `paymentLogos.js`, `googleMaps.js`, `unsplash.js`. |
+| `src/lib/` | Non-visual helpers: `amenities.js` (amenity catalog — source of truth), `imagery.js`, `paymentLogos.js`, `googleMaps.js`, `unsplash.js`. |
 | `src/css/` | Theme: `ds-palette.scss` → `ds-color-tokens.scss` → `tokens.scss` (tokens), `quasar.variables.scss` (brand), `app.scss` (global + overrides), `typography.scss`. |
 | `.storybook/preview.js` | `storySort` controls sidebar order; global Quasar plugin + Q-component registration. |
 
@@ -92,6 +100,10 @@ existing work.
 - **State sync** patterns in use: `v-model:<name>` (e.g. `v-model:bookmarked`),
   parent-owned reactive lists passed as props + `remove`/`update` events, and
   `defineExpose({ … })` for things like `clear()` / `openSaved()`.
+- **Amenities come from one catalog.** Reference `src/lib/amenities.js` by `key`
+  and render via the `Amenity` component (or the helpers `amenityGroups()` /
+  `filterAmenities()` / `popularAmenities()`). Don't hardcode amenity lists in
+  components or stories.
 - Match the **comment density and idiom** of the file you're editing.
 
 ## Story conventions
@@ -124,12 +136,17 @@ existing work.
 ### Composite / domain building blocks
 | Component / lib | Path | What it is |
 | --- | --- | --- |
-| `CartReview` | `components/CartReview.vue` | Recyclable cart body (hold accordion / reserve summary); shared by the fly-out, checkout review step, and the rail. |
+| `CartReview` | `components/CartReview.vue` | Recyclable cart body — modes `reserve` (summary), `hold` (accordion + per-night steppers), `reservations` (multi-hotel per-night rows, no steppers); shared by the fly-out, checkout review step, and the rail. |
 | `CartFlyout` | `components/CartFlyout.vue` | Right slide-over chrome around `CartReview`. |
 | `SavedItems` / `SavedFlyout` | `components/yourtrips/` | "Saved Hotels" list (controlled) + its cart-style fly-out. |
 | `Filter` / `SortDropdown` | `components/browse/` | All filter types via `type`; results sort. |
-| `HotelListingCard` | `components/HotelListingCard.vue` | Result card; carousel, rating, price, `reserve`/`hold` booking, bookmark. |
-| `HotelMap` | `components/HotelMap.vue` | Google map w/ price pills, clustering, no-key fallback. |
+| `HotelListingCard` | `components/HotelListingCard.vue` | Horizontal result card; carousel, rating, price, bookmark, and a group-booking **Availability** button → `AvailabilityDialog`. |
+| `HotelMap` | `components/HotelMap.vue` | Google map w/ price pills, clustering, **search-radius** circle, no-key fallback. |
+| `Amenity` + `lib/amenities` | `components/Amenity.vue`, `src/lib/amenities.js` | Icon+label amenity unit + the **catalog** (67 amenities; helpers `getAmenities`, `popularAmenities`, `filterAmenities`, `amenityGroups`). Reference amenities by `key`. |
+| Hotel Details set | `components/details/` | `HotelDetailPage`, `HotelSummaryHeader`, `DetailTabs`, `GalleryHero`, `RoomCard`, `RoomsCarousel`, `AmenitiesSection`, `AboutProperty`, `PoliciesSection`. |
+| `AvailabilityDialog` | `components/AvailabilityDialog.vue` | Group availability modal — hotel summary + a `hold`-mode `RoomsCarousel`. |
+| `AllFiltersDialog` | `components/browse/AllFiltersDialog.vue` | "All filters" modal — stacks `Filter` sections as accordions with a live result count. |
+| `ReservationGuests` | `components/checkout/ReservationGuests.vue` | Per-room reservation guest forms, aware of the booking widget's room/traveler selection. |
 | `PhoneField` | `components/checkout/PhoneField.vue` | Phone input with country-code dropdown. |
 | `QuantityStepper` | `components/QuantityStepper.vue` | − / value / + with remove-at-min. |
 | `ProfileEditModal` | `components/managebooking/ProfileEditModal.vue` | Full-height edit modal using DS field styles. |
