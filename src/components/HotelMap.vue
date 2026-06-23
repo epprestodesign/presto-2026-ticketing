@@ -4,7 +4,7 @@
 // Auto-fits bounds to all pins. Falls back to a styled placeholder when no
 // Google Maps key is configured (see src/lib/googleMaps.js).
 import { ref, watch, onMounted } from 'vue'
-import { MarkerClusterer } from '@googlemaps/markerclusterer'
+import { MarkerClusterer, SuperClusterAlgorithm } from '@googlemaps/markerclusterer'
 import { loadGoogleMaps, hasMapsKey } from '../lib/googleMaps'
 
 const props = defineProps({
@@ -19,11 +19,23 @@ const props = defineProps({
   height: { type: String, default: '560px' },
   linkTarget: { type: String, default: '_self' }, // where the details link opens
   cluster: { type: Boolean, default: true }, // group nearby hotels into count bubbles
+  // Stop clustering past this zoom (zoom in / narrow the radius → individual
+  // pins). Lower = declusters sooner. `clusterRadius` is the grouping distance px.
+  clusterMaxZoom: { type: Number, default: 13 },
+  clusterRadius: { type: Number, default: 60 },
   // Search-radius overlay: a circle centered on the event location (or center),
   // sized live by `searchRadius`. 0 hides it. Auto-fits the map to the circle.
   searchRadius: { type: Number, default: 0 },
   radiusUnit: { type: String, default: 'mi' }, // mi | km
+  // Two-way: zooming/panning the map (incl. ⌘-scroll) emits `update:searchRadius`
+  // so a bound slider tracks the viewport. These mirror the slider's min/max/step
+  // so the emitted value rounds cleanly onto its scale.
+  radiusMin: { type: Number, default: 1 },
+  radiusMax: { type: Number, default: 25 },
+  radiusStep: { type: Number, default: 1 },
 })
+
+const emit = defineEmits(['update:searchRadius'])
 
 const mapEl = ref(null)
 const status = ref('loading') // loading | ready | nokey | error
@@ -35,14 +47,53 @@ let clusterer = null
 let radiusCircle = null
 const markers = []
 
-// --- Search-radius circle ---
+// --- Search-radius circle (two-way synced with the map viewport) ---
 const radiusCenter = () => props.eventLocation || props.center ||
   (props.hotels.length ? { lat: props.hotels[0].lat, lng: props.hotels[0].lng } : null)
+const unitMeters = () => (props.radiusUnit === 'km' ? 1000 : 1609.344)
+let fromMap = false      // the current radius change came from a map zoom/pan
+let suppressIdle = false // ignore the idle fired by our own programmatic zoom
+
+// Great-circle distance between two coords, in meters.
+function haversine (lat1, lng1, lat2, lng2) {
+  const R = 6371000, rad = Math.PI / 180
+  const dLat = (lat2 - lat1) * rad, dLng = (lng2 - lng1) * rad
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(a))
+}
+// Radius (display units) of the largest circle that inscribes the viewport.
+function viewportRadiusUnits () {
+  const b = map && map.getBounds()
+  if (!b) return null
+  const c = b.getCenter(), ne = b.getNorthEast()
+  const latHalf = haversine(c.lat(), c.lng(), ne.lat(), c.lng())
+  const lngHalf = haversine(c.lat(), c.lng(), c.lat(), ne.lng())
+  return Math.min(latHalf, lngHalf) / unitMeters()
+}
+function clampRound (v) {
+  const step = props.radiusStep || 1
+  const r = Math.min(props.radiusMax, Math.max(props.radiusMin, Math.round(v / step) * step))
+  return Math.round(r * 1000) / 1000
+}
+// Zoom so the radius circle inscribes the viewport's shorter side. Uses
+// fractional zoom on vector maps (mapId) for a smooth slider→map response.
+function fitToRadius () {
+  const center = radiusCenter(), el = mapEl.value
+  if (!center || !map || !el || !(props.searchRadius > 0)) return
+  const minDim = Math.min(el.clientWidth, el.clientHeight) || 400
+  const meters = props.searchRadius * unitMeters()
+  const mpp = (2 * meters) / minDim // meters/pixel needed to fit the diameter
+  let z = Math.log2((156543.03392 * Math.cos(center.lat * Math.PI / 180)) / mpp)
+  z = Math.max(1, Math.min(20, z))
+  map.setCenter(center)
+  if (Math.abs(z - map.getZoom()) > 0.02) { suppressIdle = true; map.setZoom(z) }
+}
 function updateRadius () {
   if (!map || !gmaps) return
   const center = radiusCenter()
   if (props.searchRadius > 0 && center) {
-    const meters = props.searchRadius * (props.radiusUnit === 'km' ? 1000 : 1609.344)
+    const meters = props.searchRadius * unitMeters()
     if (!radiusCircle) {
       radiusCircle = new gmaps.Circle({
         map, center, radius: meters, clickable: false, zIndex: 1,
@@ -53,8 +104,10 @@ function updateRadius () {
       radiusCircle.setCenter(center)
       radiusCircle.setRadius(meters)
     }
-    // Auto-zoom so the whole circle stays in view as it grows/shrinks.
-    map.fitBounds(radiusCircle.getBounds(), 48)
+    // Slider-driven change → reframe the map to the circle. Map-driven change →
+    // leave the viewport alone (the user is zooming) and just resize the circle.
+    if (fromMap) fromMap = false
+    else fitToRadius()
   } else if (radiusCircle) {
     radiusCircle.setMap(null)
     radiusCircle = null
@@ -116,10 +169,26 @@ async function initMap (keyOverride) {
     map = new g.Map(mapEl.value, {
       center, zoom: props.zoom, mapId: props.mapId,
       mapTypeControl: false, streetViewControl: false, fullscreenControl: false, clickableIcons: false,
+      // Google's native +/- zoom buttons (bottom-right, clear of the radius card).
+      zoomControl: true,
+      zoomControlOptions: { position: g.ControlPosition.RIGHT_TOP },
     })
     // No close button (X); clicking anywhere off the card closes it.
     infoWindow = new g.InfoWindow({ headerDisabled: true })
     map.addListener('click', () => { infoWindow.close(); select(null) })
+    // Reverse sync: when the user zooms/pans (incl. ⌘-scroll), push the
+    // viewport's effective radius back out so a bound slider tracks it.
+    map.addListener('idle', () => {
+      if (suppressIdle) { suppressIdle = false; return }
+      if (!(props.searchRadius > 0)) return
+      const r = viewportRadiusUnits()
+      if (r == null) return
+      const rounded = clampRound(r)
+      if (Math.abs(rounded - props.searchRadius) > 1e-6) {
+        fromMap = true
+        emit('update:searchRadius', rounded)
+      }
+    })
 
     const bounds = new g.LatLngBounds()
     const hotelMarkers = []
@@ -155,7 +224,11 @@ async function initMap (keyOverride) {
           return new g.marker.AdvancedMarkerElement({ position, content: el, zIndex: 1000 + count })
         },
       }
-      clusterer = new MarkerClusterer({ map, markers: hotelMarkers, renderer })
+      clusterer = new MarkerClusterer({
+        map, markers: hotelMarkers, renderer,
+        // maxZoom: beyond this zoom, markers render individually (no clusters).
+        algorithm: new SuperClusterAlgorithm({ maxZoom: props.clusterMaxZoom, radius: props.clusterRadius }),
+      })
     }
 
     if (props.eventLocation) {

@@ -3,7 +3,8 @@
 // step open at a time; Next advances, completed steps collapse with an Edit)
 // beside a sticky OrderSummary rail. Four steps:
 //   1 Review order  2 Contact & group info  3 Payment  4 Review reservation
-// `mode` ('group' | 'reservation') toggles the group-details step + copy.
+// `mode` ('group' | 'reservation' | 'reservations') toggles the group-details
+// step, the cart body, and the contact form (single vs grouped-by-hotel guests).
 import { ref, computed, reactive } from 'vue'
 import { useQuasar } from 'quasar'
 import CartReview from '../CartReview.vue'
@@ -20,11 +21,25 @@ const props = defineProps({
 })
 const $q = useQuasar()
 const isGroup = computed(() => props.mode === 'group')
+const isMulti = computed(() => props.mode === 'reservations') // multiple room reservations
 // The cart fly-out modes; reuse the same CartReview body here.
-const cartMode = computed(() => (isGroup.value ? 'hold' : 'reserve'))
+const cartMode = computed(() => (isGroup.value ? 'hold' : isMulti.value ? 'reservations' : 'reserve'))
 // One shared, editable copy so the Review-order step and the rail's Price
 // details stay in sync as quantities change.
 const liveCart = reactive(JSON.parse(JSON.stringify(props.cart || {})))
+
+// Contact step inputs derived from the cart:
+//  - single reservation → a flat list of rooms (occupancy from the cart)
+//  - multiple reservations → grouped by reservation/hotel
+const contactRooms = computed(() => {
+  const n = liveCart.priceDetails?.rooms || 1
+  const adults = liveCart.sleeps || 2
+  return Array.from({ length: n }, () => ({ adults, children: 0 }))
+})
+const contactReservations = computed(() => (liveCart.hotels || []).map((h) => ({
+  name: h.name,
+  rooms: (h.rooms || []).map((r) => ({ adults: r.adults ?? 2, children: r.children ?? 0 })),
+})))
 
 // Reservation drops the "Review order" step (the rail already shows the order).
 const steps = computed(() => {
@@ -60,8 +75,11 @@ const contactSummary = computed(() => {
     const lead = [c.contact?.firstName, c.contact?.lastName].filter(Boolean).join(' ')
     return `${n} team${n === 1 ? '' : 's'}${lead ? ` · ${lead}` : ''}`
   }
-  const name = [c.firstName, c.lastName].filter(Boolean).join(' ')
-  return name || 'Contact details'
+  // reservation / reservations: ReservationGuests emits an array of room guests.
+  const arr = Array.isArray(c) ? c : []
+  const lead = arr[0] ? [arr[0].firstName, arr[0].lastName].filter(Boolean).join(' ') : ''
+  const n = arr.length
+  return lead ? `${lead}${n > 1 ? ` · ${n} guests` : ''}` : 'Contact details'
 })
 
 const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirmation has been emailed.', icon: 'check_circle', color: 'grey-9', position: 'bottom', timeout: 3000 })
@@ -95,7 +113,7 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
           <!-- open content — each step is its own component -->
           <div v-if="stepState(i + 1) === 'open'" class="ck__body">
             <step-review-order v-if="s.key === 'review'" :mode="cartMode" :cart="liveCart" :currency="currency" bind @next="next" />
-            <step-contact-info v-else-if="s.key === 'contact'" :mode="mode" v-model="contact" @next="next" />
+            <step-contact-info v-else-if="s.key === 'contact'" :mode="mode" :rooms="contactRooms" :reservations="isMulti ? contactReservations : null" v-model="contact" @next="next" />
             <step-payment v-else-if="s.key === 'payment'" v-model="payment" :methods="methods" @next="next" />
             <step-review-reservation v-else :contact-summary="contactSummary" :payment-label="paymentLabel" :total="summary.total" :currency="currency" @confirm="confirm" />
           </div>
@@ -104,7 +122,7 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
 
       <!-- RIGHT: sticky order summary — recycles the cart body; price details split into its own card -->
       <aside class="ck__railwrap">
-        <cart-review :mode="cartMode" :cart="liveCart" :currency="currency" readonly bind :show-requests="false" cards :order-title="isGroup ? 'Review your order' : ''" :collapsible="isGroup" />
+        <cart-review :mode="cartMode" :cart="liveCart" :currency="currency" readonly bind :show-requests="false" cards :order-title="(isGroup || isMulti) ? 'Review your order' : ''" :collapsible="isGroup || isMulti" />
       </aside>
     </div>
     </div>

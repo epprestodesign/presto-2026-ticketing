@@ -5,6 +5,7 @@
 // Edits are made on a local copy and committed via `save`.
 import { ref, watch, computed } from 'vue'
 import PhoneField from '../checkout/PhoneField.vue'
+import DsSidePanel from '../DsSidePanel.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -40,17 +41,15 @@ const onSave = () => { emit('save', { section: props.section, values: clone(form
 </script>
 
 <template>
-  <teleport to="body">
-    <div v-if="modelValue" class="pe">
-      <div class="pe__scrim" @click="close" />
-      <div class="pe__panel" role="dialog" aria-modal="true" :aria-label="heading">
-        <div class="pe__top">
-          <button class="pe__close" aria-label="Close" @click="close"><q-icon name="close" size="22px" /></button>
-        </div>
-
-        <div class="pe__body">
-          <div class="pe__inner">
-            <h2 class="pe__h2">{{ heading }}</h2>
+  <ds-side-panel
+    :model-value="modelValue"
+    side="center"
+    width="720px"
+    :aria-label="heading"
+    @update:model-value="emit('update:modelValue', $event)"
+  >
+    <div class="pe__inner">
+      <h2 class="pe__h2">{{ heading }}</h2>
             <p class="pe__sub">{{ sub }}</p>
 
             <!-- BASIC -->
@@ -94,30 +93,20 @@ const onSave = () => { emit('save', { section: props.section, values: clone(form
               <label class="pe__field"><span>Emergency contact</span><input v-model="form.emergency" placeholder="Name and phone number" /></label>
               <label class="pe__field"><span>Address</span><input v-model="form.address" placeholder="Street, city, state, ZIP" /></label>
             </template>
-          </div>
-        </div>
-
-        <div class="pe__foot">
-          <button class="pe__cancel" @click="close">Cancel</button>
-          <button class="pe__save" @click="onSave">Save</button>
-        </div>
       </div>
-    </div>
-  </teleport>
+
+    <template #footer>
+      <div class="pe__footrow">
+        <button class="pe__cancel" @click="close">Cancel</button>
+        <button class="pe__save" @click="onSave">Save</button>
+      </div>
+    </template>
+  </ds-side-panel>
 </template>
 
 <style scoped>
-.pe { position: fixed; inset: 0; z-index: 3200; }
-.pe__scrim { position: absolute; inset: 0; background: rgba(9, 9, 11, 0.5); animation: pe-fade 0.18s ease; }
-.pe__panel { position: absolute; top: 0; left: 50%; transform: translateX(-50%); height: 100%; width: 720px; max-width: 100vw; background: var(--ds-color-surface); display: flex; flex-direction: column; box-shadow: var(--ds-shadow-4, 0 12px 32px rgba(0,0,0,0.18)); animation: pe-rise 0.2s var(--ds-ease-standard); }
-@keyframes pe-fade { from { opacity: 0; } }
-@keyframes pe-rise { from { transform: translate(-50%, 1.5%); opacity: 0.6; } }
-
-.pe__top { display: flex; align-items: center; padding: 14px 18px; flex: none; }
-.pe__close { width: 38px; height: 38px; border: 0; border-radius: 50%; background: var(--ds-palette-zinc-100); color: var(--ds-color-text); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.pe__close:hover { background: var(--ds-palette-zinc-200); }
-
-.pe__body { flex: 1; overflow-y: auto; }
+/* The slide-over shell (scrim, centered sheet, header, footer chrome) is
+   provided by DsSidePanel; these styles cover only the profile form content. */
 .pe__inner { max-width: 480px; margin: 0 auto; padding: 8px 24px 32px; }
 .pe__h2 { margin: 0; font-size: 1.75rem; font-weight: 800; color: var(--ds-color-text); }
 .pe__sub { margin: 6px 0 16px; color: var(--ds-color-text-subtle); font-size: 0.9375rem; line-height: 1.4; }
@@ -150,7 +139,7 @@ const onSave = () => { emit('save', { section: props.section, values: clone(form
 .pe__selectwrap select { height: 46px; padding-right: 40px; appearance: none; -webkit-appearance: none; cursor: pointer; }
 .pe__selectwrap .q-icon { position: absolute; right: 14px; color: var(--ds-color-text-subtle); pointer-events: none; }
 
-.pe__foot { flex: none; display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--ds-color-border); background: var(--ds-color-surface); }
+.pe__footrow { display: flex; justify-content: flex-end; gap: 12px; }
 .pe__cancel { height: 48px; padding: 0 22px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-pill); background: var(--ds-color-surface); color: var(--ds-color-text); font-weight: 700; font-size: 0.9375rem; cursor: pointer; }
 .pe__cancel:hover { background: var(--ds-palette-zinc-100); }
 .pe__save { height: 48px; padding: 0 28px; border: 0; border-radius: var(--ds-radius-pill); background: var(--ds-color-background-brand-bold); color: #fff; font-weight: 700; font-size: 0.9375rem; cursor: pointer; }

@@ -1,6 +1,7 @@
 // PATTERNS / Hotel Map — map-only listings view with price-pill markers.
 import { ref } from 'vue'
 import HotelMap from '../../components/HotelMap.vue'
+import DsModal from '../../components/DsModal.vue'
 import { getImages } from '../../lib/imagery'
 
 // Vary popup imagery across categories (instant local fallback set).
@@ -102,9 +103,46 @@ export const SearchRadius = {
             <label style="font-weight:600;color:var(--ds-color-text)">Search radius</label>
             <strong style="font-variant-numeric:tabular-nums;color:var(--ds-color-text)">{{ radius }} mi</strong>
           </div>
-          <q-slider v-model="radius" :min="1" :max="25" :step="1" :label-value="radius + ' mi'" label color="dark" track-color="grey-4" />
+          <q-slider v-model="radius" :min="0.25" :max="25" :step="0.25" :label-value="radius + ' mi'" label color="dark" track-color="grey-4" />
         </div>
-        <hotel-map :hotels="hotels" :event-location="eventLocation" :search-radius="radius" radius-unit="mi" :zoom="12" height="560px" />
+        <hotel-map :hotels="hotels" :event-location="eventLocation" :search-radius="radius" @update:search-radius="radius = $event" radius-unit="mi" :radius-min="0.25" :radius-step="0.25" :zoom="12" height="560px" />
+      </div>`,
+  }),
+}
+
+/**
+ * **Map dialog** — a fullscreen "Expand map" modal that combines clustered hotel
+ * listings, the pulsing event location, and the **search-radius** slider in the
+ * header. Drag the slider to resize the radius circle live; zoom in to expand a
+ * cluster into individual price pills.
+ */
+export const MapDialog = {
+  name: 'Map Dialog',
+  render: () => ({
+    components: { HotelMap, DsModal },
+    setup: () => ({ hotels: manyHotels, eventLocation, open: ref(true), radius: ref(5) }),
+    template: `
+      <div style="min-height:100vh;background:var(--ds-palette-neutral-100);padding:32px 24px">
+        <button type="button" @click="open = true" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border:1px solid var(--ds-color-border-bold);border-radius:10px;background:var(--ds-color-surface);color:var(--ds-color-text);font-weight:600;cursor:pointer;font-family:inherit">
+          <q-icon name="open_in_full" size="18px" /> Expand map
+        </button>
+
+        <!-- DsModal owns the backdrop / card / header / close / ESC / scroll-lock.
+             flush = edge-to-edge body so the map fills it; the slider floats over. -->
+        <ds-modal v-model="open" title="Hotels near the venue"
+          :subtitle="hotels.length + ' hotels · searching within ' + radius + ' mi'"
+          aria-label="Hotels map" size="fullscreen" flush>
+          <hotel-map :hotels="hotels" :event-location="eventLocation" :search-radius="radius" @update:search-radius="radius = $event" radius-unit="mi" :radius-min="0.25" :radius-step="0.25" :zoom="12" height="100%" cluster />
+          <!-- Floating, shadowed search-radius control at the bottom center.
+               Two-way bound: ⌘-scroll to zoom and the slider tracks the view. -->
+          <div style="position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:5;width:min(440px,86%);background:var(--ds-color-surface);border:1px solid var(--ds-color-border);border-radius:var(--ds-radius-lg);box-shadow:0 10px 30px rgba(0,0,0,.22);padding:14px 22px 6px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">
+              <span style="font-weight:700;color:var(--ds-color-text)">Search radius</span>
+              <strong style="color:var(--ds-color-text);font-variant-numeric:tabular-nums">{{ radius }} mi</strong>
+            </div>
+            <q-slider v-model="radius" :min="0.25" :max="25" :step="0.25" :label-value="radius + ' mi'" label color="dark" track-color="grey-4" />
+          </div>
+        </ds-modal>
       </div>`,
   }),
 }

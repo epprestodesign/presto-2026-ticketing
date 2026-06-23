@@ -103,3 +103,49 @@ export const Reservation = {
     template: `<checkout-page mode="reservation" :cart="cart" :summary="summary" />`,
   }),
 }
+
+/** Multiple room reservations — several hotels booked together. The rail shows
+ *  the `reservations` cart (per-night rows, no steppers); Contact Info groups
+ *  guest forms by reservation/hotel. */
+export const MultipleRoomReservations = {
+  name: 'Multiple Room Reservations',
+  render: () => ({
+    components: { CheckoutPage },
+    setup() {
+      const img = useHero('suites', 0)
+      const cart = {
+        heldSeconds: 895, taxRate: 0.12, feePerNight: 0,
+        hotels: [
+          { name: 'Hilton Orlando Lake Buena Vista', imageCategories: ['suites', 'rooms'], seed: 0, rooms: [
+            { type: 'King Bedroom', summary: '1 King Bed · Sleeps 2', price: 301, adults: 2, children: 0, nights: [
+              { date: 'Tue, Jun 23', price: 301 }, { date: 'Wed, Jun 24', price: 301 }, { date: 'Thu, Jun 25', price: 319 }] },
+            { type: 'Double Queen Bedroom', summary: '2 Queen Beds · Sleeps 4', price: 363, adults: 3, children: 1, nights: [
+              { date: 'Tue, Jun 23', price: 363 }, { date: 'Wed, Jun 24', price: 363 }] },
+          ] },
+          { name: 'Omni Orlando Resort', imageCategories: ['lobby', 'rooms'], seed: 2, rooms: [
+            { type: 'Studio Suite', summary: '1 King Bed + Sofa · Sleeps 3', price: 401, adults: 2, children: 0, nights: [
+              { date: 'Tue, Jun 23', price: 401 }, { date: 'Wed, Jun 24', price: 401 }, { date: 'Thu, Jun 25', price: 429 }] },
+          ] },
+        ],
+      }
+      const summary = computed(() => ({
+        image: img.value,
+        title: 'Multiple reservations',
+        subtitle: 'Hilton + Omni · Orlando',
+        rrow1: '3 rooms · 2 hotels',
+        rows: [
+          { label: 'Dates', value: 'Jun 23 – 25, 2026', change: true },
+          { label: 'Rooms', value: '3 rooms · 2 hotels', change: true },
+        ],
+        priceLines: [
+          { label: 'Room charges', value: 2557 },
+          { label: 'Taxes', value: 306.84 },
+        ],
+        total: 2863.84,
+        note: 'Rooms held — finish before the timer ends',
+      }))
+      return { cart, summary }
+    },
+    template: `<checkout-page mode="reservations" :cart="cart" :summary="summary" />`,
+  }),
+}

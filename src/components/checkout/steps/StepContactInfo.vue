@@ -1,8 +1,8 @@
 <script setup>
 // Checkout step 2 — Contact information. Variant-specific:
-//   group       → GroupTeamsBlock (teams flow + primary contact)
-//   reservation → ReservationGuests (per-room guest info, aware of the booking
-//                 widget's room/traveler selection via `rooms`)
+//   group        → GroupTeamsBlock (teams flow + primary contact)
+//   reservation  → ReservationGuests (per-room guest info for a single stay)
+//   reservations → ReservationGuests grouped by reservation/hotel (multiple stays)
 // Clicking Next while incomplete surfaces required-field errors instead of
 // advancing.
 import { computed, ref } from 'vue'
@@ -10,11 +10,13 @@ import ReservationGuests from '../ReservationGuests.vue'
 import GroupTeamsBlock from '../GroupTeamsBlock.vue'
 
 const props = defineProps({
-  mode: { type: String, default: 'group' }, // group | reservation
+  mode: { type: String, default: 'group' }, // group | reservation | reservations
   modelValue: { type: [Object, Array], default: () => ({}) },
   // Reservation: the booking-widget selection (one entry per room) + event-
   // configurable extra fields, passed through to ReservationGuests.
   rooms: { type: Array, default: () => [{ adults: 1, children: 0 }] },
+  // Multiple reservations: [{ name, rooms: [{ adults, children }] }] (grouped).
+  reservations: { type: Array, default: null },
   teamName: { type: Boolean, default: false },
   customFields: { type: Array, default: () => [] },
 })
@@ -23,7 +25,7 @@ const emit = defineEmits(['update:modelValue', 'next'])
 const showErrors = ref(false)
 const resValid = ref(false)
 const valid = computed(() => {
-  if (props.mode === 'reservation') return resValid.value
+  if (props.mode !== 'group') return resValid.value
   const m = props.modelValue || {}
   const c = m.contact || {}
   const teamsOk = m.notHolding || ((m.teams && m.teams.length) && (m.groupBlockName || '').trim())
@@ -37,7 +39,7 @@ const onNext = () => { if (valid.value) emit('next'); else { showErrors.value = 
     <group-teams-block v-if="mode === 'group'" :model-value="modelValue" :show-errors="showErrors" @update:model-value="emit('update:modelValue', $event)" />
     <reservation-guests
       v-else
-      :rooms="rooms" :team-name="teamName" :custom-fields="customFields"
+      :rooms="rooms" :reservations="reservations" :team-name="teamName" :custom-fields="customFields"
       :model-value="Array.isArray(modelValue) ? modelValue : []"
       :show-errors="showErrors"
       @update:model-value="emit('update:modelValue', $event)"

@@ -47,8 +47,8 @@ everywhere:
 | **Foundations** | Design tokens made visible — palette, color, type, icons, imagery, elevation, spacing, radius, breakpoints, motion. |
 | **Inputs** | Form controls — buttons, fields, selects, pickers, toggles, steppers, **choice chips, range, checkbox tree, phone field**. |
 | **Data Display** | Read-only presentation — avatars, badges, chips, lists, **list item, accordion, rating**, tables, tooltips, typography. |
-| **Feedback** | Status & messaging — alerts, banners, dialogs, snackbars, **toasts**, progress, skeletons, backdrops. |
-| **Layout** | Structural primitives — box, **card**, container, grid, stack, image list, section header, **side panel**. |
+| **Feedback** | Status & messaging — alerts, banners, dialogs, **modal** (`DsModal`), snackbars, **toasts**, progress, skeletons, backdrops. |
+| **Layout** | Structural primitives — box, **card**, container, grid, stack, image list, section header, **side panel** (right/left/center). |
 | **Navigation** | Wayfinding & chrome — global nav, tabs, menus, breadcrumbs, pagination, steppers. |
 | **Browse Hotels** | Discovery — search, filters (incl. an "All Filters" modal), listing cards, map (with search-radius), availability. |
 | **Hotel Details** | The chosen hotel — photo hero gallery, summary header, room selection (rooms carousel + room cards), amenities, policies, room booking dialog. |
@@ -71,14 +71,18 @@ compare listings on cards or a map, and start a booking.
   to save the hotel (fires a toast), and a **group-booking** mode that adds an
   **Availability** secondary button opening the **Availability Dialog** (hotel
   summary + a `hold`-mode rooms carousel).
-- **Hotel Map** — map-only results with price-pill markers and clustering, plus a
-  **search-radius** circle overlay centered on the event location (Google Maps,
-  with a graceful no-key fallback).
+- **Hotel Map** — map-only results with price-pill markers and clustering (with a
+  zoom cutoff so pins de-cluster as you zoom in), native **+/- zoom** controls, and
+  a **search-radius** circle centered on the event location that's **two-way bound**
+  to a slider — zoom or ⌘-scroll the map and the radius follows; drag the slider and
+  the map reframes (Google Maps, with a graceful no-key fallback).
 - **Search & Filters** — one `Filter` component covering every filter type
-  (Amenities list/grid, **Room Type** chips, Guest Rating, Star Rating, Hotel
-  class, Brands tree, Budget range with **editable Min/Max** + price histogram,
-  Property Search + autocomplete). Long amenity lists collapse behind a
-  **"View more / Fewer"** toggle. An **All Filters** modal consolidates every
+  (Amenities list/grid with **inline search**, **Room Type** chips always ordered
+  least→max bed occupancy (twin → double → queen → king → suite), Guest Rating,
+  Star Rating, Hotel class, **Brands tree with inline search**, Budget range with a
+  **per-night ⇄ total** toggle, **editable Min/Max** + price histogram, Property
+  Search + autocomplete). Long amenity lists collapse behind a **"View more /
+  Fewer"** toggle. An **All Filters** button opens a modal consolidating every
   filter into accordion sections with a live "Show N results" footer.
 - **Forms, Empty States, Loading States** — supporting patterns for the flow.
 
@@ -109,12 +113,14 @@ lightweight one-time-user surface — not a trip manager.
 **Turn a selection into a booking.** An Airbnb-style stepped flow, with each step
 its own component and a sticky order-summary rail.
 
-- **Checkout Page** — orchestrates the steps; **Group Hold** and **Reservation** variants.
+- **Checkout Page** — orchestrates the steps; **Group Hold**, **Reservation**, and
+  **Multiple Room Reservations** (`reservations` mode) variants.
 - **Steps** — *Review Order*, *Contact Info* (for `hold`, the group/teams block +
   required Group Block Name; for `reserve`, **per-room guest information** that's
   aware of the booking widget's room/traveler selection — team name + event
-  custom fields, and additional guests pre-seeded from occupancy), *Payment*,
-  *Review Reservation* (protection + cancellation policy).
+  custom fields, and additional guests pre-seeded from occupancy; for
+  `reservations`, the same per-room forms **grouped by hotel/reservation**),
+  *Payment*, *Review Reservation* (protection + cancellation policy).
 - **Payment Dialogs** — Instacart-style payment-method and add-card surfaces.
 
 ### Confirmation
@@ -149,12 +155,14 @@ usage, props, and guidance.
   atomic icon + label unit, sourced from the shared amenities catalog —
   `src/lib/amenities.js`, the single source of truth used by the header,
   amenities section, cards, and filters).
-- **Feedback** — alerts, banners (Atlassian-Flag style), dialogs, snackbars,
-  **Toast** (DS-styled Quasar Notify) — all sharing one hue convention — progress,
-  skeletons, backdrops.
+- **Feedback** — alerts, banners (Atlassian-Flag style), dialogs, **Modal**
+  (`DsModal` — the centered dialog shell behind the availability / all-filters /
+  map dialogs), snackbars, **Toast** (DS-styled Quasar Notify) — all sharing one
+  hue convention — progress, skeletons, backdrops.
 - **Layout** — `Ds*` structural wrappers: Box, **Card** (the standard surface),
   Container, Grid, Stack, Image List, Section Header, and **Side Panel** (the
-  slide-over chrome used by the fly-outs).
+  slide-over chrome — right / left / center — behind the cart & saved fly-outs and
+  the profile edit sheet).
 - **Navigation** — Global Nav (brand + Manage Booking + bookmark + cart, with
   fly-outs), tabs, menus, breadcrumbs, pagination, steppers.
 

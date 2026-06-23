@@ -11,8 +11,11 @@ import { reactive, computed, watch } from 'vue'
 import PhoneField from './PhoneField.vue'
 
 const props = defineProps({
-  // Booking-widget selection: one entry per room.
+  // Booking-widget selection: one entry per room (a single reservation).
   rooms: { type: Array, default: () => [{ adults: 1, children: 0 }] },
+  // Multiple reservations: [{ name, rooms: [{ adults, children }] }]. When set,
+  // rooms are grouped under their reservation/hotel and takes precedence over `rooms`.
+  reservations: { type: Array, default: null },
   modelValue: { type: Array, default: () => [] },
   // Event-configurable extra fields.
   teamName: { type: Boolean, default: false },
@@ -43,7 +46,16 @@ const makeRoom = (room, i) => {
     additionalGuests: saved?.additionalGuests?.length ? saved.additionalGuests.map((g) => reactive({ ...blank(), ...g })) : seeded,
   })
 }
-const roomsData = reactive(props.rooms.map(makeRoom))
+// Flatten the selection into per-room descriptors. With `reservations`, rooms
+// are grouped under their reservation/hotel; otherwise it's a flat list (single
+// reservation). `roomsData` + the model stay flat (global index), so validation
+// and emits are unchanged.
+const grouped = Array.isArray(props.reservations) && props.reservations.length > 0
+const descriptors = grouped
+  ? props.reservations.flatMap((res, ri) => (res.rooms || []).map((rm, idx) => ({ occ: rm, resName: res.name, resIndex: ri, roomInRes: idx, firstInRes: idx === 0 })))
+  : props.rooms.map((rm, i) => ({ occ: rm, resName: null, resIndex: 0, roomInRes: i, firstInRes: false }))
+const roomsData = reactive(descriptors.map((d, i) => makeRoom(d.occ, i)))
+const roomLabel = (i) => `Room ${(grouped ? descriptors[i].roomInRes : i) + 1} — Guest Information`
 
 const touched = reactive({})
 const touch = (i, f) => { touched[`${i}.${f}`] = true }
@@ -71,8 +83,12 @@ watch(valid, (v) => emit('update:valid', v), { immediate: true })
 
 <template>
   <div class="rg">
-    <section v-for="(room, i) in roomsData" :key="i" class="rg__room">
-      <h4 class="rg__h">Room {{ i + 1 }} — Guest Information</h4>
+    <template v-for="(room, i) in roomsData" :key="i">
+      <h3 v-if="grouped && descriptors[i].firstInRes" class="rg__resh">
+        Reservation {{ descriptors[i].resIndex + 1 }}<template v-if="descriptors[i].resName"> — {{ descriptors[i].resName }}</template>
+      </h3>
+      <section class="rg__room">
+        <h4 class="rg__h">{{ roomLabel(i) }}</h4>
 
       <div class="cgf__grid">
         <label class="cgf__field">
@@ -138,13 +154,15 @@ watch(valid, (v) => emit('update:valid', v), { immediate: true })
         </div>
         <button type="button" class="rg__addbtn" @click="addGuest(i)"><q-icon name="add" size="18px" /> Add Additional Guest</button>
       </div>
-    </section>
+      </section>
+    </template>
   </div>
 </template>
 
 <style scoped>
 .rg { display: flex; flex-direction: column; gap: 28px; }
 .rg__room { display: flex; flex-direction: column; gap: 14px; }
+.rg__resh { font-size: 1.25rem; font-weight: 800; color: var(--ds-color-text); margin: 4px 0 -8px; }
 .rg__h { font-size: 1.0625rem; font-weight: 700; color: var(--ds-color-text); margin: 0; }
 .rg__opt { color: var(--ds-color-text-subtle); font-style: normal; font-weight: 400; }
 
@@ -177,6 +195,6 @@ watch(valid, (v) => emit('update:valid', v), { immediate: true })
 .rg__guest { display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: end; }
 .rg__remove { width: 46px; height: 46px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md); background: var(--ds-color-surface); color: var(--ds-color-text-subtle); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .rg__remove:hover { background: var(--ds-color-surface-sunken); color: var(--ds-color-text); }
-.rg__addbtn { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; background: none; border: 0; padding: 4px 0; color: var(--ds-color-link); font-family: inherit; font-weight: 600; font-size: 0.9375rem; cursor: pointer; }
+.rg__addbtn { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; background: none; border: 0; padding: 4px 0; color: var(--ds-color-text); font-family: inherit; font-weight: 700; font-size: 0.9375rem; cursor: pointer; }
 .rg__addbtn:hover { text-decoration: underline; }
 </style>
