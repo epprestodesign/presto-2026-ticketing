@@ -34,3 +34,22 @@ export const Reservation = {
     },
   ),
 }
+
+/**
+ * Multiple Room Reservations — guest forms **grouped by reservation/hotel**.
+ * Each reservation's rooms appear under its own header; Additional Guests are
+ * still pre-seeded from each room's occupancy.
+ */
+export const MultipleRoomReservations = {
+  name: 'Multiple Room Reservations',
+  render: () => wrap(
+    `<step-contact-info mode="reservations" :reservations="reservations" v-model="m" />`,
+    {
+      m: ref([]),
+      reservations: [
+        { name: 'Hilton Orlando Lake Buena Vista', rooms: [{ adults: 2, children: 0 }, { adults: 3, children: 1 }] },
+        { name: 'Omni Orlando Resort', rooms: [{ adults: 2, children: 0 }] },
+      ],
+    },
+  ),
+}

@@ -6,6 +6,16 @@ import { ref, computed } from 'vue'
 import Filter from '../../components/browse/Filter.vue'
 import SortDropdown from '../../components/browse/SortDropdown.vue'
 import AllFiltersDialog from '../../components/browse/AllFiltersDialog.vue'
+import HotelMap from '../../components/HotelMap.vue'
+
+// A few hotels + the event venue for the sidebar map.
+const sidebarHotels = [
+  { id: '1', name: 'Hilton Nashville Downtown', location: 'Nashville, TN', lat: 36.1567, lng: -86.7790, price: 250, rating: 4.5, reviews: 120 },
+  { id: '2', name: 'Omni Nashville Hotel', location: 'Nashville, TN', lat: 36.1583, lng: -86.7758, price: 289, rating: 4.6, reviews: 980 },
+  { id: '3', name: 'The Hermitage Hotel', location: 'Nashville, TN', lat: 36.1652, lng: -86.7836, price: 415, rating: 4.8, reviews: 540 },
+  { id: '4', name: 'JW Marriott Nashville', location: 'Nashville, TN', lat: 36.1554, lng: -86.7812, price: 332, rating: 4.7, reviews: 760 },
+]
+const sidebarEvent = { lat: 36.1592, lng: -86.7785, label: 'Tournament venue' }
 
 export default {
   title: 'Browse Hotels/Search & Filters',
@@ -112,19 +122,22 @@ export const AllFilters = {
   name: 'All Filters',
   parameters: { layout: 'fullscreen' },
   render: () => ({
-    components: { BrowseFilter: Filter, SortDropdown },
+    components: { BrowseFilter: Filter, HotelMap, AllFiltersDialog },
     setup() {
+      const open = ref(false)
+      const dialogFilters = ref({})
+      const count = computed(() => resultCount(dialogFilters.value))
       return {
-        sort: ref('recommended'),
-        property: ref(''),
-        suggestions: propertySuggestions,
+        open, dialogFilters, count,
         budget: ref({ min: 20, max: 522 }),
         histogram: priceHistogram,
-        guest: ref('Any'),
         stars: ref([4, 5]),
-        hotelClass: ref(['4-star', '5-star']),
         brands: ref(['Cambria', 'Comfort']),
         amenities: ref(['Free WiFi', 'Swimming Pool']),
+        roomType: ref(['King']),
+        hotels: sidebarHotels,
+        event: sidebarEvent,
+        radius: ref(5),
       }
     },
     template: `
@@ -132,21 +145,30 @@ export const AllFilters = {
         <aside style="max-width:420px;margin:0 auto;background:var(--ds-color-surface);border:1px solid var(--ds-color-border);border-radius:var(--ds-radius-lg);padding:24px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px">
             <h2 style="margin:0;font-size:1.5rem;font-weight:800;color:var(--ds-color-text)">Filters</h2>
-            <sort-dropdown v-model="sort" />
+            <button type="button" @click="open = true" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border:1px solid var(--ds-color-border-bold);border-radius:999px;background:var(--ds-color-surface);color:var(--ds-color-text);font-weight:600;font-size:.9375rem;cursor:pointer;font-family:inherit">
+              <q-icon name="tune" size="18px" /> All filters
+            </button>
           </div>
-          <browse-filter collapsible type="propertySearch" :suggestions="suggestions" v-model="property" />
-          <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
-          <browse-filter collapsible type="budget" :min="20" :max="850" :histogram="histogram" v-model="budget" />
-          <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
-          <browse-filter collapsible type="hotelClass" v-model="hotelClass" />
-          <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
-          <browse-filter collapsible type="guestRating" v-model="guest" />
-          <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
-          <browse-filter collapsible type="starRating" v-model="stars" />
+          <div style="margin-bottom:8px">
+            <h3 style="margin:0 0 12px;font-size:1.25rem;font-weight:800;color:var(--ds-color-text)">Map</h3>
+            <hotel-map :hotels="hotels" :event-location="event" :search-radius="radius" @update:search-radius="radius = $event" radius-unit="mi" :zoom="12" height="220px" />
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:12px">
+              <span style="font-weight:600;color:var(--ds-color-text)">Search radius</span>
+              <strong style="color:var(--ds-color-text);font-variant-numeric:tabular-nums">{{ radius }} mi</strong>
+            </div>
+            <q-slider v-model="radius" :min="1" :max="25" :step="1" :label-value="radius + ' mi'" label color="dark" track-color="grey-4" />
+          </div>
           <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
           <browse-filter collapsible type="brands" v-model="brands" />
           <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
           <browse-filter collapsible type="amenitiesGrid" v-model="amenities" />
+          <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
+          <browse-filter collapsible type="budget" :min="20" :max="850" :histogram="histogram" v-model="budget" />
+          <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
+          <browse-filter collapsible type="starRating" v-model="stars" />
+          <hr style="border:0;border-top:1px solid var(--ds-color-border);margin:24px 0" />
+          <browse-filter collapsible type="roomType" v-model="roomType" />
+          <all-filters-dialog v-model="open" :filters="dialogFilters" :result-count="count" @update:filters="dialogFilters = $event" />
         </aside>
       </div>`,
   }),

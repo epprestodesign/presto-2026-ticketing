@@ -28,7 +28,8 @@ existing work.
 | If you need to… | Go to | Reuse |
 | --- | --- | --- |
 | A surface card | `Layout / Card` | `DsCard` |
-| A slide-over / drawer | `Layout / Side Panel` | `DsSidePanel` |
+| A centered modal / dialog | `Feedback / Modal` | `DsModal` (backdrop, ESC, click-out, scroll-lock, header/footer slots, teleported) |
+| A slide-over / drawer | `Layout / Side Panel` | `DsSidePanel` (`side="right" / "left" / "center"`) |
 | A list / setting row | `Data Display / List Item` | `DsListItem` |
 | A review score (★ x/y) | `Data Display / Rating` | `DsRating` |
 | Expand/collapse rows | `Data Display / Accordion` | `DsAccordion` |
@@ -39,15 +40,16 @@ existing work.
 | Save/bookmark a hotel | `Browse Hotels / Hotel Listing Card` | `HotelListingCard` bookmark + toast |
 | Show saved hotels | `Your Trips / Saved Items` | `SavedItems`, `SavedFlyout` |
 | Filter or sort results | `Browse Hotels / Search & Filters` | `browse/Filter.vue` (`type` prop), `browse/AllFiltersDialog.vue`, `browse/SortDropdown.vue` |
-| A consolidated "All filters" modal | `Browse Hotels / Search & Filters` | `browse/AllFiltersDialog.vue` (accordion sections + live count) |
+| Search within a long filter list | `Browse Hotels / Search & Filters` | `browse/Filter.vue` — inline search on `amenities` / `amenitiesGrid` / `brands` |
+| A consolidated "All filters" modal | `Browse Hotels / Search & Filters` | `browse/AllFiltersDialog.vue` (accordion sections + live count; built on `DsModal`) |
 | A cart / order summary | `Checkout` & nav | `CartReview` (body — `reserve` / `hold` / `reservations`) + `CartFlyout` (chrome) |
 | A stepped checkout | `Checkout Experience / *` | `checkout/CheckoutPage.vue` + `checkout/steps/*` |
 | A phone field w/ country code | (forms) | `checkout/PhoneField.vue` |
 | A quantity control | `Inputs / Quantity Stepper` | `QuantityStepper.vue` |
 | A payment card form / logos | `Checkout / Payment Dialogs` | `checkout/AddPaymentDialog.vue`, `lib/paymentLogos.js` |
 | A toast / snackbar | `Feedback / Toast` | `$q.notify({ classes: 'ds-toast ds-toast--success' })` |
-| A map with pins | `Browse Hotels / Hotel Map` | `HotelMap.vue` (+ `lib/googleMaps.js`) |
-| A map **search-radius** overlay | `Browse Hotels / Hotel Map` | `HotelMap.vue` (`searchRadius` + `radiusUnit`) |
+| A map with pins | `Browse Hotels / Hotel Map` | `HotelMap.vue` (+ `lib/googleMaps.js`) — native +/- zoom, `clusterMaxZoom` |
+| A map **search-radius** overlay | `Browse Hotels / Hotel Map` | `HotelMap.vue` — `searchRadius` (two-way: map zoom ⇄ slider) + `radiusUnit` |
 | Group-booking availability inventory | `Browse Hotels / Availability Dialog` | `AvailabilityDialog.vue` (summary + hold rooms carousel) |
 | Hotel imagery | `Foundations / Imagery` | `lib/imagery.js` (`loadImagery()`) |
 | A full hotel detail screen | `Hotel Details / Hotel Detail Page` | `details/HotelDetailPage.vue` |
@@ -100,6 +102,12 @@ existing work.
 - **State sync** patterns in use: `v-model:<name>` (e.g. `v-model:bookmarked`),
   parent-owned reactive lists passed as props + `remove`/`update` events, and
   `defineExpose({ … })` for things like `clear()` / `openSaved()`.
+- **Modals & panels are primitives.** Centered dialogs use **`DsModal`**
+  (backdrop, ESC, click-out, scroll-lock, mobile-fullscreen, `#header`/`#footer`
+  slots, teleported to `<body>`); slide-overs use **`DsSidePanel`**
+  (`side="right" / "left" / "center"`). Don't hand-roll overlay chrome — the
+  booking dialogs (`AvailabilityDialog`, `AllFiltersDialog`) and the
+  flyouts/sheets (`SavedFlyout`, `ProfileEditModal`) are built on these.
 - **Amenities come from one catalog.** Reference `src/lib/amenities.js` by `key`
   and render via the `Amenity` component (or the helpers `amenityGroups()` /
   `filterAmenities()` / `popularAmenities()`). Don't hardcode amenity lists in
@@ -125,7 +133,8 @@ existing work.
 | Component | Path | Story |
 | --- | --- | --- |
 | `DsCard` | `components/DsCard.vue` | Layout / Card — the standard surface container |
-| `DsSidePanel` | `components/DsSidePanel.vue` | Layout / Side Panel — slide-over chrome (scrim + panel) |
+| `DsModal` | `components/DsModal.vue` | Feedback / Modal — centered dialog shell (backdrop, ESC, scroll-lock, header/footer slots) |
+| `DsSidePanel` | `components/DsSidePanel.vue` | Layout / Side Panel — slide-over chrome (scrim + panel; right/left/center) |
 | `DsListItem` | `components/DsListItem.vue` | Data Display / List Item — leading + title/subtitle + trailing |
 | `DsRating` | `components/DsRating.vue` | Data Display / Rating — read-only review score |
 | `DsAccordion` | `components/DsAccordion.vue` | Data Display / Accordion — expand/collapse rows |
@@ -138,18 +147,18 @@ existing work.
 | --- | --- | --- |
 | `CartReview` | `components/CartReview.vue` | Recyclable cart body — modes `reserve` (summary), `hold` (accordion + per-night steppers), `reservations` (multi-hotel per-night rows, no steppers); shared by the fly-out, checkout review step, and the rail. |
 | `CartFlyout` | `components/CartFlyout.vue` | Right slide-over chrome around `CartReview`. |
-| `SavedItems` / `SavedFlyout` | `components/yourtrips/` | "Saved Hotels" list (controlled) + its cart-style fly-out. |
-| `Filter` / `SortDropdown` | `components/browse/` | All filter types via `type`; results sort. |
+| `SavedItems` / `SavedFlyout` | `components/yourtrips/` | "Saved Hotels" list (controlled) + its fly-out (built on `DsSidePanel`). |
+| `Filter` / `SortDropdown` | `components/browse/` | All filter types via `type`; results sort. **Inline search** on `amenities` / `brands`; **Room Type** chips auto-ordered least→max occupancy (twin → double → queen → king → suite); **Budget** with per-night ⇄ total toggle + editable Min/Max. |
 | `HotelListingCard` | `components/HotelListingCard.vue` | Horizontal result card; carousel, rating, price, bookmark, and a group-booking **Availability** button → `AvailabilityDialog`. |
-| `HotelMap` | `components/HotelMap.vue` | Google map w/ price pills, clustering, **search-radius** circle, no-key fallback. |
+| `HotelMap` | `components/HotelMap.vue` | Google map w/ price pills, clustering (`clusterMaxZoom`), native +/- zoom, **search-radius** circle (two-way bound: map zoom ⇄ `searchRadius` slider), no-key fallback. |
 | `Amenity` + `lib/amenities` | `components/Amenity.vue`, `src/lib/amenities.js` | Icon+label amenity unit + the **catalog** (67 amenities; helpers `getAmenities`, `popularAmenities`, `filterAmenities`, `amenityGroups`). Reference amenities by `key`. |
 | Hotel Details set | `components/details/` | `HotelDetailPage`, `HotelSummaryHeader`, `DetailTabs`, `GalleryHero`, `RoomCard`, `RoomsCarousel`, `AmenitiesSection`, `AboutProperty`, `PoliciesSection`. |
-| `AvailabilityDialog` | `components/AvailabilityDialog.vue` | Group availability modal — hotel summary + a `hold`-mode `RoomsCarousel`. |
-| `AllFiltersDialog` | `components/browse/AllFiltersDialog.vue` | "All filters" modal — stacks `Filter` sections as accordions with a live result count. |
+| `AvailabilityDialog` | `components/AvailabilityDialog.vue` | Group availability modal (on `DsModal`) — hotel summary + a `hold`-mode `RoomsCarousel`. |
+| `AllFiltersDialog` | `components/browse/AllFiltersDialog.vue` | "All filters" modal (on `DsModal`) — stacks `Filter` sections as accordions with a live result count. |
 | `ReservationGuests` | `components/checkout/ReservationGuests.vue` | Per-room reservation guest forms, aware of the booking widget's room/traveler selection. |
 | `PhoneField` | `components/checkout/PhoneField.vue` | Phone input with country-code dropdown. |
 | `QuantityStepper` | `components/QuantityStepper.vue` | − / value / + with remove-at-min. |
-| `ProfileEditModal` | `components/managebooking/ProfileEditModal.vue` | Full-height edit modal using DS field styles. |
+| `ProfileEditModal` | `components/managebooking/ProfileEditModal.vue` | Full-height center sheet (on `DsSidePanel` `side="center"`) using DS field styles. |
 | `lib/imagery` | `src/lib/imagery.js` | `loadImagery()` → categorized hotel photos (local fallback). |
 | `lib/paymentLogos` | `src/lib/paymentLogos.js` | `paymentLogo(name)` → card-brand SVG URL. |
 | `lib/googleMaps` | `src/lib/googleMaps.js` | `loadGoogleMaps()` + `hasMapsKey()`. |

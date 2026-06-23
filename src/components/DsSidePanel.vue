@@ -9,6 +9,7 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   side: { type: String, default: 'right' },   // right | left | center (full-height sheet)
   title: { type: String, default: '' },
+  ariaLabel: { type: String, default: '' },   // accessible label when there's no visible title
   width: { type: String, default: '500px' },
   persistent: { type: Boolean, default: false }, // clicking the scrim won't close
 })
@@ -31,7 +32,7 @@ onBeforeUnmount(() => { if (typeof document !== 'undefined') { document.body.sty
   <teleport to="body">
     <div v-if="modelValue" class="dsp" :class="`dsp--${side}`">
       <div class="dsp__scrim" @click="onScrim" />
-      <aside class="dsp__panel" role="dialog" aria-modal="true" :aria-label="title || 'Panel'" :style="{ width }">
+      <aside class="dsp__panel" role="dialog" aria-modal="true" :aria-label="ariaLabel || title || 'Panel'" :style="{ width }">
         <header class="dsp__head">
           <button class="dsp__close" aria-label="Close" @click="close"><q-icon name="close" size="22px" /></button>
           <h2 v-if="title" class="dsp__title">{{ title }}</h2>

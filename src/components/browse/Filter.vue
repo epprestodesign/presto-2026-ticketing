@@ -28,6 +28,7 @@ const props = defineProps({
   step: { type: Number, default: 10 },
   currency: { type: String, default: '$' },
   histogram: { type: Array, default: null }, // budget: price-distribution bar heights
+  nights: { type: Number, default: 3 }, // budget: nights used to scale per-night ↔ total
   // propertySearch
   placeholder: { type: String, default: '' },
   suggestions: { type: Array, default: null }, // [string] or [{ name, location }]
@@ -55,10 +56,13 @@ const DEFAULTS = {
   },
   roomType: {
     title: 'Room Type',
+    // Ordered least → most bed occupancy (see ROOM_TYPE_ORDER). The component
+    // re-sorts whatever options it's given into this canonical order anyway.
     options: [
-      { label: 'King', icon: 'king_bed' },
+      { label: 'Twin', icon: 'single_bed' },
       { label: 'Double', icon: 'bed' },
       { label: 'Queen', icon: 'bed' },
+      { label: 'King', icon: 'king_bed' },
       { label: 'Suite', icon: 'meeting_room' },
     ],
     value: () => [],
@@ -99,6 +103,17 @@ const tiles = computed(() => props.tiles || cfg.value.tiles || [])
 const brandOpts = computed(() => props.brands || cfg.value.brands || [])
 const suggestions = computed(() => props.suggestions || [])
 
+// Room Type chips always read left→right from least to most bed occupancy,
+// regardless of the order options are supplied in. Unknown labels sort last but
+// keep their relative order (stable sort).
+const ROOM_TYPE_ORDER = ['twin', 'single', 'cot', 'double', 'full', 'queen', 'king', 'suite']
+const roomTypeRank = (label) => {
+  const l = String(label).toLowerCase()
+  const i = ROOM_TYPE_ORDER.findIndex((k) => l.includes(k))
+  return i === -1 ? ROOM_TYPE_ORDER.length : i
+}
+const roomTypeOpts = computed(() => [...opts.value].sort((a, b) => roomTypeRank(a.label) - roomTypeRank(b.label)))
+
 // v-model with per-type defaults when the parent leaves it undefined.
 const val = computed({
   get: () => (props.modelValue === undefined ? cfg.value.value?.() : props.modelValue),
@@ -114,19 +129,31 @@ const range = computed({
   get: () => val.value || { min: props.min, max: props.max },
   set: (v) => { val.value = v },
 })
-// Editable Min/Max inputs, kept in sync with the slider and clamped so the
-// handles never cross. An empty Max means "no cap" (the slider's top).
+// Price basis — the budget can show per-night (canonical) or total trip cost.
+// `range` stays in per-night terms; the toggle scales the *displayed* values by
+// `nights`, so the emitted v-model is always per-night regardless of basis.
+const priceBasis = ref('night') // 'night' | 'total'
+const factor = computed(() => (priceBasis.value === 'total' ? Math.max(1, props.nights) : 1))
+const dispMin = computed(() => props.min * factor.value)
+const dispMax = computed(() => props.max * factor.value)
+const dispStep = computed(() => props.step * factor.value)
+const dispRange = computed({
+  get: () => ({ min: range.value.min * factor.value, max: range.value.max * factor.value }),
+  set: (v) => { range.value = { min: Math.round(v.min / factor.value), max: Math.round(v.max / factor.value) } },
+})
+// Editable Min/Max inputs (in the displayed basis), clamped so the handles never
+// cross. An empty Max means "no cap" (the slider's top).
 const setMin = (v) => {
   let n = Number(v)
-  if (Number.isNaN(n)) n = props.min
-  n = Math.max(props.min, Math.min(n, range.value.max - props.step))
-  range.value = { min: n, max: range.value.max }
+  if (Number.isNaN(n)) n = dispMin.value
+  n = Math.max(dispMin.value, Math.min(n, dispRange.value.max - dispStep.value))
+  dispRange.value = { min: n, max: dispRange.value.max }
 }
 const setMax = (v) => {
-  let n = (v === '' || v == null) ? props.max : Number(v)
-  if (Number.isNaN(n)) n = props.max
-  n = Math.min(props.max, Math.max(n, range.value.min + props.step))
-  range.value = { min: range.value.min, max: n }
+  let n = (v === '' || v == null) ? dispMax.value : Number(v)
+  if (Number.isNaN(n)) n = dispMax.value
+  n = Math.min(dispMax.value, Math.max(n, dispRange.value.min + dispStep.value))
+  dispRange.value = { min: dispRange.value.min, max: n }
 }
 
 // Price-distribution bars: scaled to the tallest bucket; a bar is "active"
@@ -174,6 +201,33 @@ const pick = (s) => { val.value = s.name; acFocused.value = false }
 // Collapsible section state.
 const open = ref(props.defaultOpen)
 
+// Inline search — filters long lists (amenities / amenitiesGrid / brands) by
+// label as you type. While searching we bypass the View-more collapse and show
+// every match. Each Filter renders one `type`, so a single query ref serves the
+// active list (the search field is rendered only by those three sections).
+const query = ref('')
+const searching = computed(() => query.value.trim().length > 0)
+const q = computed(() => query.value.trim().toLowerCase())
+const matchLabel = (label) => label.toLowerCase().includes(q.value)
+const filteredOpts = computed(() => (searching.value ? opts.value.filter(matchLabel) : opts.value))
+const filteredTiles = computed(() => (searching.value ? tiles.value.filter((t) => matchLabel(t.label)) : tiles.value))
+// Brands: a parent match keeps all its children; otherwise keep matching children.
+const filteredBrands = computed(() => {
+  if (!searching.value) return brandOpts.value
+  return brandOpts.value
+    .map((b) => {
+      if (matchLabel(b.name)) return b
+      const children = (b.children || []).filter(matchLabel)
+      return children.length ? { ...b, children } : null
+    })
+    .filter(Boolean)
+})
+const noMatches = computed(() => searching.value && (
+  props.type === 'amenitiesGrid' ? filteredTiles.value.length === 0
+  : props.type === 'brands' ? filteredBrands.value.length === 0
+  : filteredOpts.value.length === 0
+))
+
 // "View more / Fewer amenity options" — collapse long amenity lists/grids to a
 // preview, with a toggle. Defaults: 15 checkbox rows, 8 grid tiles.
 const DEFAULT_COLLAPSE = { amenities: 15, amenitiesGrid: 8 }
@@ -184,10 +238,11 @@ const collapseLimit = computed(() => {
 })
 const totalCount = computed(() => (props.type === 'amenitiesGrid' ? tiles.value.length : opts.value.length))
 const hiddenCount = computed(() => Math.max(0, totalCount.value - collapseLimit.value))
-const canToggle = computed(() => collapseLimit.value > 0 && hiddenCount.value > 0)
+const canToggle = computed(() => collapseLimit.value > 0 && hiddenCount.value > 0 && !searching.value)
 const collapse = (list) => (collapseLimit.value && !showAll.value ? list.slice(0, collapseLimit.value) : list)
-const visibleOpts = computed(() => collapse(opts.value))
-const visibleTiles = computed(() => collapse(tiles.value))
+// While searching, show every match (the View-more collapse is bypassed).
+const visibleOpts = computed(() => (searching.value ? filteredOpts.value : collapse(opts.value)))
+const visibleTiles = computed(() => (searching.value ? filteredTiles.value : collapse(tiles.value)))
 </script>
 
 <template>
@@ -201,12 +256,18 @@ const visibleTiles = computed(() => collapse(tiles.value))
     <div v-show="!collapsible || open" class="flt__body">
     <!-- amenities: checkbox list -->
     <template v-if="type === 'amenities'">
+      <div class="flt__find">
+        <q-icon name="search" size="20px" class="flt__find-icon" />
+        <input v-model="query" class="flt__find-input" type="text" placeholder="Search amenities" autocomplete="off" aria-label="Search amenities" />
+        <button v-if="searching" type="button" class="flt__find-clear" aria-label="Clear search" @click="query = ''"><q-icon name="close" size="18px" /></button>
+      </div>
       <div class="flt__list">
         <button v-for="a in visibleOpts" :key="a" type="button" class="flt__check" :class="{ 'is-on': (val || []).includes(a) }" role="checkbox" :aria-checked="(val || []).includes(a)" @click="toggleVal(a)">
           <span class="flt__box"><q-icon v-if="(val || []).includes(a)" name="check" size="16px" /></span>
           <span class="flt__label">{{ a }}</span>
         </button>
       </div>
+      <p v-if="noMatches" class="flt__noresults">No amenities match “{{ query.trim() }}”.</p>
       <button v-if="canToggle" type="button" class="flt__more" :aria-expanded="showAll" @click="showAll = !showAll">
         <q-icon :name="showAll ? 'expand_less' : 'expand_more'" size="20px" />
         {{ showAll ? 'Fewer amenity options' : `View ${hiddenCount} more amenities` }}
@@ -215,12 +276,18 @@ const visibleTiles = computed(() => collapse(tiles.value))
 
     <!-- amenities: icon-tile grid -->
     <template v-else-if="type === 'amenitiesGrid'">
+      <div class="flt__find">
+        <q-icon name="search" size="20px" class="flt__find-icon" />
+        <input v-model="query" class="flt__find-input" type="text" placeholder="Search amenities" autocomplete="off" aria-label="Search amenities" />
+        <button v-if="searching" type="button" class="flt__find-clear" aria-label="Clear search" @click="query = ''"><q-icon name="close" size="18px" /></button>
+      </div>
       <div class="flt__grid">
         <button v-for="t in visibleTiles" :key="t.label" type="button" class="flt__tile" :class="{ 'is-on': (val || []).includes(t.label) }" :aria-pressed="(val || []).includes(t.label)" @click="toggleVal(t.label)">
           <q-icon :name="t.icon" size="24px" />
           <span>{{ t.label }}</span>
         </button>
       </div>
+      <p v-if="noMatches" class="flt__noresults">No amenities match “{{ query.trim() }}”.</p>
       <button v-if="canToggle" type="button" class="flt__more" :aria-expanded="showAll" @click="showAll = !showAll">
         <q-icon :name="showAll ? 'expand_less' : 'expand_more'" size="20px" />
         {{ showAll ? 'Fewer amenity options' : `View ${hiddenCount} more amenities` }}
@@ -229,7 +296,7 @@ const visibleTiles = computed(() => collapse(tiles.value))
 
     <!-- room type: icon chip toggles -->
     <div v-else-if="type === 'roomType'" class="flt__chips">
-      <button v-for="o in opts" :key="o.label" type="button" class="flt__chip" :class="{ 'is-on': (val || []).includes(o.label) }" :aria-pressed="(val || []).includes(o.label)" @click="toggleVal(o.label)">
+      <button v-for="o in roomTypeOpts" :key="o.label" type="button" class="flt__chip" :class="{ 'is-on': (val || []).includes(o.label) }" :aria-pressed="(val || []).includes(o.label)" @click="toggleVal(o.label)">
         <q-icon :name="o.icon" size="20px" />
         <span>{{ o.label }}</span>
       </button>
@@ -260,7 +327,12 @@ const visibleTiles = computed(() => collapse(tiles.value))
 
     <!-- brands: nested checkbox tree -->
     <div v-else-if="type === 'brands'" class="flt__brands">
-      <div v-for="b in brandOpts" :key="b.name" class="flt__brand">
+      <div class="flt__find">
+        <q-icon name="search" size="20px" class="flt__find-icon" />
+        <input v-model="query" class="flt__find-input" type="text" placeholder="Search brands" autocomplete="off" aria-label="Search brands" />
+        <button v-if="searching" type="button" class="flt__find-clear" aria-label="Clear search" @click="query = ''"><q-icon name="close" size="18px" /></button>
+      </div>
+      <div v-for="b in filteredBrands" :key="b.name" class="flt__brand">
         <div class="flt__brandhead">
           <button type="button" class="flt__check" :class="{ 'is-on': brandState(b) === 'all' }" @click="toggleBrand(b)">
             <span class="flt__box" :class="{ 'is-indet': brandState(b) === 'some' }">
@@ -270,34 +342,44 @@ const visibleTiles = computed(() => collapse(tiles.value))
             <span class="flt__label">{{ b.name }}</span>
           </button>
           <button v-if="(b.children || []).length" type="button" class="flt__chev" :aria-label="expanded[b.name] ? 'Collapse' : 'Expand'" @click="toggleExpand(b.name)">
-            <q-icon :name="expanded[b.name] ? 'expand_less' : 'expand_more'" size="22px" />
+            <q-icon :name="(expanded[b.name] || searching) ? 'expand_less' : 'expand_more'" size="22px" />
           </button>
         </div>
-        <div v-show="expanded[b.name]" class="flt__children">
+        <div v-show="expanded[b.name] || searching" class="flt__children">
           <button v-for="c in b.children" :key="c" type="button" class="flt__check flt__check--child" :class="{ 'is-on': (val || []).includes(c) }" role="checkbox" :aria-checked="(val || []).includes(c)" @click="toggleVal(c)">
             <span class="flt__box"><q-icon v-if="(val || []).includes(c)" name="check" size="16px" /></span>
             <span class="flt__label">{{ c }}</span>
           </button>
         </div>
       </div>
+      <p v-if="noMatches" class="flt__noresults">No brands match “{{ query.trim() }}”.</p>
     </div>
 
     <!-- budget: dual-handle slider + min/max boxes (+ optional price histogram) -->
     <div v-else-if="type === 'budget'" class="flt__budget" :class="{ 'flt__budget--histo': bars.length }">
+      <div class="flt__basis" role="radiogroup" aria-label="Price basis">
+        <button type="button" class="flt__radio flt__radio--inline" :class="{ 'is-on': priceBasis === 'night' }" role="radio" :aria-checked="priceBasis === 'night'" @click="priceBasis = 'night'">
+          <span class="flt__dot"><span v-if="priceBasis === 'night'" /></span><span class="flt__label">Per night</span>
+        </button>
+        <button type="button" class="flt__radio flt__radio--inline" :class="{ 'is-on': priceBasis === 'total' }" role="radio" :aria-checked="priceBasis === 'total'" @click="priceBasis = 'total'">
+          <span class="flt__dot"><span v-if="priceBasis === 'total'" /></span><span class="flt__label">Total cost</span>
+        </button>
+      </div>
+      <div v-if="priceBasis === 'total'" class="flt__basisnote">Total for {{ nights }} night{{ nights === 1 ? '' : 's' }}</div>
       <div class="flt__mmrow">
         <label class="flt__mm">
           <span>Minimum</span>
-          <span class="flt__mmfield"><span class="flt__mmcur">{{ currency }}</span><input class="flt__mminput" type="number" inputmode="numeric" :value="range.min" :min="min" :max="range.max - step" @change="setMin($event.target.value)" /></span>
+          <span class="flt__mmfield"><span class="flt__mmcur">{{ currency }}</span><input class="flt__mminput" type="number" inputmode="numeric" :value="dispRange.min" :min="dispMin" :max="dispRange.max - dispStep" @change="setMin($event.target.value)" /></span>
         </label>
         <label class="flt__mm">
-          <span>Max price</span>
-          <span class="flt__mmfield"><span class="flt__mmcur">{{ currency }}</span><input class="flt__mminput" type="number" inputmode="numeric" :value="range.max >= max ? null : range.max" placeholder="Max" :min="range.min + step" :max="max" @change="setMax($event.target.value)" /></span>
+          <span>{{ priceBasis === 'total' ? 'Max total' : 'Max price' }}</span>
+          <span class="flt__mmfield"><span class="flt__mmcur">{{ currency }}</span><input class="flt__mminput" type="number" inputmode="numeric" :value="dispRange.max >= dispMax ? null : dispRange.max" placeholder="Max" :min="dispRange.min + dispStep" :max="dispMax" @change="setMax($event.target.value)" /></span>
         </label>
       </div>
       <div v-if="bars.length" class="flt__histo" aria-hidden="true">
         <span v-for="(b, i) in bars" :key="i" class="flt__bar" :class="{ 'is-active': b.active }" :style="{ height: b.h + '%' }" />
       </div>
-      <q-range v-model="range" :min="min" :max="max" :step="step" class="flt__range" color="dark" track-color="grey-4" />
+      <q-range :model-value="dispRange" :min="dispMin" :max="dispMax" :step="dispStep" class="flt__range" color="dark" track-color="grey-4" @update:model-value="dispRange = $event" />
     </div>
 
     <!-- property search: text input with optional autocomplete -->
@@ -374,6 +456,10 @@ const visibleTiles = computed(() => collapse(tiles.value))
 
 /* budget */
 .flt__budget { display: flex; flex-direction: column; padding-top: 4px; }
+/* per-night / total-cost basis toggle */
+.flt__basis { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 8px; }
+.flt__radio--inline { width: auto; gap: 10px; }
+.flt__basisnote { font-size: 0.8125rem; color: var(--ds-color-text-subtle); margin: 0 0 14px; }
 .flt__range { padding: 0 6px; }
 .flt__budget .flt__range { order: 1; }
 .flt__budget .flt__mmrow { order: 2; margin-top: 18px; }
@@ -406,6 +492,16 @@ const visibleTiles = computed(() => collapse(tiles.value))
 .flt__bar.is-active { background: var(--ds-color-background-brand-bold); }
 
 /* property search + autocomplete */
+/* Inline list search (amenities / brands) — leading icon + clearable input. */
+.flt__find { position: relative; display: flex; align-items: center; margin-bottom: 14px; }
+.flt__find-icon { position: absolute; left: 12px; color: var(--ds-color-text-subtle); pointer-events: none; }
+.flt__find-input { width: 100%; height: 44px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-md); padding: 0 38px; font-family: inherit; font-size: 0.9375rem; color: var(--ds-color-text); outline: none; background: var(--ds-color-surface); transition: border-color var(--ds-duration-fast) var(--ds-ease-standard); }
+.flt__find-input:focus { border-color: var(--ds-color-border-focused); }
+.flt__find-input::placeholder { color: var(--ds-color-text-subtlest); }
+.flt__find-clear { position: absolute; right: 8px; width: 28px; height: 28px; border: 0; border-radius: 50%; background: none; color: var(--ds-color-text-subtle); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.flt__find-clear:hover { background: var(--ds-palette-zinc-100); color: var(--ds-color-text); }
+.flt__noresults { color: var(--ds-color-text-subtle); font-size: 0.9375rem; margin: 2px 2px 0; }
+
 .flt__searchwrap { position: relative; }
 .flt__search { width: 100%; height: 54px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-md); padding: 0 18px; font-family: inherit; font-size: 1.0625rem; color: var(--ds-color-text); outline: none; transition: border-color var(--ds-duration-fast) var(--ds-ease-standard); }
 .flt__search:focus { border-color: var(--ds-color-border-focused); }
