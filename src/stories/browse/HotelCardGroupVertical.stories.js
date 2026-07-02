@@ -2,12 +2,7 @@
 // reflow (image top, content, full-width CTA) with the same three availability
 // edge cases as the horizontal card.
 import HotelCardGroup from '../../components/browse/HotelCardGroup.vue'
-
-const nights = [
-  { date: 'Tue, 6/15/2027', roomsLeft: 3 },
-  { date: 'Wed, 6/16/2027', roomsLeft: 3 },
-  { date: 'Thu, 6/17/2027', roomsLeft: 3 },
-]
+import { sampleRooms } from './_rooms-sample.js'
 
 export default {
   title: 'Browse Hotels/Hotel Listing Card/Vertical/Group Block',
@@ -24,7 +19,7 @@ const base = {
   orientation: 'vertical',
   name: 'Embassy Suites Chicago Downtown', stars: 4, distance: '0.3 mi from Main Arena',
   preferred: true, startingPrice: 269,
-  roomType: 'King Bed - Room, 1 King Bed', roomNightly: 269, nights,
+  rooms: sampleRooms,
   imageCategories: ['exterior', 'lobby', 'rooms'], seed: 2,
 }
 const render = (args) => ({

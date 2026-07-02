@@ -2,13 +2,7 @@
 // vertical reflow (image top, content, full-width CTA) with the same three
 // availability edge cases as the horizontal card.
 import HotelCardReserve from '../../components/browse/HotelCardReserve.vue'
-
-const nights = [
-  { date: 'Tue, 6/15/2027', roomsLeft: 100 },
-  { date: 'Wed, 6/16/2027', roomsLeft: 100 },
-  { date: 'Thu, 6/17/2027', roomsLeft: 100 },
-  { date: 'Fri, 6/18/2027', roomsLeft: 100 },
-]
+import { sampleRooms } from './_rooms-sample.js'
 
 export default {
   title: 'Browse Hotels/Hotel Listing Card/Vertical/Book Reservations',
@@ -25,7 +19,7 @@ const base = {
   orientation: 'vertical',
   name: 'The Minuteman Inn', stars: 2.5, distance: '3.48 mi from Acton Boxborough',
   preferred: true, fromNightly: 100, total: 400,
-  roomType: 'King Bed - Room, 1 King Bed', roomNightly: 100, nights,
+  rooms: sampleRooms,
   imageCategories: ['exterior', 'lobby', 'rooms'], seed: 1,
 }
 const render = (args) => ({

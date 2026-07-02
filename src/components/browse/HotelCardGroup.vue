@@ -7,6 +7,7 @@
 //   unavailable → grey "No availability for selected dates" (card dimmed, CTA muted)
 import { ref, computed, onMounted } from 'vue'
 import { loadImagery } from '../../lib/imagery'
+import RoomAvailability from './RoomAvailability.vue'
 
 const props = defineProps({
   name: { type: String, default: 'Hotel Name' },
@@ -25,10 +26,9 @@ const props = defineProps({
   roomsMax: { type: Number, default: 0 },         // partial → "N rooms max"
   roomsRequested: { type: Number, default: 1 },   // partial → "N requested"
   ctaLabel: { type: String, default: 'Select Rooms' },
-  // Availability panel
-  roomType: { type: String, default: 'King Bed - Room, 1 King Bed' },
-  roomNightly: { type: Number, default: null },
-  nights: { type: Array, default: () => [] },     // [{ date, roomsLeft }]
+  // Availability panel — room-type carousel:
+  // [{ type, nightly, nights: [{ date, roomsLeft }] }]
+  rooms: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['select'])
 
@@ -93,7 +93,7 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
 
         <div v-if="distance" class="hc__distance"><q-icon name="place" size="18px" /> <span>{{ distance }}</span></div>
 
-        <button v-if="nights.length" type="button" class="hc__availtoggle" :aria-expanded="open" @click="open = !open">
+        <button v-if="rooms.length" type="button" class="hc__availtoggle" :aria-expanded="open" @click="open = !open">
           Availability <q-icon :name="open ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
       </div>
@@ -107,16 +107,9 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
       </div>
     </div>
 
-    <!-- AVAILABILITY PANEL -->
-    <div v-if="open && nights.length" class="hc__avail">
-      <div class="hc__availcard">
-        <div class="hc__availtitle">{{ roomType }}</div>
-        <div v-if="roomNightly" class="hc__availsub">{{ money2(roomNightly) }} nightly</div>
-        <div v-for="n in nights" :key="n.date" class="hc__availrow">
-          <span class="hc__availdate">{{ n.date }}</span>
-          <span class="hc__availleft">{{ n.roomsLeft }} rooms left</span>
-        </div>
-      </div>
+    <!-- AVAILABILITY PANEL — room-type carousel -->
+    <div v-if="open && rooms.length" class="hc__avail">
+      <room-availability :rooms="rooms" :currency="currency" />
     </div>
   </div>
 </template>
@@ -162,13 +155,7 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
 .hc__cta--muted { background: var(--ds-palette-navy-400); }
 
 /* availability panel */
-.hc__avail { border-top: 1px solid var(--ds-color-border); padding: 20px 24px; display: flex; justify-content: center; }
-.hc__availcard { width: 100%; max-width: 560px; background: var(--ds-color-surface-sunken); border-radius: var(--ds-radius-md); padding: 20px 24px; text-align: center; }
-.hc__availtitle { font-size: 1.25rem; font-weight: 700; color: var(--ds-color-text-brand); }
-.hc__availsub { color: var(--ds-color-text-subtle); margin-bottom: 12px; }
-.hc__availrow { display: flex; justify-content: space-between; max-width: 380px; margin: 0 auto; padding: 6px 0; }
-.hc__availdate { color: var(--ds-color-text-brand); font-weight: 500; }
-.hc__availleft { color: var(--ds-color-text-success); }
+.hc__avail { border-top: 1px solid var(--ds-color-border); padding: 18px 24px; background: var(--ds-color-surface-sunken); }
 
 /* VERTICAL layout — image top, content, full-width CTA (mirrors RoomCard). */
 .hc--vertical { width: 320px; }
