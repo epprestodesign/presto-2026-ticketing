@@ -11,7 +11,7 @@ for a consumer **hotel booking & reservation** experience ("Presto Design System
 ## Live docs
 Storybook is published to GitHub Pages on every push to `main`:
 
-**https://epprestodesign.github.io/presto-ds-v1/**
+**https://epprestodesign.github.io/presto-2026/**
 
 ## Local development
 ```bash
