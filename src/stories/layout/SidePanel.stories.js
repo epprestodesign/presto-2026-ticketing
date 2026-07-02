@@ -19,7 +19,7 @@ edit sheet. Controlled via \`v-model\`; closes on scrim-click or Esc (unless
 - Slots: default (body), \`footer\`, \`header-end\`
 
 \`\`\`html
-<ds-side-panel v-model="open" title="Saved Hotels">
+<ds-side-panel v-model="open" title="Order summary">
   …body…
   <template #footer><q-btn ... /></template>
 </ds-side-panel>
@@ -35,7 +35,7 @@ export const RightDrawer = {
     template: `
       <div style="min-height:100vh;background:var(--ds-palette-neutral-100);padding:24px">
         <q-btn unelevated no-caps color="primary" label="Open panel" @click="open = true" />
-        <ds-side-panel v-model="open" title="Saved Hotels">
+        <ds-side-panel v-model="open" title="Order summary">
           <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
             <ds-list-item title="Hampton Inn Boston-Logan" subtitle="3-star hotel" icon="hotel" chevron clickable />
             <ds-list-item title="The Concord Hotel" subtitle="4-star hotel" icon="hotel" chevron clickable />

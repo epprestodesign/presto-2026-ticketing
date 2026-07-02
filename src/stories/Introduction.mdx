@@ -26,7 +26,7 @@ It has **two layers**:
 
 **1. Experience flows** — the booking journey, in order:
 
-`Browse Hotels` → `Hotel Details` → `Your Trips` → `Checkout Experience` → `Confirmation` → `Manage Booking`
+`Browse Hotels` → `Hotel Details` → `Checkout Experience` → `Confirmation` → `Manage Booking`
 
 **2. Primitives** — the design-system building blocks every flow is assembled
 from: **Foundations, Inputs, Data Display, Feedback, Layout, Navigation**.
@@ -52,7 +52,6 @@ everywhere:
 | **Navigation** | Wayfinding & chrome — global nav, tabs, menus, breadcrumbs, pagination, steppers. |
 | **Browse Hotels** | Discovery — search, filters (incl. an "All Filters" modal), listing cards, map (with search-radius), availability. |
 | **Hotel Details** | The chosen hotel — photo hero gallery, summary header, room selection (rooms carousel + room cards), amenities, policies, room booking dialog. |
-| **Your Trips** | Saved hotels ("travel plans"), surfaced via a bookmark fly-out. |
 | **Checkout Experience** | The stepped checkout — review, contact/group, payment, review reservation. |
 | **Confirmation** | Post-booking success page + everything you need after booking. |
 | **Manage Booking** | The account page — profile, communications, payment, security, help. |
@@ -67,10 +66,9 @@ compare listings on cards or a map, and start a booking.
 
 - **Booking Widget** — destination + dates + guests search entry.
 - **Hotel Listing Card** — the core result card (**horizontal**; the vertical
-  orientation is deprecated), with a photo carousel, rating, price, a **bookmark**
-  to save the hotel (fires a toast), and a **group-booking** mode that adds an
-  **Availability** secondary button opening the **Availability Dialog** (hotel
-  summary + a `hold`-mode rooms carousel).
+  orientation is deprecated), with a photo carousel, rating, price, and a
+  **group-booking** mode that adds an **Availability** secondary button opening
+  the **Availability Dialog** (hotel summary + a `hold`-mode rooms carousel).
 - **Hotel Map** — map-only results with price-pill markers and clustering (with a
   zoom cutoff so pins de-cluster as you zoom in), native **+/- zoom** controls, and
   a **search-radius** circle centered on the event location that's **two-way bound**
@@ -102,12 +100,6 @@ built from — each is also its own story.
 - **Room Booking Dialog** — the per-room booking modal (moved here from Browse).
 - **Amenities** + **Policies & Property** — categorized amenities and the
   policies / "about the property" blocks.
-
-### Your Trips
-**Hotels you've saved.** Bookmarking a listing card adds it to **Saved Hotels**.
-The **Global Nav bookmark icon** opens the cart-style **fly-out** showing the
-list; a docked panel and empty state are also documented. Intentionally a
-lightweight one-time-user surface — not a trip manager.
 
 ### Checkout Experience
 **Turn a selection into a booking.** An Airbnb-style stepped flow, with each step
@@ -161,10 +153,10 @@ usage, props, and guidance.
   hue convention — progress, skeletons, backdrops.
 - **Layout** — `Ds*` structural wrappers: Box, **Card** (the standard surface),
   Container, Grid, Stack, Image List, Section Header, and **Side Panel** (the
-  slide-over chrome — right / left / center — behind the cart & saved fly-outs and
-  the profile edit sheet).
-- **Navigation** — Global Nav (brand + Manage Booking + bookmark + cart, with
-  fly-outs), tabs, menus, breadcrumbs, pagination, steppers.
+  slide-over chrome — right / left / center — behind the cart fly-out and the
+  profile edit sheet).
+- **Navigation** — Global Nav (brand + Manage Booking + cart, with a fly-out),
+  tabs, menus, breadcrumbs, pagination, steppers.
 
 ---
 
@@ -177,7 +169,7 @@ usage, props, and guidance.
 | Per-component overrides & global CSS (incl. `.ds-toast`) | `src/css/app.scss` |
 | Sidebar order / category IA | `.storybook/preview.js` (`storySort`) |
 | Amenities (catalog, filter list, popular set) | `src/lib/amenities.js` (single source of truth) |
-| Components | `src/components/` (top-level primitives + `browse/`, `details/`, `checkout/`, `confirmation/`, `managebooking/`, `yourtrips/`) |
+| Components | `src/components/` (top-level primitives + `browse/`, `details/`, `checkout/`, `confirmation/`, `managebooking/`) |
 | Stories | `src/stories/<category>/*.stories.js` |
 
 ## Workflow

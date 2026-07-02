@@ -37,8 +37,6 @@ existing work.
 | A dual-handle range | `Inputs / Range` | `DsRange` |
 | Nested checkboxes | `Inputs / Checkbox Tree` | `DsCheckboxTree` |
 | A toast / banner | `Feedback / Toast` · `Feedback / Banner` | `ds-toast--*` classes; Banner hue map |
-| Save/bookmark a hotel | `Browse Hotels / Hotel Listing Card` | `HotelListingCard` bookmark + toast |
-| Show saved hotels | `Your Trips / Saved Items` | `SavedItems`, `SavedFlyout` |
 | Filter or sort results | `Browse Hotels / Search & Filters` | `browse/Filter.vue` (`type` prop), `browse/AllFiltersDialog.vue`, `browse/SortDropdown.vue` |
 | Search within a long filter list | `Browse Hotels / Search & Filters` | `browse/Filter.vue` — inline search on `amenities` / `amenitiesGrid` / `brands` |
 | A consolidated "All filters" modal | `Browse Hotels / Search & Filters` | `browse/AllFiltersDialog.vue` (accordion sections + live count; built on `DsModal`) |
@@ -66,7 +64,7 @@ existing work.
 | Path | Holds |
 | --- | --- |
 | `src/components/*.vue` | Top-level components — primitives (`Ds*`, `Amenity`) and core booking pieces (`HotelListingCard`, `AvailabilityDialog`, `HotelMap`, `BookingWidget`, `CartReview`, `CartFlyout`, `GlobalNav`, `RoomBookingDialog`, `QuantityStepper`, `DateRangeCalendar`). |
-| `src/components/<area>/` | Flow components: `browse/`, `details/` (the Hotel Details screen + pieces), `checkout/` (+ `steps/`), `confirmation/`, `yourtrips/`, `managebooking/`. |
+| `src/components/<area>/` | Flow components: `browse/`, `details/` (the Hotel Details screen + pieces), `checkout/` (+ `steps/`), `confirmation/`, `managebooking/`. |
 | `src/stories/<category>/*.stories.js` | One story file per component; the folder ≈ the sidebar category. |
 | `src/stories/*.mdx` | Docs-only pages (this file, Introduction). |
 | `src/lib/` | Non-visual helpers: `amenities.js` (amenity catalog — source of truth), `imagery.js`, `paymentLogos.js`, `googleMaps.js`, `unsplash.js`. |
@@ -99,15 +97,15 @@ existing work.
   `prefix__element` / `prefix--modifier` (e.g. `.hlc__media`, `.mb__rowbox`,
   `.flt__title`). Teleported content (menus, notifies) needs an **unscoped**
   `<style>` block.
-- **State sync** patterns in use: `v-model:<name>` (e.g. `v-model:bookmarked`),
+- **State sync** patterns in use: `v-model:<name>` (e.g. `v-model:open`),
   parent-owned reactive lists passed as props + `remove`/`update` events, and
-  `defineExpose({ … })` for things like `clear()` / `openSaved()`.
+  `defineExpose({ … })` for imperative APIs like `clear()`.
 - **Modals & panels are primitives.** Centered dialogs use **`DsModal`**
   (backdrop, ESC, click-out, scroll-lock, mobile-fullscreen, `#header`/`#footer`
   slots, teleported to `<body>`); slide-overs use **`DsSidePanel`**
   (`side="right" / "left" / "center"`). Don't hand-roll overlay chrome — the
   booking dialogs (`AvailabilityDialog`, `AllFiltersDialog`) and the
-  flyouts/sheets (`SavedFlyout`, `ProfileEditModal`) are built on these.
+  flyouts/sheets (`CartFlyout`, `ProfileEditModal`) are built on these.
 - **Amenities come from one catalog.** Reference `src/lib/amenities.js` by `key`
   and render via the `Amenity` component (or the helpers `amenityGroups()` /
   `filterAmenities()` / `popularAmenities()`). Don't hardcode amenity lists in
@@ -121,7 +119,7 @@ existing work.
 - **Variants are named exports** (`export const GroupHold = …`). Full-page
   components set `parameters: { layout: 'fullscreen' }`.
 - Live/interactive demos use a `render()` with a `setup()` returning reactive
-  state (see `Your Trips / Saved Items → Save from listings`).
+  state (see `Browse Hotels / Booking Widget`).
 - Sidebar order is **explicit** in `preview.js` `storySort` — add new categories
   there (anything after `'*'` sorts last, e.g. `Manage Booking`).
 
@@ -147,9 +145,8 @@ existing work.
 | --- | --- | --- |
 | `CartReview` | `components/CartReview.vue` | Recyclable cart body — modes `reserve` (summary), `hold` (accordion + per-night steppers), `reservations` (multi-hotel per-night rows, no steppers); shared by the fly-out, checkout review step, and the rail. |
 | `CartFlyout` | `components/CartFlyout.vue` | Right slide-over chrome around `CartReview`. |
-| `SavedItems` / `SavedFlyout` | `components/yourtrips/` | "Saved Hotels" list (controlled) + its fly-out (built on `DsSidePanel`). |
 | `Filter` / `SortDropdown` | `components/browse/` | All filter types via `type`; results sort. **Inline search** on `amenities` / `brands`; **Room Type** chips auto-ordered least→max occupancy (twin → double → queen → king → suite); **Budget** with per-night ⇄ total toggle + editable Min/Max. |
-| `HotelListingCard` | `components/HotelListingCard.vue` | Horizontal result card; carousel, rating, price, bookmark, and a group-booking **Availability** button → `AvailabilityDialog`. |
+| `HotelListingCard` | `components/HotelListingCard.vue` | Horizontal result card; carousel, rating, price, and a group-booking **Availability** button → `AvailabilityDialog`. |
 | `HotelMap` | `components/HotelMap.vue` | Google map w/ price pills, clustering (`clusterMaxZoom`), native +/- zoom, **search-radius** circle (two-way bound: map zoom ⇄ `searchRadius` slider), no-key fallback. |
 | `Amenity` + `lib/amenities` | `components/Amenity.vue`, `src/lib/amenities.js` | Icon+label amenity unit + the **catalog** (67 amenities; helpers `getAmenities`, `popularAmenities`, `filterAmenities`, `amenityGroups`). Reference amenities by `key`. |
 | Hotel Details set | `components/details/` | `HotelDetailPage`, `HotelSummaryHeader`, `DetailTabs`, `GalleryHero`, `RoomCard`, `RoomsCarousel`, `AmenitiesSection`, `AboutProperty`, `PoliciesSection`. |

@@ -60,7 +60,7 @@ export const WithThumbnailAndTrailing = {
       <div style="max-width:440px">
         <ds-list-item title="Hampton Inn Boston-Logan" :image="img">
           <template #subtitle><ds-rating :score="3.8" :max="5" :reviews="3254" size="sm" /></template>
-          <template #trailing><q-icon name="bookmark" size="20px" style="color:var(--ds-color-background-brand-bold)" /></template>
+          <template #trailing><q-icon name="star" size="20px" style="color:var(--ds-color-background-brand-bold)" /></template>
         </ds-list-item>
       </div>`,
   }),

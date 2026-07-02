@@ -5,7 +5,6 @@
 // "Manage Booking" button. Accents use the DS primary (Zinc).
 import { ref, reactive, computed } from 'vue'
 import { paymentLogo } from '../../lib/paymentLogos'
-import SavedItems from '../yourtrips/SavedItems.vue'
 import ProfileEditModal from './ProfileEditModal.vue'
 import AddPaymentDialog from '../checkout/AddPaymentDialog.vue'
 
@@ -14,10 +13,6 @@ const props = defineProps({
   methods: { type: Array, default: () => ([
     { logo: 'Amex', last4: '1009', label: 'Amex', sub: 'Default' },
     { logo: 'Visa', last4: '4242', label: 'Visa' },
-  ]) },
-  saved: { type: Array, default: () => ([
-    { id: 'h1', name: 'Hampton Inn Boston-Logan Airport', rating: 3.8, reviews: 3254, hotelClass: '3-star hotel', imageCategories: ['exterior', 'lobby'], seed: 0 },
-    { id: 'h2', name: 'The Concord Hotel', rating: 4.4, reviews: 1190, hotelClass: '4-star hotel', imageCategories: ['lobby', 'rooms'], seed: 1 },
   ]) },
   defaultSection: { type: String, default: 'profile' },
 })
@@ -38,7 +33,6 @@ const initials = computed(() => {
 const editProfile = () => { active.value = 'profile'; editSection.value = 'basic'; editOpen.value = true; emit('edit-profile') }
 
 const SECTIONS = [
-  { key: 'list', icon: 'bookmarks', title: 'My list', subtitle: 'Hotels and trips you’ve saved' },
   { key: 'profile', icon: 'person', title: 'Profile', subtitle: 'Provide your personal details and travel documents' },
   { key: 'communications', icon: 'mail', title: 'Communications', subtitle: 'Control which notifications you get' },
   { key: 'payment', icon: 'credit_card', title: 'Payment methods', subtitle: 'View saved payment methods' },
@@ -137,14 +131,8 @@ const helpRows = [
       <section class="mb__content">
         <h2 class="mb__h2">{{ contentTitle }}</h2>
 
-        <!-- My list -->
-        <div v-if="active === 'list'">
-          <p class="mb__lede">Hotels and trips you’ve saved for later.</p>
-          <saved-items :items="saved" title="Saved Hotels" />
-        </div>
-
         <!-- Profile -->
-        <div v-else-if="active === 'profile'" class="mb__profile">
+        <div v-if="active === 'profile'" class="mb__profile">
           <section class="mb__subsec">
             <div class="mb__subhead"><h3>Basic information</h3><button class="mb__row-action" @click="openEdit('basic')">Edit</button></div>
             <p class="mb__subsub">Make sure this information matches your travel ID, like your passport or license.</p>

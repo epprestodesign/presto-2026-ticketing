@@ -122,20 +122,6 @@ const reservationsCart = {
   ],
 }
 
-import { reactive } from 'vue'
-
-// Sample saved hotels for the bookmark fly-out.
-const savedHotels = [
-  { id: 'h1', name: 'Hampton Inn Boston-Logan Airport', rating: 3.8, reviews: 3254, hotelClass: '3-star hotel', imageCategories: ['exterior', 'lobby'], seed: 0 },
-  { id: 'h2', name: 'The Concord Hotel', rating: 4.4, reviews: 1190, hotelClass: '4-star hotel', imageCategories: ['lobby', 'rooms'], seed: 1 },
-]
-// Each story gets its own reactive copy so removals in the fly-out persist.
-const makeSaved = () => {
-  const saved = reactive(savedHotels.map((x) => ({ ...x })))
-  const onRemove = (it) => { const i = saved.findIndex((s) => s.id === it.id); if (i >= 0) saved.splice(i, 1) }
-  return { saved, onRemove }
-}
-
 export default {
   title: 'Navigation/Global Nav',
   component: GlobalNav,
@@ -163,13 +149,13 @@ Built on DS tokens; primary actions use the brand Navy 900 (#01113E).
   },
 }
 
-/** The bar itself — click the bookmark for Saved Hotels or the cart for the
- *  order summary. Both fly-outs stay closed until their icon is clicked. */
+/** The bar itself — click the cart for the order summary. The fly-out stays
+ *  closed until the cart icon is clicked. */
 export const Default = {
   render: () => ({
     components: { GlobalNav },
-    setup: () => ({ cart: reserveCart, ...makeSaved() }),
-    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" :saved="saved" @remove="onRemove" />`,
+    setup: () => ({ cart: reserveCart }),
+    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" />`,
   }),
 }
 
@@ -177,8 +163,8 @@ export const Default = {
 export const GroupHoldCart = {
   render: () => ({
     components: { GlobalNav },
-    setup: () => ({ cart: holdCart, ...makeSaved() }),
-    template: `<global-nav brand="Soccer League" cart-mode="hold" :cart="cart" :saved="saved" @remove="onRemove" />`,
+    setup: () => ({ cart: holdCart }),
+    template: `<global-nav brand="Soccer League" cart-mode="hold" :cart="cart" />`,
   }),
 }
 
@@ -186,8 +172,8 @@ export const GroupHoldCart = {
 export const ReservationCart = {
   render: () => ({
     components: { GlobalNav },
-    setup: () => ({ cart: reserveCart, ...makeSaved() }),
-    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" :saved="saved" @remove="onRemove" />`,
+    setup: () => ({ cart: reserveCart }),
+    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" />`,
   }),
 }
 
@@ -196,7 +182,7 @@ export const ReservationCart = {
 export const MultipleRoomReservations = {
   render: () => ({
     components: { GlobalNav },
-    setup: () => ({ cart: reservationsCart, ...makeSaved() }),
-    template: `<global-nav brand="Soccer League" cart-mode="reservations" :cart="cart" :saved="saved" @remove="onRemove" />`,
+    setup: () => ({ cart: reservationsCart }),
+    template: `<global-nav brand="Soccer League" cart-mode="reservations" :cart="cart" />`,
   }),
 }

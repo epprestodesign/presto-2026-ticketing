@@ -13,9 +13,9 @@ export default {
   parameters: { layout: 'fullscreen', docs: { description: { component: `
 ## Overview
 The **Manage Booking** account page. The left column has a greeting, a rewards
-card, and a selectable menu (**My list, Profile, Communications, Payment methods,
+card, and a selectable menu (**Profile, Communications, Payment methods,
 Security and settings, Help and feedback**); the right column shows the active
-section. Click a menu row to switch sections. Accents use the DS primary (Zinc).
+section. Click a menu row to switch sections. Accents use the DS primary (Navy).
 Opens from the Global Nav's **Manage Booking** button — see *From Global Nav*.
 ` } } },
 }
@@ -30,7 +30,6 @@ const section = (key) => ({
 
 /** Default — Help and feedback (matches the reference). */
 export const Default = section('help')
-export const MyList = { name: 'My list', ...section('list') }
 export const Profile = section('profile')
 export const Communications = section('communications')
 export const PaymentMethods = { name: 'Payment methods', ...section('payment') }

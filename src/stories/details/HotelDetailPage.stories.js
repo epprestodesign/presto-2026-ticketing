@@ -80,10 +80,10 @@ export const Default = {
 export const FullPage = {
   render: () => ({
     components: { GlobalNav, HotelDetailPage },
-    setup: () => ({ args: base, cart: {}, saved: [] }),
+    setup: () => ({ args: base, cart: {} }),
     template: `
       <div style="background:var(--ds-color-surface)">
-        <global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" :saved="saved" />
+        <global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" />
         <div style="position:relative;color:#fff;padding:28px;min-height:120px;display:flex;align-items:center;justify-content:center;gap:18px;overflow:hidden;background:linear-gradient(90deg,rgba(9,9,11,.78),rgba(9,9,11,.45) 45%,rgba(9,9,11,.55)),var(--ds-palette-zinc-800)">
           <div style="text-align:center">
             <h2 style="margin:0;font-size:1.5rem;font-weight:700">2025–2026 Soccer Season</h2>
