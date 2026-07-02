@@ -9,7 +9,7 @@ The primary, persistent navigation for an app's top-level destinations.
 Composed from QDrawer + QList; wrap as \`PrestoAppNav\` with a route model.
 
 ## When to use
-- Switching between major areas of the app (Explore, Trips, Saved, Account).
+- Switching between major areas of the app (Explore, Trips, Account).
 
 ## When not to use
 - In-context view switching → **Tabs**. Overflow actions → **Menu**.
@@ -23,7 +23,6 @@ export const SideNav = {
     setup: () => ({ drawer: ref(true), active: ref('explore') , items: [
       { key: 'explore', label: 'Explore', icon: 'search' },
       { key: 'trips', label: 'My Trips', icon: 'luggage' },
-      { key: 'saved', label: 'Saved', icon: 'favorite' },
       { key: 'account', label: 'Account', icon: 'account_circle' },
       { key: 'help', label: 'Help', icon: 'support_agent' },
     ] }),

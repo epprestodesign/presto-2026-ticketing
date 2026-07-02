@@ -112,7 +112,7 @@ const holdData = {
 // room at a different hotel tomorrow — two separate reservation cards.
 const reservationsData = {
   heading: 'Your reservations are confirmed!',
-  ctaLabel: 'View your trips',
+  ctaLabel: 'View your bookings',
   itinerary: '72055771948934',
   email: 'youraccount@eventpipe.com',
   reservations: [

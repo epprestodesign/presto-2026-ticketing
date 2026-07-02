@@ -23,7 +23,7 @@ const isMulti = computed(() => props.mode === 'reservations')
 const d = computed(() => props.data || {})
 const hero = computed(() => d.value.heroImage || heroImg)
 const heading = computed(() => d.value.heading || (isMulti.value ? 'Your reservations are confirmed!' : isHold.value ? 'Your block is confirmed!' : "You're confirmed!"))
-const ctaLabel = computed(() => d.value.ctaLabel || (isMulti.value ? 'View your trips' : isHold.value ? 'Manage your block' : 'View your trip'))
+const ctaLabel = computed(() => d.value.ctaLabel || (isMulti.value ? 'View your bookings' : isHold.value ? 'Manage your block' : 'View your booking'))
 
 // Meta rows shown under the heading (label → value), right-aligned values.
 const meta = computed(() => {

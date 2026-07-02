@@ -42,7 +42,7 @@ const starList = computed(() => {
   return Array.from({ length: 5 }, (_, i) => (s >= i + 1 ? 'star' : s >= i + 0.5 ? 'star_half' : 'star_border'))
 })
 
-// Carousel — same pattern as HotelListingCard.
+// Carousel — sources photos from the imagery library by category.
 const loaded = ref([])
 const slides = computed(() => (props.images.length ? props.images : loaded.value))
 const idx = ref(0)
@@ -138,7 +138,7 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
 /* body */
 .hc__body { flex: 1; min-width: 0; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; }
 .hc__name { margin: 0; font-size: 1.375rem; font-weight: 700; color: var(--ds-color-text-brand); }
-.hc__stars { color: var(--ds-palette-amber-400); display: flex; gap: 1px; }
+.hc__stars { color: var(--ds-color-text-brand); display: flex; gap: 1px; }
 .hc__unrated { color: var(--ds-color-text-subtle); font-style: italic; font-size: 0.9375rem; }
 .hc__status { display: inline-flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600; }
 .hc__status--success { color: var(--ds-color-text-success); }
