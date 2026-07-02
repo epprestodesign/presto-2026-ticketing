@@ -1,5 +1,6 @@
-// BROWSE HOTELS / Hotel Card — Group Block — the group-block result card, with
-// its three availability edge cases.
+// BROWSE HOTELS / Hotel Listing Card / Vertical / Group Block — the vertical
+// reflow (image top, content, full-width CTA) with the same three availability
+// edge cases as the horizontal card.
 import HotelCardGroup from '../../components/browse/HotelCardGroup.vue'
 
 const nights = [
@@ -9,24 +10,18 @@ const nights = [
 ]
 
 export default {
-  title: 'Browse Hotels/Hotel Listing Card/Horizontal/Group Block',
+  title: 'Browse Hotels/Hotel Listing Card/Vertical/Group Block',
   component: HotelCardGroup,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `
-## Group Block card
-Group-block result card: photo carousel · name + stars + **rooms-availability**
-status + distance · **starting price / night** · **Select Rooms** CTA ·
-expandable **Availability** panel.
-
-**Availability edge cases**
-- **Matches request** — green "N rooms available — matches request".
-- **Not enough rooms** — orange "N rooms max — N requested"; has rooms, but
-  fewer than the block needs.
-- **No availability** — grey; the card dims and the CTA is muted.
+Vertical **Group Block** card — same content and states as the horizontal card,
+reflowed to a column (image on top, full-width CTA). Set via
+\`orientation="vertical"\`.
 ` } } },
 }
 
 const base = {
+  orientation: 'vertical',
   name: 'Embassy Suites Chicago Downtown', stars: 4, distance: '0.3 mi from Main Arena',
   preferred: true, startingPrice: 269,
   roomType: 'King Bed - Room, 1 King Bed', roomNightly: 269, nights,
@@ -35,26 +30,18 @@ const base = {
 const render = (args) => ({
   components: { HotelCardGroup },
   setup: () => ({ args }),
-  template: `<div style="max-width:1040px"><hotel-card-group v-bind="args" /></div>`,
+  template: `<hotel-card-group v-bind="args" />`,
 })
 
-/** Enough rooms available to match the block request. */
 export const MatchesRequest = {
-  name: 'Matches Request',
-  render,
+  name: 'Matches Request', render,
   args: { ...base, availability: 'matches', roomsAvailable: 3 },
 }
-
-/** Has rooms, but fewer than the block requested. */
 export const NotEnoughRooms = {
-  name: 'Not Enough Rooms',
-  render,
+  name: 'Not Enough Rooms', render,
   args: { ...base, name: 'Kimpton Gray Hotel', stars: null, availability: 'partial', roomsMax: 4, roomsRequested: 1, startingPrice: 249, seed: 3 },
 }
-
-/** No availability for the selected dates — dimmed card, muted CTA. */
 export const NoAvailability = {
-  name: 'No Availability',
-  render,
+  name: 'No Availability', render,
   args: { ...base, name: 'Holiday Inn Express Chicago', stars: 2, availability: 'unavailable', startingPrice: 109, seed: 5 },
 }

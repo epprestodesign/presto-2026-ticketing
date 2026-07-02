@@ -13,6 +13,7 @@ const props = defineProps({
   images: { type: Array, default: () => [] },
   imageCategories: { type: Array, default: () => ['exterior', 'lobby', 'rooms'] },
   seed: { type: Number, default: 0 },
+  orientation: { type: String, default: 'horizontal' }, // horizontal | vertical
   stars: { type: Number, default: null },        // null => "Unrated"
   distance: { type: String, default: '' },
   preferred: { type: Boolean, default: false },
@@ -65,7 +66,7 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
 </script>
 
 <template>
-  <div class="hc" :class="{ 'hc--dim': unavailable }">
+  <div class="hc" :class="[`hc--${orientation}`, { 'hc--dim': unavailable }]">
     <div class="hc__top">
       <!-- MEDIA -->
       <div class="hc__media">
@@ -168,4 +169,15 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
 .hc__availrow { display: flex; justify-content: space-between; max-width: 380px; margin: 0 auto; padding: 6px 0; }
 .hc__availdate { color: var(--ds-color-text-brand); font-weight: 500; }
 .hc__availleft { color: var(--ds-color-text-success); }
+
+/* VERTICAL layout — image top, content, full-width CTA (mirrors RoomCard). */
+.hc--vertical { width: 320px; }
+.hc--vertical .hc__top { flex-direction: column; align-items: stretch; }
+.hc--vertical .hc__media { width: 100%; height: 190px; }
+.hc--vertical .hc__body { gap: 6px; padding-bottom: 12px; }
+.hc--vertical .hc__name { font-size: 1.125rem; }
+.hc--vertical .hc__availtoggle { margin-top: 4px; }
+.hc--vertical .hc__price { width: 100%; align-items: stretch; text-align: left; padding-top: 16px; border-top: 1px solid var(--ds-color-border); }
+.hc--vertical .hc__lrg { align-self: flex-start; }
+.hc--vertical .hc__cta { width: 100%; }
 </style>

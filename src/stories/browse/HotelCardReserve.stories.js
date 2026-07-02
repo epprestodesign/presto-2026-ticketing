@@ -10,7 +10,7 @@ const nights = [
 ]
 
 export default {
-  title: 'Browse Hotels/Hotel Card/Book Reservations',
+  title: 'Browse Hotels/Hotel Listing Card/Horizontal/Book Reservations',
   component: HotelCardReserve,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `
