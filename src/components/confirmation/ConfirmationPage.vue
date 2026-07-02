@@ -285,7 +285,7 @@ const scores = Array.from({ length: 10 }, (_, i) => i + 1)
 </template>
 
 <style scoped>
-.conf { background: var(--ds-palette-neutral-100); min-height: 100vh; padding: 48px 24px 64px; }
+.conf { background: var(--ds-color-surface); min-height: 100vh; padding: 48px 24px 64px; }
 .conf__inner { max-width: 600px; margin: 0 auto; }
 
 /* hero */

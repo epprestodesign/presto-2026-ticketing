@@ -18,7 +18,7 @@ Logos come from the local \`creditCards\` SVG set.
 export const PaymentMethod = {
   render: () => ({
     components: { PaymentMethodDialog },
-    setup() { const open = ref(true); const chosen = ref(null); return { open, chosen } },
+    setup() { const open = ref(false); const chosen = ref(null); return { open, chosen } },
     template: `<div style="padding:40px;min-height:640px">
       <q-btn no-caps unelevated color="primary" label="Open payment method" @click="open = true" />
       <div v-if="chosen" style="margin-top:16px">Selected: {{ chosen.label }}</div>
@@ -31,7 +31,7 @@ export const PaymentMethod = {
 export const AddPayment = {
   render: () => ({
     components: { AddPaymentDialog },
-    setup() { const open = ref(true); const card = ref(null); return { open, card } },
+    setup() { const open = ref(false); const card = ref(null); return { open, card } },
     template: `<div style="padding:40px;min-height:640px">
       <q-btn no-caps unelevated color="primary" label="Open add payment" @click="open = true" />
       <div v-if="card" style="margin-top:16px">Saved: {{ card.brand }} *{{ card.last4 }}</div>

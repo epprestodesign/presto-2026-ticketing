@@ -52,7 +52,7 @@ const reserveData = {
 }
 
 // Group/team room block — one card per hotel, rooms held by night.
-const holdData = {
+export const holdData = {
   blockName: 'Spring Cup — Eagles SC',
   itinerary: '72055771948934',
   email: 'youraccount@eventpipe.com',
@@ -173,23 +173,21 @@ const reservationsData = {
 }
 
 export default {
-  title: 'Confirmation/Confirmation Page',
+  title: 'Confirmation/Confirmation Page/Book Reservation',
   component: ConfirmationPage,
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',
     docs: { description: { component: `
-## Overview
-The **Confirmation Page** is the post-checkout success screen. The hero, itinerary
-meta, reward banner, and "get the app" QR section are shared; the body differs by
-booking type:
+## Confirmation Page — Book Reservation
+The post-checkout success screen for the single-reservation flow. The hero,
+itinerary meta, reward banner, and "get the app" QR section are shared; the body:
 
 - **Reservation** — a single hotel stay: check-in / check-out and room features.
-- **Group Hold** — a group/team room block: one card per hotel with rooms held by night.
-- **Multiple Room Reservations** — one card per reservation; room details reuse the
-  Group Hold layout, showing per-room occupancy and each reservation's own hotel + dates.
+- **Multiple Room Reservations** — one card per reservation, showing per-room
+  occupancy and each reservation's own hotel + dates.
 
-Accents use the DS primary (Zinc 900).
+Accents use the DS primary (Navy).
 ` } },
   },
 }
@@ -200,15 +198,6 @@ export const Reservation = {
     components: { ConfirmationPage },
     setup: () => ({ data: reserveData }),
     template: `<confirmation-page mode="reserve" :data="data" />`,
-  }),
-}
-
-/** Group / team room block hold. */
-export const GroupHold = {
-  render: () => ({
-    components: { ConfirmationPage },
-    setup: () => ({ data: holdData }),
-    template: `<confirmation-page mode="hold" :data="data" />`,
   }),
 }
 

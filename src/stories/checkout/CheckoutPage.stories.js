@@ -11,56 +11,16 @@ const useHero = (category, seed) => {
 }
 
 export default {
-  title: 'Checkout Experience/Checkout Page',
+  title: 'Checkout Experience/Checkout Page/Book Reservation',
   component: CheckoutPage,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: `
-The **Checkout Page** is the Airbnb-style "Confirm and pay" flow: a left stepped
-accordion (Review order → Contact & group info → Payment → Review reservation)
-beside a sticky **Order Summary**. The **Add a payment method** step uses the
-Instacart-style payment dialogs. \`mode\` toggles the group-details step.
+The **Checkout Page** (Book Reservation) is the Airbnb-style "Confirm and pay"
+flow: a left stepped accordion (Review order → Contact info → Payment → Review
+reservation) beside a sticky **Order Summary**. Covers a single reservation and
+Multiple Room Reservations. The **Add a payment method** step uses the
+Instacart-style payment dialogs.
 ` } } },
-}
-
-/** Group / team hold checkout — includes the group-details step. */
-export const GroupHold = {
-  render: () => ({
-    components: { CheckoutPage },
-    setup() {
-      const img = useHero('suites', 1)
-      const cart = {
-        heldSeconds: 372, taxRate: 0.12, feePerNight: 30,
-        hotels: [
-          { name: 'Embassy Suites Chicago Downtown', imageCategories: ['suites', 'rooms'], seed: 0, rooms: [
-            { type: 'Two-Room Suite King', summary: '1 King Bed · Sleeps 4', price: 269, nights: [{ date: 'Tue, Jun 23', qty: 4, roomsLeft: 6 }, { date: 'Wed, Jun 24', qty: 1, roomsLeft: 5 }] },
-            { type: 'Two-Room Suite Double', summary: '2 Queen Beds · Sleeps 4', price: 289, nights: [{ date: 'Tue, Jun 23', qty: 1, roomsLeft: 5 }, { date: 'Wed, Jun 24', qty: 1, roomsLeft: 4 }] },
-          ] },
-          { name: 'The Concord Hotel', imageCategories: ['lobby', 'rooms'], seed: 2, rooms: [
-            { type: 'King Studio', summary: '1 King Bed · Sleeps 2', price: 165, nights: [{ date: 'Tue, Jun 23', qty: 1, roomsLeft: 6 }] },
-          ] },
-        ],
-      }
-      const summary = computed(() => ({
-        image: img.value,
-        title: 'Group hold',
-        subtitle: 'Embassy Suites + The Concord',
-        rrow1: '8 rooms · 2 hotels',
-        rows: [
-          { label: 'Dates', value: 'Jun 23 – 25, 2026', change: true },
-          { label: 'Rooms', value: '8 rooms · 2 hotels', change: true },
-        ],
-        priceLines: [
-          { label: 'Room charges', value: 2088 },
-          { label: 'Taxes', value: 250.56 },
-          { label: 'Property fees', value: 240 },
-        ],
-        total: 2578.56,
-        note: 'Rooms held — finish before the timer ends',
-      }))
-      return { cart, summary }
-    },
-    template: `<checkout-page mode="group" :cart="cart" :summary="summary" />`,
-  }),
 }
 
 /** Single reservation checkout — contact only, no group step. */

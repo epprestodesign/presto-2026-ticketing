@@ -1,17 +1,15 @@
-// CHECKOUT EXPERIENCE / Steps / Contact Info — step 2, both variants.
+// CHECKOUT EXPERIENCE / Steps / Contact Info / Book Reservation — step 2.
 import { ref } from 'vue'
 import StepContactInfo from '../../components/checkout/steps/StepContactInfo.vue'
 
 export default {
-  title: 'Checkout Experience/Steps/Contact Info',
+  title: 'Checkout Experience/Steps/Contact Info/Book Reservation',
   component: StepContactInfo,
   tags: ['autodocs'],
-  parameters: { layout: 'fullscreen', docs: { description: { component: 'Step 2 — variant-specific. **Group Hold** is the teams block (search/add teams + primary contact); **Reservation** is contact + guests staying.' } } },
+  parameters: { layout: 'fullscreen', docs: { description: { component: 'Step 2 — Book Reservation: contact + guests staying (per-room Guest Information). Multiple Room Reservations groups guest forms by reservation/hotel.' } } },
 }
 
 const wrap = (inner, data) => ({ components: { StepContactInfo }, setup: () => data, template: `<div style="max-width:640px;margin:0 auto;padding:32px">${inner}</div>` })
-
-export const GroupHold = { render: () => wrap(`<step-contact-info mode="group" v-model="m" />`, { m: ref({}) }) }
 
 /**
  * Reservation — per-room **Guest Information**. Aware of the booking widget's

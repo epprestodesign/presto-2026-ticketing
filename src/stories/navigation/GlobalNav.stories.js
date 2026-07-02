@@ -6,7 +6,7 @@
 import GlobalNav from '../../components/GlobalNav.vue'
 
 // "Hold Rooms for Group or Team" cart — collapsible hotels → rooms → day steppers.
-const holdCart = {
+export const holdCart = {
   heldSeconds: 372, // 06:12
   taxRate: 0.12,
   feePerNight: 30, // property fee per room-night
@@ -43,7 +43,7 @@ const holdCart = {
 }
 
 // "Hotel Reservation" cart — held countdown, rich reservation summary.
-const reserveCart = {
+export const reserveCart = {
   hotel: { name: 'The Concord Hotel', address: '750 Tremont St, Boston, MA 02118' },
   heldSeconds: 895, // 14:55
   imageCategories: ['suites', 'rooms', 'lobby', 'pool', 'dining'],
@@ -77,7 +77,7 @@ const reserveCart = {
 // "Multiple Room Reservations" cart — several booked hotels → rooms → per-night
 // rows (date + nightly rate). Same hierarchy as hold, but each night is a fixed
 // booking with no quantity selector.
-const reservationsCart = {
+export const reservationsCart = {
   heldSeconds: 895,
   taxRate: 0.12,
   feePerNight: 0,
@@ -123,7 +123,7 @@ const reservationsCart = {
 }
 
 export default {
-  title: 'Navigation/Global Nav',
+  title: 'Navigation/Global Nav/Book Reservation',
   component: GlobalNav,
   tags: ['autodocs'],
   parameters: {
@@ -149,27 +149,8 @@ Built on DS tokens; primary actions use the brand Navy 900 (#01113E).
   },
 }
 
-/** The bar itself — click the cart for the order summary. The fly-out stays
- *  closed until the cart icon is clicked. */
-export const Default = {
-  render: () => ({
-    components: { GlobalNav },
-    setup: () => ({ cart: reserveCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" />`,
-  }),
-}
-
-/** Group / team room hold — click the cart icon to open the hold fly-out. */
-export const GroupHoldCart = {
-  render: () => ({
-    components: { GlobalNav },
-    setup: () => ({ cart: holdCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="hold" :cart="cart" />`,
-  }),
-}
-
 /** Single hotel reservation — click the cart icon to open the reservation fly-out. */
-export const ReservationCart = {
+export const Reservation = {
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: reserveCart }),
@@ -180,6 +161,7 @@ export const ReservationCart = {
 /** Multiple room reservations — click the cart icon to open the fly-out:
  *  several booked hotels → rooms → per-night rows, no quantity selector. */
 export const MultipleRoomReservations = {
+  name: 'Multiple Room Reservations',
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: reservationsCart }),
