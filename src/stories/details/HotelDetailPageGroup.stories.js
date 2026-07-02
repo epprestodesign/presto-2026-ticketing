@@ -1,46 +1,26 @@
-// HOTEL DETAILS / Group Block / Hotel Detail Page — the full detail screen for
-// the group-block flow (rooms carousel of RoomCardGroup with per-night steppers).
-import HotelDetailPage from '../../components/details/HotelDetailPage.vue'
-import { base } from './HotelDetailPage.stories.js'
-
-const features = [
-  { label: 'Entertainment', value: '55" Smart TV, Netflix, Apple TV' },
-  { label: 'Food & Drink', value: 'Coffee Maker, Mini Fridge' },
-  { label: 'Non-smoking', value: 'Yes' },
-]
-const gnights = (a, b, c, price) => [
-  { date: 'Thu, 7/9/2026', roomsLeft: a, price }, { date: 'Fri, 7/10/2026', roomsLeft: b, price }, { date: 'Sat, 7/11/2026', roomsLeft: c, price },
-]
-const groupRooms = [
-  { roomType: 'Urban King', bedConfig: '1 King Bed', maxOccupancy: 2, features, availability: 'available', nights: gnights(6, 8, 5, 179) },
-  { roomType: 'Two-Room Suite King', bedConfig: '1 King Bed, Separate Living Room', maxOccupancy: 4, features, availability: 'available', nights: gnights(4, 5, 6, 269) },
-  { roomType: 'Double Queen', bedConfig: '2 Queen Beds', maxOccupancy: 4, features, availability: 'limited', nights: gnights(2, 1, 3, 229) },
-  { roomType: 'Accessible Queen', bedConfig: '1 Queen Bed', maxOccupancy: 2, features, availability: 'soldout', nights: gnights(0, 0, 0, 199) },
-]
-
-const groupBase = {
-  ...base,
-  rooms: groupRooms,
-  roomsFlow: 'group',
-  roomsTitle: 'Hold Rooms for Your Group',
-  roomsSubtitle: 'Choose how many rooms to hold each night.',
-}
+// HOTEL DETAILS / Group Block / Hotel Detail Page — template/wireframe of the
+// full detail screen: the sections in order as labeled placeholder blocks (no
+// content). Same section order as Book Reservation; only Rooms differs.
+import { wireframe } from './_detail-wireframe.js'
 
 export default {
   title: 'Hotel Details/Group Block/Hotel Detail Page',
-  component: HotelDetailPage,
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',
     docs: { description: { component: `
-## Hotel Detail Page — Group Block
-The full detail screen for the group-block flow — same composition as Book
-Reservation, but the **Rooms** carousel renders RoomCardGroup cards with
-per-night quantity steppers ("Hold Rooms for Your Group").
+## Hotel Detail Page — Group Block (template)
+The page layout as a wireframe: each section is a labeled placeholder describing
+its typical content, in render order. The **Rooms** section uses the Group Block
+room cards. The individual sections are documented as their own stories under
+Hotel Details.
 ` } } },
 }
 
-/** The full hotel detail screen — group-block room holds. */
-export const Default = {
-  render: () => ({ components: { HotelDetailPage }, setup: () => ({ args: groupBase }), template: `<hotel-detail-page v-bind="args" />` }),
+const roomsSection = {
+  n: 'Rooms — Select Your Room (Group Block)',
+  d: 'Horizontal carousel of Group Block room cards: "Rooms per Night" with quantity steppers, starting price, and an "Add to Cart" CTA.',
 }
+
+/** Section template — placeholder blocks in order (matches Book Reservation). */
+export const Template = { render: () => wireframe('Group Block', roomsSection) }

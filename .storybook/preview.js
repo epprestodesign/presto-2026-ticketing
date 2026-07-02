@@ -84,11 +84,10 @@ const preview = {
             'Booking Widget', 'Hotel Listing Card', 'Availability Dialog', 'Hotel Map', 'Search & Filters', 'Forms', 'Empty States', 'Loading States',
           ],
           'Hotel Details', [
-            'Hotel Detail Page', 'Photo Gallery', 'Detail Tabs', 'Hotel Summary Header',
-            'Rooms', 'Room Card', 'Room Booking Dialog', 'Amenities', 'Policies & Property',
-          ],
-          'Your Trips', [
-            'Saved Items',
+            // Both flow folders list their components in the SAME order.
+            'Book Reservation', ['Hotel Detail Page', 'Rooms', 'Room Card', 'Room Booking Dialog'],
+            'Group Block', ['Hotel Detail Page', 'Rooms', 'Room Card', 'Room Booking Dialog'],
+            'Photo Gallery', 'Detail Tabs', 'Hotel Summary Header', 'Amenities', 'Policies & Property',
           ],
           'Checkout Experience', [
             'Checkout Page',
