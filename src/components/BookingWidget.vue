@@ -207,7 +207,7 @@ const travelersLabel = computed(() => `${travelersTotal.value} traveler${travele
           </div>
         </div>
         <div class="bw__link q-mb-lg" @click="addRow"><q-icon name="add_circle" size="22px" /><span style="font-weight:600">Add another team</span></div>
-        <q-btn unelevated color="primary" :label="addLabel" :disable="addDisabled" v-close-popup class="full-width" style="height:52px;border-radius:var(--ds-radius-pill)" />
+        <q-btn unelevated color="primary" :label="addLabel" :disable="addDisabled" v-close-popup class="full-width" style="height:48px;border-radius:var(--ds-radius-button)" />
       </q-card>
     </q-dialog>
   </div>

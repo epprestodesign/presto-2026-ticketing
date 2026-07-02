@@ -1,7 +1,7 @@
-// NAVIGATION / Global Nav — the app's dark top bar (logo + Manage Booking +
+// NAVIGATION / Global Nav — the app's white top bar (logo + Manage Booking +
 // cart icon) whose cart opens a right-side fly-out order summary, Uber Eats
 // style. The fly-out has two data modes: a group/team room hold and a single
-// hotel reservation. Accents use the DS primary (Zinc 900); the held timer
+// hotel reservation. Accents use the DS primary (navy); the held timer
 // counts down live and the cart badge tracks the live selection.
 import GlobalNav from '../../components/GlobalNav.vue'
 
@@ -144,8 +144,9 @@ export default {
     layout: 'fullscreen',
     docs: { description: { component: `
 ## Overview
-The **Global Nav** is the app's persistent dark top bar — brand logo, a
-**Manage Booking** pill, and a **cart icon** with a live count badge. Clicking
+The **Global Nav** is the app's persistent white top bar — brand logo, a
+**Manage Booking** pill, and a **cart icon** with a live count badge (DS danger
+red). Brand text and icons use the DS primary (navy). Clicking
 the cart opens the **Cart Fly-out** order summary (Uber Eats-style slide-over).
 
 ## Cart modes
