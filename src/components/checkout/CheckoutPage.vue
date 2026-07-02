@@ -41,6 +41,14 @@ const contactReservations = computed(() => (liveCart.hotels || []).map((h) => ({
   rooms: (h.rooms || []).map((r) => ({ adults: r.adults ?? 2, children: r.children ?? 0 })),
 })))
 
+// Policies step: group/multi → per-hotel accordion; single reservation → one
+// generic card. Group flow → "Hold Group Block Now"; else "Book Now".
+const policyFlow = computed(() => (isGroup.value ? 'group' : 'reserve'))
+const policyHotels = computed(() => {
+  const hs = liveCart.hotels
+  return (hs && hs.length) ? hs.map((h) => ({ name: h.name })) : [{}]
+})
+
 // Reservation drops the "Review order" step (the rail already shows the order).
 const steps = computed(() => {
   const rest = [
@@ -115,7 +123,7 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
             <step-review-order v-if="s.key === 'review'" :mode="cartMode" :cart="liveCart" :currency="currency" bind @next="next" />
             <step-contact-info v-else-if="s.key === 'contact'" :mode="mode" :rooms="contactRooms" :reservations="isMulti ? contactReservations : null" v-model="contact" @next="next" />
             <step-payment v-else-if="s.key === 'payment'" v-model="payment" :methods="methods" @next="next" />
-            <step-review-reservation v-else :contact-summary="contactSummary" :payment-label="paymentLabel" :total="summary.total" :currency="currency" @confirm="confirm" />
+            <step-review-reservation v-else :contact-summary="contactSummary" :payment-label="paymentLabel" :total="summary.total" :currency="currency" :flow="policyFlow" :hotels="policyHotels" @confirm="confirm" />
           </div>
         </section>
       </div>

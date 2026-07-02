@@ -3,12 +3,16 @@
 // selection + cancellation policy, then Confirm and pay (gated on choosing a
 // protection option, mirroring the Expedia flow).
 import { ref, computed } from 'vue'
+import PoliciesAgreement from '../PoliciesAgreement.vue'
 
 const props = defineProps({
   contactSummary: { type: String, default: '' },
   paymentLabel: { type: String, default: '' },
   total: { type: Number, default: 0 },
   currency: { type: String, default: '$' },
+  // Policies agreement (final gate + CTA). flow: 'reserve' | 'group'.
+  flow: { type: String, default: 'reserve' },
+  hotels: { type: Array, default: () => [{}] },
   protectionPlans: { type: Array, default: () => ([
     { id: 'plan', title: 'Trip Protection Plan', price: 10.51, recommended: true, benefits: [
       'Cancellation or early check-out, up to 100% of trip cost',
@@ -60,8 +64,12 @@ const canConfirm = computed(() => protection.value !== null)
       <p class="srr__policy">{{ cancellation.checkIn }}</p>
     </section>
 
-    <p class="srr__terms">By selecting Confirm and pay, you acknowledge you have reviewed the Privacy Statement and accept the Rules &amp; Restrictions and Terms of Use.</p>
-    <q-btn unelevated no-caps class="srr__confirm" :class="{ 'is-disabled': !canConfirm }" :tabindex="canConfirm ? 0 : -1" label="Confirm and pay" @click="emit('confirm')" />
+    <!-- Policies + agreement + completion CTA -->
+    <section class="srr__sec">
+      <h4 class="srr__h">Policies</h4>
+      <p class="srr__sub">Review and agree to the policies to complete your booking.</p>
+      <policies-agreement :flow="flow" :hotels="hotels" @submit="emit('confirm')" />
+    </section>
   </div>
 </template>
 
