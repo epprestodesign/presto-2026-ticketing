@@ -1,19 +1,22 @@
-// HOTEL DETAILS / Group Block / Hotel Detail Page — template/wireframe of the
-// full detail screen: the sections in order as labeled placeholder blocks (no
-// content). Same section order as Book Reservation; only Rooms differs.
+// HOTEL DETAILS / Group Block / Hotel Detail Page — a section wireframe
+// (Template) plus a fully-rendered example (Full Example) with real imagery and
+// detailed rooms for the group-block flow.
+import HotelDetailPage from '../../components/details/HotelDetailPage.vue'
 import { wireframe } from './_detail-wireframe.js'
+import { hotelBase, groupRooms } from './_detail-data.js'
 
 export default {
   title: 'Hotel Details/Group Block/Hotel Detail Page',
+  component: HotelDetailPage,
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',
     docs: { description: { component: `
-## Hotel Detail Page — Group Block (template)
-The page layout as a wireframe: each section is a labeled placeholder describing
-its typical content, in render order. The **Rooms** section uses the Group Block
-room cards. The individual sections are documented as their own stories under
-Hotel Details.
+## Hotel Detail Page — Group Block
+**Template** shows the section layout as labeled placeholders. **Full Example** is
+the fully-composed page — real hero gallery, summary header, the Group Block
+**Rooms** carousel (per-night quantity steppers, starting price, Add to Cart),
+and about / amenities / policies. Same section order as Book Reservation.
 ` } } },
 }
 
@@ -24,3 +27,13 @@ const roomsSection = {
 
 /** Section template — placeholder blocks in order (matches Book Reservation). */
 export const Template = { render: () => wireframe('Group Block', roomsSection) }
+
+/** Full rendered page — real imagery + detailed rooms with per-night steppers. */
+export const FullExample = {
+  name: 'Full Example',
+  render: () => ({
+    components: { HotelDetailPage },
+    setup: () => ({ args: { ...hotelBase, rooms: groupRooms, roomsFlow: 'group', roomsTitle: 'Hold Rooms for Your Group', roomsSubtitle: 'Choose how many rooms to hold each night.' } }),
+    template: `<hotel-detail-page v-bind="args" />`,
+  }),
+}
