@@ -3,7 +3,7 @@
 // Details building blocks: a photo gallery (DsImageList), a sticky DetailTabs
 // nav that scrolls to each section, the HotelSummaryHeader, the RoomsCarousel
 // ("Select Your Room"), and the About / Amenities / Policies sections.
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { loadImagery } from '../../lib/imagery'
 import GalleryHero from './GalleryHero.vue'
 import DetailTabs from './DetailTabs.vue'
@@ -12,6 +12,7 @@ import RoomsCarousel from './RoomsCarousel.vue'
 import AboutProperty from './AboutProperty.vue'
 import AmenitiesSection from './AmenitiesSection.vue'
 import PoliciesSection from './PoliciesSection.vue'
+import BookingWidget from '../BookingWidget.vue'
 
 const props = defineProps({
   // Summary header
@@ -22,6 +23,10 @@ const props = defineProps({
   score: { type: Number, default: null },
   reviews: { type: Number, default: null },
   ratingLabel: { type: String, default: '' },
+  preferred: { type: Boolean, default: false },
+  lowRateGuarantee: { type: Boolean, default: false },
+  checkInTime: { type: String, default: '' },
+  checkOutTime: { type: String, default: '' },
   popularAmenities: { type: Array, default: () => [] },
   lat: { type: Number, default: 28.5383 },
   lng: { type: Number, default: -81.3792 },
@@ -30,17 +35,29 @@ const props = defineProps({
   galleryCategories: { type: Array, default: () => ['exterior', 'rooms', 'dining', 'suites', 'bar', 'pool', 'lobby', 'spa', 'bathroom'] },
   seed: { type: Number, default: 0 },
 
+  // Optional booking widget under the Global Nav (no hotel-details header/hero).
+  // showWidget → renders the widget band; widgetShowTeams → Teams vs Core widget.
+  showWidget: { type: Boolean, default: false },
+  widgetShowTeams: { type: Boolean, default: true },
+  showDetailHeader: { type: Boolean, default: true }, // gallery + tabs + summary
+
   // Rooms
   rooms: { type: Array, default: () => [] },
   roomsFlow: { type: String, default: 'reserve' }, // 'reserve' | 'group'
   roomsTitle: { type: String, default: 'Select Your Room' },
   roomsSubtitle: { type: String, default: '' },
 
-  // Sections
-  about: { type: String, default: '' },
+  // Sections. `about` accepts a string (one paragraph) or an array of paragraphs.
+  about: { type: [String, Array], default: '' },
   amenityGroups: { type: Array, default: () => [] },
   policies: { type: Array, default: () => [] },
 })
+const emit = defineEmits(['back'])
+const widgetMode = computed(() => (props.roomsFlow === 'group' ? 'group' : 'reservations'))
+
+// About copy: array → paragraphs, string → single paragraph.
+const aboutText = computed(() => (Array.isArray(props.about) ? '' : props.about))
+const aboutParagraphs = computed(() => (Array.isArray(props.about) ? props.about : []))
 
 const tabs = [
   { name: 'overview', label: 'Overview' },
@@ -74,29 +91,46 @@ onMounted(async () => {
 
 <template>
   <div ref="root" class="hdp">
-    <!-- Photo hero gallery -->
-    <gallery-hero :images="gallery" :all-images="gallery" />
-
-    <!-- Section nav -->
-    <div class="hdp__tabs">
-      <detail-tabs v-model="activeTab" :tabs="tabs" @select="onTab" />
+    <!-- Optional booking widget under the Global Nav (no hotel-details header) -->
+    <div v-if="showWidget" class="hdp__searchband">
+      <booking-widget
+        :mode="widgetMode" :tabs="false" :show-mode="false"
+        :show-teams="widgetShowTeams" :show-dates="true"
+      />
     </div>
 
-    <!-- Summary -->
-    <hotel-summary-header
-      :name="name" :stars="stars" :address="address" :distance="distance"
-      :score="score" :reviews="reviews" :rating-label="ratingLabel"
-      :amenities="popularAmenities" :lat="lat" :lng="lng"
-    />
+    <!-- Back to results -->
+    <button type="button" class="hdp__back" @click="emit('back')">
+      <q-icon name="chevron_left" size="22px" /> Back to Hotel listing
+    </button>
 
-    <!-- Rooms -->
-    <section id="hdp-rooms" class="hdp__section">
-      <rooms-carousel :rooms="rooms" :flow="roomsFlow" :title="roomsTitle" :subtitle="roomsSubtitle" />
+    <template v-if="showDetailHeader">
+      <!-- Photo hero gallery -->
+      <gallery-hero :images="gallery" :all-images="gallery" />
+
+      <!-- Section nav -->
+      <div class="hdp__tabs">
+        <detail-tabs v-model="activeTab" :tabs="tabs" @select="onTab" />
+      </div>
+
+      <!-- Summary -->
+      <hotel-summary-header
+        :name="name" :stars="stars" :address="address" :distance="distance"
+        :score="score" :reviews="reviews" :rating-label="ratingLabel"
+        :preferred="preferred" :low-rate-guarantee="lowRateGuarantee"
+        :check-in-time="checkInTime" :check-out-time="checkOutTime"
+        :amenities="popularAmenities" :lat="lat" :lng="lng"
+      />
+    </template>
+
+    <!-- Property / About — grouped with the summary's Popular Amenities -->
+    <section id="hdp-property" class="hdp__section">
+      <about-property :text="aboutText" :paragraphs="aboutParagraphs" />
     </section>
 
-    <!-- Property / About -->
-    <section id="hdp-property" class="hdp__section hdp__section--ruled">
-      <about-property :text="about" />
+    <!-- Rooms -->
+    <section id="hdp-rooms" class="hdp__section hdp__section--ruled">
+      <rooms-carousel :rooms="rooms" :flow="roomsFlow" :title="roomsTitle" :subtitle="roomsSubtitle" />
     </section>
 
     <!-- Amenities -->
@@ -113,6 +147,13 @@ onMounted(async () => {
 
 <style scoped>
 .hdp { max-width: 1180px; margin: 0 auto; padding: 18px 24px 60px; display: flex; flex-direction: column; }
+/* Booking widget band — full-bleed white strip directly under the Global Nav. */
+.hdp__searchband { margin: -18px calc(50% - 50vw) 20px; padding: 12px max(24px, calc(50vw - 50%)); background: var(--ds-color-surface); border-bottom: 1px solid var(--ds-color-border); }
+.hdp__searchband :deep(.bw) { border: 0; border-radius: 0; padding: 8px 0; }
+
+.hdp__back { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; margin: 0 0 16px; padding: 6px 0; background: none; border: 0; color: var(--ds-color-text); font-family: inherit; font-size: 1.125rem; font-weight: 700; cursor: pointer; }
+.hdp__back:hover { color: var(--ds-color-text-brand); }
+.hdp__back .q-icon { color: inherit; }
 .hdp__tabs { position: sticky; top: 0; z-index: 5; background: var(--ds-color-surface); margin: 24px 0; }
 .hdp__section { padding-top: 28px; }
 .hdp__section--ruled { margin-top: 20px; border-top: 1px solid var(--ds-color-border); padding-top: 32px; }

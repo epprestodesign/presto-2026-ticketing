@@ -9,6 +9,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import RoomCardReserve from './RoomCardReserve.vue'
 import RoomCardGroup from './RoomCardGroup.vue'
+import PriceDetailsDialog from './PriceDetailsDialog.vue'
 
 const props = defineProps({
   rooms: { type: Array, default: () => [] }, // array of room-card prop objects
@@ -16,6 +17,11 @@ const props = defineProps({
   title: { type: String, default: 'Select Your Room' },
   subtitle: { type: String, default: '' },
 })
+
+// Price Details modal (reserve flow) — opened from a room card's "Price Details".
+const priceOpen = ref(false)
+const activeRoom = ref(null)
+const openPrice = (room) => { activeRoom.value = room; priceOpen.value = true }
 
 const track = ref(null)
 const scrollable = ref(false)
@@ -67,9 +73,12 @@ onBeforeUnmount(() => ro?.disconnect())
     <div ref="track" class="rcar__track" @scroll="update">
       <div v-for="(room, i) in rooms" :key="i" class="rcar__item">
         <room-card-group v-if="flow === 'group'" v-bind="room" />
-        <room-card-reserve v-else v-bind="room" />
+        <room-card-reserve v-else v-bind="room" @price-details="openPrice(room)" />
       </div>
     </div>
+
+    <!-- Price Details breakdown modal (reserve flow) -->
+    <price-details-dialog v-model="priceOpen" :room="activeRoom" />
   </section>
 </template>
 
@@ -86,7 +95,7 @@ onBeforeUnmount(() => ro?.disconnect())
 
 /* Scroll-snapping horizontal track. Native overflow handles touch/trackpad
    swipe; arrows drive programmatic scroll. Cards keep their intrinsic width. */
-.rcar__track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 2px; padding: 4px 2px 8px; margin: -4px -2px -8px; scrollbar-width: thin; }
+.rcar__track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 2px; padding: 10px 4px 28px; margin: -10px -4px -28px; scrollbar-width: thin; }
 .rcar__item { scroll-snap-align: start; flex: 0 0 auto; }
 .rcar__item > :deep(.rcr), .rcar__item > :deep(.rcg) { height: 100%; }
 </style>

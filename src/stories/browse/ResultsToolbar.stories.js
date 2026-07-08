@@ -6,7 +6,7 @@ import { ref } from 'vue'
 import ResultsToolbar from '../../components/browse/ResultsToolbar.vue'
 
 export default {
-  title: 'Browse Hotels/Components/Results Toolbar',
+  title: 'Browse Hotels/Components/Top Bar/Results Toolbar',
   component: ResultsToolbar,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `

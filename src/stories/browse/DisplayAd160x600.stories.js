@@ -4,7 +4,7 @@ import PageFrame from '../../components/PageFrame.vue'
 import HotelListPage from '../../components/browse/HotelListPage.vue'
 
 export default {
-  title: 'Browse Hotels/Display Ads/160×600',
+  title: 'Browse Hotels/Components/Right Rail/Display Ads/160×600',
   component: DisplayAd,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: 'A **160×600** wide-skyscraper Display Ad slot, as used in the Browse Hotels right rail.' } } },

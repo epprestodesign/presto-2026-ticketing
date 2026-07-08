@@ -28,3 +28,19 @@ export const Page = {
     template: `<page-frame cart-mode="reserve"><hotel-detail-page v-bind="args" /></page-frame>`,
   }),
 }
+
+// Booking-widget variants — the booking widget shown under the Global Nav on top
+// of the FULL core page experience (fixed anchor tabs, photo gallery, summary,
+// rooms, about, amenities, policies). Teams includes the Registered Team(s)
+// field; Core omits it.
+const widgetPage = (widgetShowTeams) => () => ({
+  components: { PageFrame, HotelDetailPage },
+  setup: () => ({ args: { ...hotelBase, rooms: reserveRooms, roomsFlow: 'reserve', roomsSubtitle: 'Prices shown are per room per night for your selected dates.', showWidget: true, widgetShowTeams } }),
+  template: `<page-frame cart-mode="reserve"><hotel-detail-page v-bind="args" /></page-frame>`,
+})
+
+/** Global Nav + Teams Booking Widget + full core page. */
+export const TeamsBookingWidget = { name: 'Teams Booking Widget', render: widgetPage(true) }
+
+/** Global Nav + Core Booking Widget (no team field) + full core page. */
+export const CoreBookingWidget = { name: 'Core Booking Widget', render: widgetPage(false) }

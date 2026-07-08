@@ -36,7 +36,7 @@ const base = {
 }
 
 export default {
-  title: 'Browse Hotels/Components/Availability Dialog',
+  title: 'Browse Hotels/Components/Results/Availability Dialog',
   component: AvailabilityDialog,
   tags: ['autodocs'],
   parameters: {

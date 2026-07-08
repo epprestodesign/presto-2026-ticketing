@@ -92,10 +92,13 @@ const preview = {
           ],
           'Browse Hotels', [
             'Book Reservation', 'Group Block',
-            'Display Ads', ['160×600', '160×320', '120×600'],
             'Components', [
-              'Hotel Listing Card', 'Availability Dialog', 'Hotel Map',
-              'Search & Filters', 'Filter Rail', 'Results Toolbar', 'Pagination', 'Breadcrumbs', 'Forms', 'Empty States', 'Loading States',
+              // Grouped by page region — top bar, left rail, results, right rail, footer.
+              'Top Bar', ['Breadcrumbs', 'Results Toolbar'],
+              'Left Rail', ['Filter Rail', 'Search & Filters', 'Hotel Map'],
+              'Results', ['Hotel Listing Card', 'Availability Dialog', 'Empty States', 'Loading States', 'Forms'],
+              'Right Rail', ['Display Ads', ['160×600', '160×320', '120×600']],
+              'Footer', ['Pagination'],
             ],
           ],
           'Hotel Details', [

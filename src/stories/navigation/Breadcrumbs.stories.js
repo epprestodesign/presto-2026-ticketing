@@ -1,6 +1,6 @@
 /** NAVIGATION / Breadcrumbs → Quasar: QBreadcrumbs + QBreadcrumbsEl (native) */
 export default {
-  title: 'Browse Hotels/Components/Breadcrumbs',
+  title: 'Browse Hotels/Components/Top Bar/Breadcrumbs',
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `
 ## Overview

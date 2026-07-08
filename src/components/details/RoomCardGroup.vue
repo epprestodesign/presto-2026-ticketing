@@ -84,7 +84,7 @@ const startingPrice = computed(() => (props.nights.length ? Math.min(...props.ni
 </template>
 
 <style scoped>
-.rcg { display: flex; flex-direction: column; width: 360px; background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md); overflow: hidden; }
+.rcg { display: flex; flex-direction: column; width: 360px; background: var(--ds-color-surface); border: 1px solid rgba(0,0,0,0.04); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06); }
 .rcg--soldout { opacity: 0.6; }
 .rcg__media { width: 100%; height: 168px; object-fit: cover; display: block; }
 
