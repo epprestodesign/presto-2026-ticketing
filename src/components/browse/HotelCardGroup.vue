@@ -115,7 +115,7 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
 </template>
 
 <style scoped>
-.hc { border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md); background: var(--ds-color-surface); overflow: hidden; }
+.hc { border: 1px solid rgba(0,0,0,0.04); border-radius: 12px; background: var(--ds-color-surface); overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06); }
 .hc--dim .hc__media, .hc--dim .hc__body, .hc--dim .hc__pricelabel, .hc--dim .hc__amount { opacity: 0.55; }
 
 .hc__top { display: flex; align-items: stretch; }
@@ -141,7 +141,7 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
 .hc__dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
 .hc__distance { display: inline-flex; align-items: center; gap: 6px; color: var(--ds-color-text); font-size: 1rem; }
 .hc__distance .q-icon { color: var(--ds-color-text-brand); }
-.hc__availtoggle { align-self: flex-start; margin-top: auto; display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 4px 0; color: var(--ds-color-link); font-family: inherit; font-size: 1rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.hc__availtoggle { align-self: flex-start; margin-top: auto; display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 4px 0; color: var(--ds-color-link); font-family: inherit; font-size: 1rem; font-weight: 600; text-decoration: none; cursor: pointer; }
 
 /* price */
 .hc__price { width: 250px; flex: none; padding: 20px 24px; display: flex; flex-direction: column; align-items: flex-end; text-align: right; gap: 4px; }

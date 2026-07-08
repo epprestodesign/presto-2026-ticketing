@@ -33,6 +33,8 @@ const props = defineProps({
   radiusMin: { type: Number, default: 1 },
   radiusMax: { type: Number, default: 25 },
   radiusStep: { type: Number, default: 1 },
+  // Show Google's native +/- zoom buttons. Off for compact previews.
+  zoomControl: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['update:searchRadius'])
@@ -97,8 +99,8 @@ function updateRadius () {
     if (!radiusCircle) {
       radiusCircle = new gmaps.Circle({
         map, center, radius: meters, clickable: false, zIndex: 1,
-        strokeColor: '#18181B', strokeOpacity: 0.5, strokeWeight: 2,
-        fillColor: '#18181B', fillOpacity: 0.08,
+        strokeColor: BRAND, strokeOpacity: 0.5, strokeWeight: 2,
+        fillColor: BRAND, fillOpacity: 0.08,
       })
     } else {
       radiusCircle.setCenter(center)
@@ -117,11 +119,14 @@ watch(() => [props.searchRadius, props.radiusUnit], updateRadius)
 
 const money = (n) => props.currency + Number(n).toLocaleString('en-US')
 
-// Default: solid black pill (white text). Selected: white pill, black text,
-// thick black stroke. Border width stays constant so the pill doesn't resize.
+// Brand primary (navy) — price pills and cluster bubbles use this, not black.
+const BRAND = '#01113E'
+
+// Default: solid navy pill (white text). Selected: white pill, navy text,
+// thick navy stroke. Border width stays constant so the pill doesn't resize.
 const pillCss = (selected) =>
-  `display:inline-block;background:${selected ? '#fff' : '#18181B'};color:${selected ? '#18181B' : '#fff'};` +
-  'border:3px solid #18181B;border-radius:999px;padding:5px 12px;' +
+  `display:inline-block;background:${selected ? '#fff' : BRAND};color:${selected ? BRAND : '#fff'};` +
+  `border:3px solid ${BRAND};border-radius:999px;padding:5px 12px;` +
   'font:600 13px/1 PT Sans,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap;'
 
 function popupNode (h) {
@@ -170,7 +175,7 @@ async function initMap (keyOverride) {
       center, zoom: props.zoom, mapId: props.mapId,
       mapTypeControl: false, streetViewControl: false, fullscreenControl: false, clickableIcons: false,
       // Google's native +/- zoom buttons (bottom-right, clear of the radius card).
-      zoomControl: true,
+      zoomControl: props.zoomControl,
       zoomControlOptions: { position: g.ControlPosition.RIGHT_TOP },
     })
     // No close button (X); clicking anywhere off the card closes it.
@@ -212,13 +217,13 @@ async function initMap (keyOverride) {
     })
 
     if (props.cluster && hotelMarkers.length) {
-      // Black count bubbles for grouped hotels; click a cluster to zoom/expand.
+      // Navy count bubbles for grouped hotels; click a cluster to zoom/expand.
       const renderer = {
         render: ({ count, position }) => {
           const el = document.createElement('div')
           const size = count < 10 ? 40 : count < 25 ? 48 : 56
           el.style.cssText = `display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;` +
-            'border-radius:999px;background:#18181B;color:#fff;border:3px solid #fff;' +
+            `border-radius:999px;background:${BRAND};color:#fff;border:3px solid #fff;` +
             'font:700 14px/1 PT Sans,system-ui,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,.35);cursor:pointer;'
           el.textContent = String(count)
           return new g.marker.AdvancedMarkerElement({ position, content: el, zIndex: 1000 + count })
@@ -344,7 +349,7 @@ onMounted(() => {
 /* iOS "my location"-style pulsing event marker. */
 /* translateY(50%) centers the dot on the anchor (markers anchor bottom-center). */
 .hm-pulse { position: relative; width: 20px; height: 20px; transform: translateY(50%); }
-.hm-pulse__dot { position: absolute; inset: 0; margin: auto; width: 16px; height: 16px; border-radius: 50%; background: #18181B; border: 2px solid #fff; box-shadow: 0 0 1px 1px rgba(0,0,0,.2); }
-.hm-pulse__ring { position: absolute; inset: 0; margin: auto; width: 20px; height: 20px; border-radius: 50%; background: #18181B; opacity: .55; animation: hm-pulse 1.8s ease-out infinite; }
+.hm-pulse__dot { position: absolute; inset: 0; margin: auto; width: 16px; height: 16px; border-radius: 50%; background: var(--ds-color-background-brand-bold); border: 2px solid #fff; box-shadow: 0 0 1px 1px rgba(0,0,0,.2); }
+.hm-pulse__ring { position: absolute; inset: 0; margin: auto; width: 20px; height: 20px; border-radius: 50%; background: var(--ds-color-background-brand-bold); opacity: .55; animation: hm-pulse 1.8s ease-out infinite; }
 @keyframes hm-pulse { 0% { transform: scale(.5); opacity: .55; } 70% { opacity: 0; } 100% { transform: scale(3); opacity: 0; } }
 </style>

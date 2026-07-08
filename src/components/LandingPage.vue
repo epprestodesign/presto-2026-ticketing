@@ -69,6 +69,9 @@ const props = defineProps({
   },
 
   ads: { type: Number, default: 3 },
+  // Booking Widget state: true = Teams Booking Widget (Registered Team(s) field),
+  // false = Core Booking Widget (generic search, no team field).
+  showTeams: { type: Boolean, default: true },
 })
 
 // Same hero treatment as Foundations / Hero Banner → Landing Page (scrim + image).
@@ -93,7 +96,7 @@ const heroStyle = { backgroundImage: `${scrim}, url(${defaultBg})` }
     <!-- Booking Widget -->
     <section class="lp__widget">
       <div class="lp__widget-card">
-        <booking-widget :mode="mode" :tabs="false" />
+        <booking-widget :mode="mode" :tabs="false" :show-teams="showTeams" />
       </div>
     </section>
 

@@ -20,6 +20,12 @@ const props = defineProps({
   // When false, hide the Registered Team(s) field — the "Core" booking widget
   // (generic hotel search: booking type + dates + travelers).
   showTeams: { type: Boolean, default: true },
+  // When false, hide the mode selector (tabs / radio / "Booking type" dropdown)
+  // entirely — used where the flow is already fixed (e.g. Browse Hotels).
+  showMode: { type: Boolean, default: true },
+  // When true, always show the Check-in – Check-out field (default: only in
+  // 'reservations' mode). Used on Browse Hotels where dates apply to both flows.
+  showDates: { type: Boolean, default: false },
 })
 const mode = ref(props.mode)
 const modeOptions = [
@@ -29,7 +35,7 @@ const modeOptions = [
 // The tabs-less layout surfaces the flow selector as a "Booking type" dropdown
 // by default; `modeDropdown` keeps working as an explicit opt-in, and `modeRadio`
 // (or tabs) takes precedence when chosen.
-const showModeSelect = computed(() => props.modeDropdown || (!props.tabs && !props.modeRadio))
+const showModeSelect = computed(() => props.showMode && (props.modeDropdown || (!props.tabs && !props.modeRadio)))
 
 // --- Teams ---
 const clubs = [
@@ -105,18 +111,18 @@ const travelersLabel = computed(() => `${travelersTotal.value} traveler${travele
 
 <template>
   <div class="bw">
-    <div v-if="tabs && !modeDropdown && !modeRadio" class="bw__tabs">
+    <div v-if="showMode && tabs && !modeDropdown && !modeRadio" class="bw__tabs">
       <span :class="['bw__tab', { 'bw__tab--active': mode === 'reservations' }]" @click="mode = 'reservations'">Book Reservations</span>
       <span :class="['bw__tab', { 'bw__tab--active': mode === 'group' }]" @click="mode = 'group'">Hold Rooms for Group or Team</span>
     </div>
 
     <!-- RADIO SELECTOR (alternate-layout exploration) -->
-    <div v-if="modeRadio" class="bw__radios">
+    <div v-if="showMode && modeRadio" class="bw__radios">
       <q-radio v-model="mode" val="reservations" label="Book Reservations" color="primary" />
       <q-radio v-model="mode" val="group" label="Hold Rooms for Group or Team" color="primary" />
     </div>
 
-    <div v-if="(tabs && !modeDropdown && !modeRadio) || modeRadio" class="bw__divider" />
+    <div v-if="showMode && ((tabs && !modeDropdown && !modeRadio) || modeRadio)" class="bw__divider" />
 
     <div class="bw__fields">
       <!-- MODE DROPDOWN — farthest-left flow selector; default for tabs-less layout -->
@@ -171,7 +177,7 @@ const travelersLabel = computed(() => `${travelersTotal.value} traveler${travele
       </div>
 
       <!-- DATES -->
-      <div v-if="mode === 'reservations'" class="bw__field col">
+      <div v-if="showDates || mode === 'reservations'" class="bw__field col">
         <q-input outlined stack-label readonly class="bw__input cursor-pointer" label="Check-in - Check-out" :model-value="dateLabel">
           <template #prepend><q-icon name="calendar_month" /></template>
         </q-input>

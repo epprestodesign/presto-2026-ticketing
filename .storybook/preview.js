@@ -77,24 +77,25 @@ const preview = {
               'List', 'List Item', 'Accordion', 'Tabs', 'Table',
             ],
             'Media & Visuals', [
-              'Avatar', 'Icon', 'Image List', 'Hero Banner', 'Rating',
+              'Avatar', 'Icon', 'Image List', 'Display Ad', 'Hero Banner', 'Rating',
             ],
             'Typography & Content', [
               'Typography', 'Chip', 'Amenity', 'Tooltip',
             ],
           ],
           'App Shell', [
-            'Global Nav', 'Page Frame',
+            'Global Nav & Cart', 'Page Frame',
           ],
           'Landing Page', [
             'Book Reservation', 'Group Block',
-            'Components', ['Teams Booking Widget', 'Core Booking Widget', 'Display Ad'],
+            'Components', ['Teams Booking Widget', 'Core Booking Widget'],
           ],
           'Browse Hotels', [
             'Book Reservation', 'Group Block',
+            'Display Ads', ['160×600', '160×320', '120×600'],
             'Components', [
               'Hotel Listing Card', 'Availability Dialog', 'Hotel Map',
-              'Search & Filters', 'Pagination', 'Breadcrumbs', 'Forms', 'Empty States', 'Loading States',
+              'Search & Filters', 'Filter Rail', 'Results Toolbar', 'Pagination', 'Breadcrumbs', 'Forms', 'Empty States', 'Loading States',
             ],
           ],
           'Hotel Details', [

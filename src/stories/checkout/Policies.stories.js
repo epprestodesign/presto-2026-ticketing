@@ -20,7 +20,7 @@ export default {
   parameters: { layout: 'fullscreen', docs: { description: { component: `
 ## Policies — Book Reservation
 The review-and-agree surface for a single reservation: a **Policies** card
-(HoCoBook + hotel policies), one **agreement checkbox**, and a **Book Now** CTA
+(GrandStay + hotel policies), one **agreement checkbox**, and a **Book Now** CTA
 that stays muted until the box is checked.
 ` } } },
 }

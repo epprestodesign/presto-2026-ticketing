@@ -4,7 +4,7 @@ import GlobalNav from '../../components/GlobalNav.vue'
 import { holdCart } from './GlobalNav.stories.js'
 
 export default {
-  title: 'App Shell/Global Nav/Group Block',
+  title: 'App Shell/Global Nav & Cart/Group Block',
   component: GlobalNav,
   tags: ['autodocs'],
   parameters: {
@@ -23,6 +23,6 @@ export const Cart = {
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: holdCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="hold" :cart="cart" />`,
+    template: `<global-nav brand="Soccer League" cart-mode="hold" :cart="cart" :open-cart="true" />`,
   }),
 }

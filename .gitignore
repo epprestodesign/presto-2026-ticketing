@@ -12,3 +12,6 @@ storybook-static
 
 # Design reference screenshots — kept local only, not tracked
 references/
+
+# Local design doc + audit — never commit
+07072026/

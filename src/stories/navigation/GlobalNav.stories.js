@@ -123,8 +123,11 @@ export const reservationsCart = {
 }
 
 export default {
-  title: 'App Shell/Global Nav/Book Reservation',
+  title: 'App Shell/Global Nav & Cart/Book Reservation',
   component: GlobalNav,
+  // holdCart / reserveCart / reservationsCart are shared cart DATA (also imported
+  // by the Group Block story), not stories.
+  excludeStories: ['holdCart', 'reserveCart', 'reservationsCart'],
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',
@@ -149,22 +152,32 @@ Built on DS tokens; primary actions use the brand Navy 900 (#01113E).
   },
 }
 
-/** Single hotel reservation — click the cart icon to open the reservation fly-out. */
-export const Reservation = {
+/** Group / team room hold cart — shown open. */
+export const HoldCart = {
+  name: 'Hold Cart',
   render: () => ({
     components: { GlobalNav },
-    setup: () => ({ cart: reserveCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" />`,
+    setup: () => ({ cart: holdCart }),
+    template: `<global-nav brand="Soccer League" cart-mode="hold" :cart="cart" :open-cart="true" />`,
   }),
 }
 
-/** Multiple room reservations — click the cart icon to open the fly-out:
- *  several booked hotels → rooms → per-night rows, no quantity selector. */
-export const MultipleRoomReservations = {
-  name: 'Multiple Room Reservations',
+/** Single hotel reservation cart — shown open. */
+export const ReserveCart = {
+  name: 'Reserve Cart',
+  render: () => ({
+    components: { GlobalNav },
+    setup: () => ({ cart: reserveCart }),
+    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" :open-cart="true" />`,
+  }),
+}
+
+/** Multiple room reservations cart — shown open. */
+export const ReservationsCart = {
+  name: 'Reservations Cart',
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: reservationsCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="reservations" :cart="cart" />`,
+    template: `<global-nav brand="Soccer League" cart-mode="reservations" :cart="cart" :open-cart="true" />`,
   }),
 }

@@ -11,11 +11,13 @@ const props = defineProps({
   manageLabel: { type: String, default: 'Manage Booking' },
   cartMode: { type: String, default: 'reserve' }, // reserve | hold
   cart: { type: Object, default: () => ({}) },
+  // Show the cart fly-out open on mount (e.g. Storybook cart stories).
+  openCart: { type: Boolean, default: false },
 })
 const emit = defineEmits(['manage'])
 
 // Cart fly-out.
-const cartOpen = ref(false)
+const cartOpen = ref(props.openCart)
 const count = ref(0)
 </script>
 
