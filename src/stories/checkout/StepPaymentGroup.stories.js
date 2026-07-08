@@ -4,7 +4,7 @@ import StepPayment from '../../components/checkout/steps/StepPayment.vue'
 import { methods } from './_fixtures'
 
 export default {
-  title: 'Checkout Experience/Steps/Payment/Group Block',
+  title: 'Checkout Experience/Components/Steps/Payment/Group Block',
   component: StepPayment,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: 'Step 3 — the Instacart-style PayWith selector (payment is identical across both flows).' } } },

@@ -40,7 +40,7 @@ export const onBackdrop = (args) => ({
 })
 
 export default {
-  title: 'Hotel Details/Book Reservation/Room Booking Dialog',
+  title: 'Hotel Details/Components/Book Reservation/Room Booking Dialog',
   component: RoomBookingDialog,
   tags: ['autodocs'],
   parameters: {

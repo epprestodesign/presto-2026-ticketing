@@ -20,7 +20,7 @@ const bulletGroups = [
 ]
 
 export default {
-  title: 'Hotel Details/Amenities',
+  title: 'Hotel Details/Components/Amenities',
   component: AmenitiesSection,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `

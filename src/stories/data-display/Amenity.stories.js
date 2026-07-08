@@ -4,7 +4,7 @@ import Amenity from '../../components/Amenity.vue'
 import { AMENITIES, AMENITY_CATEGORIES, popularAmenities } from '../../lib/amenities.js'
 
 export default {
-  title: 'Data Display/Amenity',
+  title: 'Components/Typography & Content/Amenity',
   component: Amenity,
   tags: ['autodocs'],
   argTypes: {

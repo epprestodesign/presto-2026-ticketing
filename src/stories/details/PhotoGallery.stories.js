@@ -26,7 +26,7 @@ function useImages(categories, seed = 0) {
 const HERO_CATS = ['exterior', 'rooms', 'dining', 'suites', 'bar', 'pool', 'lobby', 'spa', 'bathroom']
 
 export default {
-  title: 'Hotel Details/Photo Gallery',
+  title: 'Hotel Details/Components/Photo Gallery',
   component: GalleryHero,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `

@@ -25,7 +25,7 @@ const wrap = (extra = {}) => ({
 })
 
 export default {
-  title: 'Hotel Details/Hotel Summary Header',
+  title: 'Hotel Details/Components/Hotel Summary Header',
   component: HotelSummaryHeader,
   tags: ['autodocs'],
   argTypes: {

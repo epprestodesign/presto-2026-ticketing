@@ -21,7 +21,7 @@ const hotels = [
 ]
 
 export default {
-  title: 'Browse Hotels/Hotel Map',
+  title: 'Browse Hotels/Components/Hotel Map',
   component: HotelMap,
   tags: ['autodocs'],
   argTypes: {

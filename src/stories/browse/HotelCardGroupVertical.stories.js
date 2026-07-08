@@ -5,7 +5,7 @@ import HotelCardGroup from '../../components/browse/HotelCardGroup.vue'
 import { sampleRooms } from './_rooms-sample.js'
 
 export default {
-  title: 'Browse Hotels/Hotel Listing Card/Vertical/Group Block',
+  title: 'Browse Hotels/Components/Hotel Listing Card/Vertical/Group Block',
   component: HotelCardGroup,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `

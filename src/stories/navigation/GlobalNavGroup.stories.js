@@ -4,7 +4,7 @@ import GlobalNav from '../../components/GlobalNav.vue'
 import { holdCart } from './GlobalNav.stories.js'
 
 export default {
-  title: 'Navigation/Global Nav/Group Block',
+  title: 'App Shell/Global Nav/Group Block',
   component: GlobalNav,
   tags: ['autodocs'],
   parameters: {

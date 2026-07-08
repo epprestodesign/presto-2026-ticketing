@@ -14,7 +14,7 @@ const useHotels = (defs) => {
 }
 
 export default {
-  title: 'Checkout Experience/Policies/Book Reservation',
+  title: 'Checkout Experience/Components/Policies/Book Reservation',
   component: PoliciesAgreement,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: `

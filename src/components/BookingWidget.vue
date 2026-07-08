@@ -17,6 +17,9 @@ const props = defineProps({
   // When true, hide the tabs and offer the flow selector as a radio-button pair
   // above the fields (alternate-layout exploration).
   modeRadio: { type: Boolean, default: false },
+  // When false, hide the Registered Team(s) field — the "Core" booking widget
+  // (generic hotel search: booking type + dates + travelers).
+  showTeams: { type: Boolean, default: true },
 })
 const mode = ref(props.mode)
 const modeOptions = [
@@ -126,7 +129,7 @@ const travelersLabel = computed(() => `${travelersTotal.value} traveler${travele
       </div>
 
       <!-- TEAM -->
-      <div class="bw__field col">
+      <div v-if="showTeams" class="bw__field col">
         <q-input outlined stack-label readonly class="bw__input cursor-pointer"
           :label="mode === 'group' ? 'Registered Team(s)' : 'Registered Team Name'" :model-value="teamLabel">
           <template #prepend><q-icon name="sports_soccer" /></template>
@@ -169,7 +172,7 @@ const travelersLabel = computed(() => `${travelersTotal.value} traveler${travele
 
       <!-- DATES -->
       <div v-if="mode === 'reservations'" class="bw__field col">
-        <q-input outlined stack-label readonly class="bw__input cursor-pointer" label="Dates" :model-value="dateLabel">
+        <q-input outlined stack-label readonly class="bw__input cursor-pointer" label="Check-in - Check-out" :model-value="dateLabel">
           <template #prepend><q-icon name="calendar_month" /></template>
         </q-input>
         <q-menu class="bw-menu" :offset="[0, 8]">
@@ -218,12 +221,12 @@ const travelersLabel = computed(() => `${travelersTotal.value} traveler${travele
       <q-btn unelevated color="primary" label="Search" class="bw__search" />
     </div>
 
-    <div v-if="tabs" class="bw__add" @click="openAddDialog">
+    <div v-if="tabs && showTeams" class="bw__add" @click="openAddDialog">
       <q-icon name="add_circle" size="20px" /><span>Dont see your team in the list? Add them</span>
     </div>
 
     <!-- ADD A TEAM — full modal -->
-    <q-dialog v-model="addDialog">
+    <q-dialog v-if="showTeams" v-model="addDialog">
       <q-card class="bw-dialog" style="width:640px;max-width:92vw;border-radius:var(--ds-radius-lg);padding:20px 24px 24px">
         <q-btn flat dense round icon="arrow_back" class="q-mb-sm" v-close-popup />
         <div class="row items-center justify-between q-mb-md">

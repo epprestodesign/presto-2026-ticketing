@@ -4,7 +4,7 @@ import PaymentMethodDialog from '../../components/checkout/PaymentMethodDialog.v
 import AddPaymentDialog from '../../components/checkout/AddPaymentDialog.vue'
 
 export default {
-  title: 'Checkout Experience/Payment Dialogs',
+  title: 'Checkout Experience/Components/Payment Dialogs',
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: `
 Instacart-style payment surfaces used in the checkout's **Add a payment method** step:

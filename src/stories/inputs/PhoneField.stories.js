@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import PhoneField from '../../components/checkout/PhoneField.vue'
 
 export default {
-  title: 'Inputs/Phone Field',
+  title: 'Components/Forms/Phone Field',
   component: PhoneField,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `

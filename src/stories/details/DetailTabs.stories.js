@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import DetailTabs from '../../components/details/DetailTabs.vue'
 
 export default {
-  title: 'Hotel Details/Detail Tabs',
+  title: 'Hotel Details/Components/Detail Tabs',
   component: DetailTabs,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `

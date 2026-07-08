@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 const roomTypes = ['Standard Queen', 'Deluxe King', 'Twin/Double', 'Ocean View Suite', 'Family Room', 'Executive Suite']
 export default {
-  title: 'Inputs/Select',
+  title: 'Components/Forms/Select',
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `
 ## Overview

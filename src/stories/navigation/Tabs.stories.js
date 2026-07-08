@@ -1,7 +1,7 @@
 /** NAVIGATION / Tabs → Quasar: QTabs + QTab + QTabPanels (wrap as PrestoTabs) */
 import { ref } from 'vue'
 export default {
-  title: 'Navigation/Tabs',
+  title: 'Components/Layout & Structure/Tabs',
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `
 ## Overview

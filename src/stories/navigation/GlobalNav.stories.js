@@ -123,7 +123,7 @@ export const reservationsCart = {
 }
 
 export default {
-  title: 'Navigation/Global Nav/Book Reservation',
+  title: 'App Shell/Global Nav/Book Reservation',
   component: GlobalNav,
   tags: ['autodocs'],
   parameters: {

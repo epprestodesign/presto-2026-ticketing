@@ -10,7 +10,7 @@ const features = [
 ]
 
 export default {
-  title: 'Hotel Details/Group Block/Room Card',
+  title: 'Hotel Details/Components/Group Block/Room Card',
   component: RoomCardGroup,
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `

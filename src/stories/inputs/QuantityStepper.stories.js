@@ -5,7 +5,7 @@ import { ref } from 'vue'
 import QuantityStepper from '../../components/QuantityStepper.vue'
 
 export default {
-  title: 'Inputs/Quantity Stepper',
+  title: 'Components/Forms/Quantity Stepper',
   component: QuantityStepper,
   tags: ['autodocs'],
   argTypes: {

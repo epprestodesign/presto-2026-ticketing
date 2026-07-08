@@ -2,6 +2,7 @@
 // Two variants mirror the two booking journeys: a single hotel **Reservation**
 // and a group/team **Group Hold** room block.
 import ConfirmationPage from '../../components/confirmation/ConfirmationPage.vue'
+import PageFrame from '../../components/PageFrame.vue'
 
 // Shared post-booking content (area tips + FAQ) reused by both variants.
 const areaTips = [
@@ -173,8 +174,10 @@ const reservationsData = {
 }
 
 export default {
-  title: 'Confirmation/Confirmation Page/Book Reservation',
+  title: 'Confirmation/Book Reservation',
   component: ConfirmationPage,
+  // holdData is shared with the Group Block story file — not a story itself.
+  excludeStories: ['holdData'],
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',
@@ -192,12 +195,13 @@ Accents use the DS primary (Navy).
   },
 }
 
-/** Single hotel reservation. */
-export const Reservation = {
+/** Single hotel reservation — full page (Global Nav + footer). */
+export const SingleReservation = {
+  name: 'Single Reservation',
   render: () => ({
-    components: { ConfirmationPage },
+    components: { PageFrame, ConfirmationPage },
     setup: () => ({ data: reserveData }),
-    template: `<confirmation-page mode="reserve" :data="data" />`,
+    template: `<page-frame cart-mode="reserve"><confirmation-page mode="reserve" :data="data" /></page-frame>`,
   }),
 }
 
@@ -209,10 +213,10 @@ export const Reservation = {
  * today plus a room at a different hotel tomorrow (two separate cards).
  */
 export const MultipleReservations = {
-  name: 'Multiple Room Reservations',
+  name: 'Multiple Reservations',
   render: () => ({
-    components: { ConfirmationPage },
+    components: { PageFrame, ConfirmationPage },
     setup: () => ({ data: reservationsData }),
-    template: `<confirmation-page mode="reservations" :data="data" />`,
+    template: `<page-frame cart-mode="reserve"><confirmation-page mode="reservations" :data="data" /></page-frame>`,
   }),
 }

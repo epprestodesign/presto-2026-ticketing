@@ -6,7 +6,7 @@ import RoomBookingDialog from '../../components/RoomBookingDialog.vue'
 import { base, onBackdrop } from './RoomBookingDialog.stories.js'
 
 export default {
-  title: 'Hotel Details/Group Block/Room Booking Dialog',
+  title: 'Hotel Details/Components/Group Block/Room Booking Dialog',
   component: RoomBookingDialog,
   tags: ['autodocs'],
   parameters: {

@@ -1,10 +1,10 @@
-// BROWSE HOTELS / Booking Widget — interactive tournament booking search.
+// LANDING PAGE / Components / Teams Booking Widget — interactive tournament booking search.
 // Default is the tabs-less layout (used on the listings/results page).
 // Alternate mode-selector layouts (tabs, radio) live under Explorations.
 import BookingWidget from '../../components/BookingWidget.vue'
 
 export default {
-  title: 'Browse Hotels/Booking Widget',
+  title: 'Landing Page/Components/Teams Booking Widget',
   component: BookingWidget,
   tags: ['autodocs'],
   argTypes: {

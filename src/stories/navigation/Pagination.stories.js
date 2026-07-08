@@ -1,7 +1,7 @@
 /** NAVIGATION / Pagination → Quasar: QPagination (native) */
 import { ref } from 'vue'
 export default {
-  title: 'Navigation/Pagination',
+  title: 'Browse Hotels/Components/Pagination',
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `
 ## Overview

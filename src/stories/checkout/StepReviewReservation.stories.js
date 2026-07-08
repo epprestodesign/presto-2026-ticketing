@@ -2,7 +2,7 @@
 import StepReviewReservation from '../../components/checkout/steps/StepReviewReservation.vue'
 
 export default {
-  title: 'Checkout Experience/Steps/Review Reservation',
+  title: 'Checkout Experience/Components/Steps/Review Reservation',
   component: StepReviewReservation,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: 'Step 4 — recap + Confirm and pay. **Group Hold** recaps teams and the group total; **Reservation** recaps the lead guest and the single-stay total.' } } },

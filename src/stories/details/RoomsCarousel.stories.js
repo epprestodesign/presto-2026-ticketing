@@ -26,7 +26,7 @@ const wrap = (rooms, extra = {}) => ({
 })
 
 export default {
-  title: 'Hotel Details/Book Reservation/Rooms',
+  title: 'Hotel Details/Components/Book Reservation/Rooms',
   component: RoomsCarousel,
   tags: ['autodocs'],
   parameters: {

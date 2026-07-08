@@ -3,6 +3,7 @@
 import { ref, computed } from 'vue'
 import { loadImagery } from '../../lib/imagery'
 import CheckoutPage from '../../components/checkout/CheckoutPage.vue'
+import PageFrame from '../../components/PageFrame.vue'
 
 const useHero = (category, seed) => {
   const img = ref('')
@@ -11,7 +12,7 @@ const useHero = (category, seed) => {
 }
 
 export default {
-  title: 'Checkout Experience/Checkout Page/Group Block',
+  title: 'Checkout Experience/Group Block',
   component: CheckoutPage,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: `
@@ -21,11 +22,12 @@ Summary**. \`mode="group"\` shows the teams/block step.
 ` } } },
 }
 
-/** Group / team hold checkout — includes the group-details step. */
-export const GroupBlock = {
+/** Group / team hold checkout — includes the group-details step. Rendered as a
+ *  full page inside the app shell (Global Nav + footer). */
+export const Page = {
   name: 'Group Block',
   render: () => ({
-    components: { CheckoutPage },
+    components: { CheckoutPage, PageFrame },
     setup() {
       const img = useHero('suites', 1)
       const cart = {
@@ -59,6 +61,6 @@ export const GroupBlock = {
       }))
       return { cart, summary }
     },
-    template: `<checkout-page mode="group" :cart="cart" :summary="summary" />`,
+    template: `<page-frame cart-mode="hold"><checkout-page mode="group" :cart="cart" :summary="summary" /></page-frame>`,
   }),
 }

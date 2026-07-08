@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import StepContactInfo from '../../components/checkout/steps/StepContactInfo.vue'
 
 export default {
-  title: 'Checkout Experience/Steps/Contact Info/Book Reservation',
+  title: 'Checkout Experience/Components/Steps/Contact Info/Book Reservation',
   component: StepContactInfo,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: 'Step 2 — Book Reservation: contact + guests staying (per-room Guest Information). Multiple Room Reservations groups guest forms by reservation/hotel.' } } },

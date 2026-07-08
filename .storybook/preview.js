@@ -57,45 +57,64 @@ const preview = {
         order: [
           'Getting Started', ['Introduction', 'Architecture & Conventions', 'Story Template'],
           'Foundations', [
-            'Palette', 'Colors', 'Typography', 'Icons', 'Imagery', 'Hero Banner', 'Elevation',
-            'Spacing', 'Border Radius', 'Breakpoints', 'Motion',
+            'Colors', 'Palette', 'Typography', 'Icons', 'Imagery',
+            'Spacing', 'Border Radius', 'Elevation', 'Breakpoints', 'Motion',
           ],
-          'Inputs', [
-            'Button', 'Checkbox', 'Checkbox Tree', 'Radio Group', 'Choice Chips', 'Switch',
-            'Text Field', 'Text Area', 'Phone Field', 'Select', 'Autocomplete',
-            'Date Picker', 'Time Picker', 'Slider', 'Range',
-            'Rating', 'Quantity Stepper', 'Transfer List',
+          'Components', [
+            'Actions', [
+              'Button', 'Dialog', 'Modal', 'Side Panel', 'Backdrop',
+            ],
+            'Forms', [
+              'Text Field', 'Text Area', 'Select', 'Autocomplete', 'Checkbox', 'Checkbox Tree',
+              'Radio Group', 'Choice Chips', 'Switch', 'Date Picker', 'Time Picker',
+              'Slider', 'Range', 'Rating', 'Quantity Stepper', 'Phone Field', 'Transfer List',
+            ],
+            'Feedback & Status', [
+              'Alert', 'Banner', 'Badge', 'Snackbar', 'Toast', 'Progress', 'Skeleton',
+            ],
+            'Layout & Structure', [
+              'Box', 'Card', 'Container', 'Grid', 'Stack', 'Divider', 'Section Header',
+              'List', 'List Item', 'Accordion', 'Tabs', 'Table',
+            ],
+            'Media & Visuals', [
+              'Avatar', 'Icon', 'Image List', 'Hero Banner', 'Rating',
+            ],
+            'Typography & Content', [
+              'Typography', 'Chip', 'Amenity', 'Tooltip',
+            ],
           ],
-          'Data Display', [
-            'Amenity', 'Avatar', 'Badge', 'Chip', 'Divider', 'Icon',
-            'List', 'List Item', 'Accordion', 'Rating', 'Table', 'Tooltip', 'Typography',
+          'App Shell', [
+            'Global Nav', 'Page Frame',
           ],
-          'Feedback', [
-            'Alert', 'Banner', 'Dialog', 'Snackbar', 'Toast',
-            'Progress', 'Skeleton', 'Backdrop',
-          ],
-          'Layout', [
-            'Box', 'Card', 'Container', 'Grid', 'Stack', 'Image List', 'Section Header', 'Side Panel',
-          ],
-          'Navigation', [
-            'Global Nav', 'Tabs', 'Menu', 'Breadcrumbs', 'Pagination', 'Stepper', 'App Navigation',
+          'Landing Page', [
+            'Book Reservation', 'Group Block',
+            'Components', ['Teams Booking Widget', 'Core Booking Widget', 'Display Ad'],
           ],
           'Browse Hotels', [
-            'Booking Widget', 'Hotel Listing Card', 'Availability Dialog', 'Hotel Map', 'Search & Filters', 'Forms', 'Empty States', 'Loading States',
+            'Book Reservation', 'Group Block',
+            'Components', [
+              'Hotel Listing Card', 'Availability Dialog', 'Hotel Map',
+              'Search & Filters', 'Pagination', 'Breadcrumbs', 'Forms', 'Empty States', 'Loading States',
+            ],
           ],
           'Hotel Details', [
-            // Both flow folders list their components in the SAME order.
-            'Book Reservation', ['Hotel Detail Page', 'Rooms', 'Room Card', 'Room Booking Dialog'],
-            'Group Block', ['Hotel Detail Page', 'Rooms', 'Room Card', 'Room Booking Dialog'],
-            'Photo Gallery', 'Detail Tabs', 'Hotel Summary Header', 'Amenities', 'Policies & Property',
+            'Book Reservation', 'Group Block',
+            'Components', [
+              // Both flow folders list their components in the SAME order.
+              'Book Reservation', ['Rooms', 'Room Card', 'Room Booking Dialog'],
+              'Group Block', ['Rooms', 'Room Card', 'Room Booking Dialog'],
+              'Photo Gallery', 'Detail Tabs', 'Hotel Summary Header', 'Amenities', 'Policies & Property',
+            ],
           ],
           'Checkout Experience', [
-            'Checkout Page',
-            'Steps', ['Review Order', 'Contact Info', 'Payment', 'Review Reservation'],
-            'Payment Dialogs',
+            'Book Reservation', 'Group Block',
+            'Components', [
+              'Steps', ['Review Order', 'Contact Info', 'Payment', 'Review Reservation'],
+              'Policies', 'Payment Dialogs',
+            ],
           ],
           'Confirmation', [
-            'Confirmation Page',
+            'Book Reservation', 'Group Block',
           ],
           '*',
           'Manage Booking', [

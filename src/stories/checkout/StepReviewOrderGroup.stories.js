@@ -3,7 +3,7 @@ import StepReviewOrder from '../../components/checkout/steps/StepReviewOrder.vue
 import { holdCart } from './_fixtures'
 
 export default {
-  title: 'Checkout Experience/Steps/Review Order/Group Block',
+  title: 'Checkout Experience/Components/Steps/Review Order/Group Block',
   component: StepReviewOrder,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: 'Step 1 — recycles the cart body: the group-block cart (collapsible hotels → rooms → day steppers).' } } },

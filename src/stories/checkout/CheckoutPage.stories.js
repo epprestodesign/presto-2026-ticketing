@@ -3,6 +3,7 @@
 import { ref, computed } from 'vue'
 import { loadImagery } from '../../lib/imagery'
 import CheckoutPage from '../../components/checkout/CheckoutPage.vue'
+import PageFrame from '../../components/PageFrame.vue'
 
 const useHero = (category, seed) => {
   const img = ref('')
@@ -11,7 +12,7 @@ const useHero = (category, seed) => {
 }
 
 export default {
-  title: 'Checkout Experience/Checkout Page/Book Reservation',
+  title: 'Checkout Experience/Book Reservation',
   component: CheckoutPage,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: `
@@ -23,10 +24,12 @@ Instacart-style payment dialogs.
 ` } } },
 }
 
-/** Single reservation checkout — contact only, no group step. */
-export const Reservation = {
+/** Single reservation checkout — contact only, no group step. Rendered as a
+ *  full page inside the app shell (Global Nav + footer). */
+export const Page = {
+  name: 'Book Reservation',
   render: () => ({
-    components: { CheckoutPage },
+    components: { CheckoutPage, PageFrame },
     setup() {
       const img = useHero('rooms', 2)
       const cart = {
@@ -60,7 +63,7 @@ export const Reservation = {
       }))
       return { cart, summary }
     },
-    template: `<checkout-page mode="reservation" :cart="cart" :summary="summary" />`,
+    template: `<page-frame cart-mode="reserve"><checkout-page mode="reservation" :cart="cart" :summary="summary" /></page-frame>`,
   }),
 }
 
@@ -70,7 +73,7 @@ export const Reservation = {
 export const MultipleRoomReservations = {
   name: 'Multiple Room Reservations',
   render: () => ({
-    components: { CheckoutPage },
+    components: { CheckoutPage, PageFrame },
     setup() {
       const img = useHero('suites', 0)
       const cart = {
@@ -106,6 +109,6 @@ export const MultipleRoomReservations = {
       }))
       return { cart, summary }
     },
-    template: `<checkout-page mode="reservations" :cart="cart" :summary="summary" />`,
+    template: `<page-frame cart-mode="reserve"><checkout-page mode="reservations" :cart="cart" :summary="summary" /></page-frame>`,
   }),
 }
