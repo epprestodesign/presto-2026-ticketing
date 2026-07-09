@@ -1,7 +1,8 @@
 <script setup>
 // DateRangeCalendar — custom two-month range picker (Expedia-style).
 // Global edge arrows move BOTH months together (no per-calendar nav, no slide).
-// Past dates disabled. DS Navy selection. v-model = { from, to } ('YYYY/MM/DD').
+// Past dates disabled. Primary-navy endpoint circles + light-navy range band
+// that flows under the circles (Google-style). v-model = { from, to } ('YYYY/MM/DD').
 import { ref, computed } from 'vue'
 
 const props = defineProps({ modelValue: { type: Object, default: null } })
@@ -51,6 +52,7 @@ const state = (c) => {
   return ''
 }
 const isToday = (c) => c && c.date.getTime() === today.getTime()
+const hasRange = computed(() => !!(from.value && to.value))
 function pick (c) {
   if (!c || isPast(c)) return
   const f = from.value, e = to.value
@@ -72,8 +74,8 @@ function pick (c) {
           <template v-for="(c, i) in mo.cells" :key="i">
             <span v-if="!c" class="drc__cell drc__cell--empty" />
             <button v-else type="button" class="drc__cell"
-              :class="[state(c) ? 'is-' + state(c) : '', { 'is-past': isPast(c), 'is-today': isToday(c) }]"
-              :disabled="isPast(c)" @click="pick(c)">{{ c.d }}</button>
+              :class="[state(c) ? 'is-' + state(c) : '', { 'is-past': isPast(c), 'is-today': isToday(c), 'has-range': hasRange }]"
+              :disabled="isPast(c)" @click="pick(c)"><span class="drc__n">{{ c.d }}</span></button>
           </template>
         </div>
       </div>
@@ -92,13 +94,26 @@ function pick (c) {
 .drc__title { text-align: center; font-weight: 700; font-size: 1.125rem; margin-bottom: 24px; }
 .drc__dow { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: var(--ds-color-text-subtlest); font-size: 0.75rem; margin-bottom: 6px; }
 .drc__grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 2px; }
-.drc__cell { height: 40px; border: 0; background: transparent; font: inherit; cursor: pointer; color: var(--ds-color-text); display: flex; align-items: center; justify-content: center; border-radius: 999px; }
+.drc__cell { position: relative; height: 40px; border: 0; background: transparent; font: inherit; cursor: pointer; color: var(--ds-color-text); display: flex; align-items: center; justify-content: center; border-radius: 999px; }
 .drc__cell--empty { background: transparent; cursor: default; }
-.drc__cell:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-between) { background: var(--ds-palette-slate-100); }
+.drc__n { position: relative; z-index: 2; } /* number sits above the band + endpoint circle */
+.drc__cell:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-between) { background: var(--ds-palette-navy-50); }
 .drc__cell.is-past { color: var(--ds-color-text-disabled); cursor: default; }
-.drc__cell.is-today { box-shadow: inset 0 0 0 1px var(--ds-color-border-bold); }
-.drc__cell.is-between { background: var(--ds-palette-slate-100); border-radius: 0; }
-.drc__cell.is-start, .drc__cell.is-end { background: var(--ds-color-background-brand-bold); color: #fff; }
-.drc__cell.is-start { border-top-left-radius: 999px; border-bottom-left-radius: 999px; }
-.drc__cell.is-end { border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
+.drc__cell.is-today { box-shadow: inset 0 0 0 2px var(--ds-palette-navy-300); }
+
+/* Range bar — light-navy band that runs continuously through the row and flows
+   UNDER the endpoint circles (Google-style seamless connection). */
+.drc__cell.is-between { background: var(--ds-palette-navy-100); color: var(--ds-palette-navy-900); border-radius: 0; }
+/* Half-bands on the endpoints so the bar meets the circle centre (only when the
+   range is complete — a lone start shows just its circle). */
+.drc__cell.is-start.has-range { background: linear-gradient(to right, transparent 50%, var(--ds-palette-navy-100) 50%); border-radius: 0; }
+.drc__cell.is-end.has-range { background: linear-gradient(to right, var(--ds-palette-navy-100) 50%, transparent 50%); border-radius: 0; }
+
+/* Endpoint circles — primary navy, layered on top of the band. */
+.drc__cell.is-start::before, .drc__cell.is-end::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; right: 0; margin: auto;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--ds-color-background-brand-bold); z-index: 1;
+}
+.drc__cell.is-start, .drc__cell.is-end { color: #fff; font-weight: 700; }
 </style>

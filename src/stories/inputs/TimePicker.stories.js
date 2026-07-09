@@ -1,46 +1,77 @@
-/** INPUTS / Time Picker → Quasar: QTime (native) */
+/** INPUTS / Time Picker → a simple 30-minute-interval dropdown (QSelect).
+ *  Replaces the clock UI (QTime) with a scannable list of times — the pattern
+ *  people expect for arrival time / pickup / reservation slots. */
 import { ref } from 'vue'
+
+// 30-minute interval options across the day, 12-hour AM/PM labels.
+const buildTimes = (startHour = 0, endHour = 24) => {
+  const out = []
+  for (let h = startHour; h < endHour; h++) {
+    for (const m of [0, 30]) {
+      const ampm = h < 12 ? 'AM' : 'PM'
+      const hr = h % 12 === 0 ? 12 : h % 12
+      out.push(`${hr}:${String(m).padStart(2, '0')} ${ampm}`)
+    }
+  }
+  return out
+}
+const allTimes = buildTimes()
+const windowTimes = buildTimes(15, 22).concat('10:00 PM') // 3:00 PM – 10:00 PM
+
 export default {
   title: 'Components/Forms/Time Picker',
   tags: ['autodocs'],
   parameters: { docs: { description: { component: `
 ## Overview
-Select a time of day (clock UI). Maps directly to **QTime**. In booking: estimated
-**arrival time**, airport-transfer pickup, or a spa/dining reservation slot.
+Pick a time of day from a **30-minute-interval dropdown** — a simple, scannable
+list instead of a clock face. Used for estimated **arrival time**, transfer
+pickup, or a reservation slot.
 
-## When to use
-- Estimated arrival time, transfer pickup, on-site reservation slots.
+## Why a dropdown
+A list of half-hour slots is faster and less error-prone than a clock UI for the
+coarse times booking flows need. Built on **QSelect** with a clock-icon field.
 
 ## When not to use
 - A date → **Date Picker**.
+- Precise to-the-minute entry → a plain **Text Field** with validation.
 
-## Quasar mapping
-\`Time Picker → QTime\` (native). Supports \`format24h\`, \`:hour-options\` for windows.
+## Variants
+Arrival time (in a field) · Basic (bare dropdown) · Check-in window (restricted range).
 ` } } },
 }
 
-/** Estimated arrival time inside a field. */
+/** Estimated arrival time — dropdown of 30-min slots inside a field. */
 export const ArrivalTime = {
-  render: () => ({ setup: () => ({ time: ref('15:00') }), template: `
-    <q-input v-model="time" outlined label="Estimated arrival" hint="Check-in from 3:00 PM" style="max-width:320px">
-      <template #append>
-        <q-icon name="schedule" class="cursor-pointer">
-          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-            <q-time v-model="time" color="primary">
-              <div class="row items-center justify-end"><q-btn v-close-popup label="Close" color="primary" flat /></div>
-            </q-time>
-          </q-popup-proxy>
-        </q-icon>
-      </template>
-    </q-input>` }),
+  render: () => ({
+    setup: () => ({ time: ref('3:00 PM'), allTimes }),
+    template: `
+      <q-select v-model="time" :options="allTimes" outlined label="Estimated arrival"
+        hint="Check-in from 3:00 PM" style="max-width:320px" behavior="menu">
+        <template #prepend><q-icon name="schedule" /></template>
+      </q-select>`,
+  }),
 }
 
-/** Basic — inline clock. */
+/** Basic — bare 30-minute dropdown. */
 export const Basic = {
-  render: () => ({ setup: () => ({ time: ref('15:00') }), template: `<q-time v-model="time" color="primary" />` }),
+  render: () => ({
+    setup: () => ({ time: ref('9:00 AM'), allTimes }),
+    template: `
+      <q-select v-model="time" :options="allTimes" outlined label="Time"
+        style="max-width:240px" behavior="menu">
+        <template #prepend><q-icon name="schedule" /></template>
+      </q-select>`,
+  }),
 }
 
-/** Check-in window only (15:00–22:00) — restricts selectable hours (edge case). */
+/** Check-in window only (3:00 PM – 10:00 PM) — restricted slot list (edge case). */
 export const CheckInWindow = {
-  render: () => ({ setup: () => ({ time: ref('15:00'), hours: [15,16,17,18,19,20,21,22] }), template: `<q-time v-model="time" format24h :hour-options="hours" color="primary" />` }),
+  render: () => ({
+    setup: () => ({ time: ref('3:00 PM'), windowTimes }),
+    template: `
+      <q-select v-model="time" :options="windowTimes" outlined label="Check-in time"
+        hint="Front desk staffed 3:00 PM – 10:00 PM" style="max-width:320px" behavior="menu">
+        <template #prepend><q-icon name="schedule" /></template>
+      </q-select>`,
+  }),
 }

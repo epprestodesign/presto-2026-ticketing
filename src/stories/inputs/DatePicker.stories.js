@@ -1,5 +1,6 @@
-/** INPUTS / Date Picker → Quasar: QDate (native) */
+/** INPUTS / Date Picker → Quasar: QDate (native) + the custom booking calendar */
 import { ref } from 'vue'
+import DateRangeCalendar from '../../components/DateRangeCalendar.vue'
 export default {
   title: 'Components/Forms/Date Picker',
   tags: ['autodocs'],
@@ -63,6 +64,18 @@ export const Basic = {
 /** Range — select a stay span. */
 export const Range = {
   render: () => ({ setup: () => ({ range: ref({ from: '2026/06/02', to: '2026/06/06' }) }), template: `<q-date v-model="range" range color="primary" />` }),
+}
+
+/** The custom two-month booking range calendar used inside the Booking Widget —
+ *  primary-navy endpoint circles connected by a light-navy range band. */
+export const BookingRangeCalendar = {
+  name: 'Booking Range Calendar',
+  parameters: { docs: { description: { story: 'The custom Google-style range calendar used in the search Booking Widget: primary-navy check-in / check-out circles connected by a light-navy range band that flows under the circles.' } } },
+  render: () => ({
+    components: { DateRangeCalendar },
+    setup: () => ({ range: ref({ from: '2026/07/16', to: '2026/07/19' }) }),
+    template: `<div style="padding:24px 8px"><date-range-calendar v-model="range" /></div>`,
+  }),
 }
 
 /** No past dates — disables days before today (edge case). */

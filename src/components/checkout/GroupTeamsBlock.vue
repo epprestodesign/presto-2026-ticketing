@@ -9,22 +9,27 @@ import PhoneField from './PhoneField.vue'
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
   showErrors: { type: Boolean, default: false },
+  // Initial state — lets stories render each edge case of the teams flow.
+  initialView: { type: String, default: 'count' }, // count | list | add
+  initialNotHolding: { type: Boolean, default: false },
+  initialExpected: { type: Number, default: null },
+  initialTeams: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['update:modelValue'])
 
-const view = ref('count') // count | list | add
-const notHolding = ref(false)
+const view = ref(props.initialView) // count | list | add
+const notHolding = ref(props.initialNotHolding)
 const groupBlockName = ref(props.modelValue.groupBlockName || '')
 const showSpecial = ref(false)
 const showOrg = ref(false)
-const expected = ref(props.modelValue.expected ?? 1)
+const expected = ref(props.modelValue.expected ?? props.initialExpected ?? 1)
 const query = ref('')
 
 const clubs = ['Arsenal', 'Chelsea', 'Liverpool', 'Manchester City', 'Tottenham', 'Everton', 'Leeds United', 'Newcastle', 'Aston Villa', 'Brighton']
 const teamAges = ['U10', 'U12', 'U14', 'U16']
 const teamGenders = ['Boys', 'Girls']
 const available = ref(clubs.flatMap((c) => teamAges.flatMap((a) => teamGenders.map((g) => ({ name: `${c} ${a} ${g}`, checked: false })))))
-const added = ref([])
+const added = ref([...props.initialTeams])
 
 const ageDivisions = ['U8', 'U10', 'U12', 'U14', 'U16', 'U18', 'U19', 'Open']
 const genders = ['Boys', 'Girls', 'Coed']

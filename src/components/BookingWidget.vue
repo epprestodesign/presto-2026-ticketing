@@ -1,6 +1,6 @@
 <script setup>
 // BookingWidget — interactive tabbed tournament booking search.
-// Modes: 'reservations' (team + dates + travelers) | 'group' (team(s) + travelers).
+// Modes: 'reservations' (team + dates + travelers) | 'group' (team(s) + rooms needed).
 // Features: working tabs (toggle via `tabs`), team search popover with live filter,
 // add-a-team MODAL with duplicate-name error, custom dual-month date range
 // (DateRangeCalendar) + flexible pills, travelers steppers. Flat; DS tokens.
@@ -84,7 +84,8 @@ const addDisabled = computed(() => newTeams.value.some((t) => !t.name.trim() || 
 const addLabel = computed(() => (newTeams.value.length > 1 ? `Add ${newTeams.value.length} Teams` : 'Add Team'))
 
 // --- Dates ---
-const range = ref(null)
+// Pre-selected hypothetical range so the field shows real dates (not "Add dates").
+const range = ref({ from: '2026/07/16', to: '2026/07/19' })
 const flex = ref('Exact dates')
 const flexOptions = ['Exact dates', '± 1 day', '± 2 days', '± 3 days', '± 7 days']
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -107,6 +108,9 @@ const addRoom = () => rooms.push(newRoom())
 const removeRoom = (i) => rooms.splice(i, 1)
 const travelersTotal = computed(() => rooms.reduce((s, r) => s + r.adults + r.children, 0))
 const travelersLabel = computed(() => `${travelersTotal.value} traveler${travelersTotal.value !== 1 ? 's' : ''}, ${rooms.length} room${rooms.length !== 1 ? 's' : ''}`)
+
+// Group Block swaps the Travelers popover for a simple "Rooms Needed" number input.
+const roomsNeeded = ref(10)
 </script>
 
 <template>
@@ -192,8 +196,16 @@ const travelersLabel = computed(() => `${travelersTotal.value} traveler${travele
         </q-menu>
       </div>
 
-      <!-- TRAVELERS -->
-      <div class="bw__field col">
+      <!-- ROOMS NEEDED (Group Block) — replaces the Travelers popover -->
+      <div v-if="mode === 'group'" class="bw__field col">
+        <q-input outlined stack-label type="number" min="1" class="bw__input"
+          label="Rooms Needed" v-model.number="roomsNeeded">
+          <template #prepend><q-icon name="meeting_room" /></template>
+        </q-input>
+      </div>
+
+      <!-- TRAVELERS (Book Reservations) -->
+      <div v-else class="bw__field col">
         <q-input outlined stack-label readonly class="bw__input cursor-pointer" label="Travelers" :model-value="travelersLabel">
           <template #prepend><q-icon name="group" /></template>
         </q-input>
