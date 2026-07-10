@@ -85,7 +85,9 @@ const leftClass = (n) => (n <= 0 ? 'is-sold' : n <= 3 ? 'is-limited' : 'is-ok')
 .rcr--soldout { opacity: 0.6; }
 .rcr__media { width: 100%; height: 168px; object-fit: cover; display: block; }
 
-.rcr__head { padding: 20px 22px 16px; display: flex; flex-direction: column; gap: 8px; }
+/* Head grows to fill, pushing the Nights + price sections to a consistent
+   baseline so they align across equal-height cards in the grid. */
+.rcr__head { flex: 1; padding: 20px 22px 16px; display: flex; flex-direction: column; gap: 8px; }
 .rcr__title { margin: 0; font-size: 1.375rem; font-weight: 700; color: var(--ds-color-text-brand); line-height: 1.2; }
 .rcr__bed { color: var(--ds-color-text-subtle); font-size: 1rem; }
 .rcr__occ { display: inline-flex; align-items: center; gap: 8px; color: var(--ds-color-text); font-size: 1rem; }
@@ -103,7 +105,7 @@ const leftClass = (n) => (n <= 0 ? 'is-sold' : n <= 3 ? 'is-limited' : 'is-ok')
 .rcr__left.is-limited { color: var(--ds-palette-orange-600); }
 .rcr__left.is-sold { color: var(--ds-color-text-subtlest); }
 
-.rcr__foot { padding: 16px 22px 20px; border-top: 1px solid var(--ds-color-border); margin-top: auto; }
+.rcr__foot { padding: 16px 22px 20px; border-top: 1px solid var(--ds-color-border); }
 .rcr__per { color: var(--ds-color-text-subtle); font-size: 1rem; }
 .rcr__total { color: var(--ds-color-text-brand); font-size: 1.5rem; font-weight: 700; line-height: 1.1; margin-top: 2px; }
 .rcr__sub { color: var(--ds-color-text-subtlest); font-size: 0.8125rem; margin-top: 4px; }

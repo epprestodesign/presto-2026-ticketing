@@ -65,8 +65,6 @@ export const reserveCart = {
     rooms: 1,
     rate: 164.78,
     subtotal: 164.78,
-    program: 'OneKeyCash applied',
-    discount: '$26.55 off',
     taxes: 47.53,
     propertyFee: 110.0,
     total: 322.31,
@@ -162,22 +160,25 @@ export const HoldCart = {
   }),
 }
 
-/** Single hotel reservation cart — shown open. */
+/** Single hotel reservation cart — shown open. Kept as a component reference:
+ *  the Book Reservation flow pages no longer surface a cart button, so this demo
+ *  forces it on to document the cart fly-out itself. */
 export const ReserveCart = {
   name: 'Reserve Cart',
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: reserveCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" :open-cart="true" />`,
+    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" :show-cart="true" :open-cart="true" />`,
   }),
 }
 
-/** Multiple room reservations cart — shown open. */
+/** Multiple room reservations cart — shown open (forced on for the demo; the
+ *  Multiple Reservations flow itself no longer shows a cart button). */
 export const ReservationsCart = {
   name: 'Reservations Cart',
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: reservationsCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="reservations" :cart="cart" :open-cart="true" />`,
+    template: `<global-nav brand="Soccer League" cart-mode="reservations" :cart="cart" :show-cart="true" :open-cart="true" />`,
   }),
 }

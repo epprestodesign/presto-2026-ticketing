@@ -1,12 +1,13 @@
 <script setup>
 // RoomsCarousel — the "Select Your Room" section of the hotel detail screen.
-// Lays out room cards in a horizontal, scroll-snapping track so more than three
-// rooms can be browsed when available (arrows + native touch/trackpad swipe).
+// Lays room cards out in a responsive grid of up to three per row; when there
+// are more than three room types they wrap onto additional rows (e.g. 4 rooms →
+// a row of 3 + a row of 1). No carousel/scroll — mirrors production.
 // The `flow` prop picks the card: 'reserve' → RoomCardReserve (Book
 // Reservations), 'group' → RoomCardGroup (Group Block). Sold-out rooms are
 // rendered inline (the cards handle their own sold-out state), so availability
 // never removes a room from the list — it just disables it.
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref } from 'vue'
 import RoomCardReserve from './RoomCardReserve.vue'
 import RoomCardGroup from './RoomCardGroup.vue'
 import PriceDetailsDialog from './PriceDetailsDialog.vue'
@@ -22,55 +23,19 @@ const props = defineProps({
 const priceOpen = ref(false)
 const activeRoom = ref(null)
 const openPrice = (room) => { activeRoom.value = room; priceOpen.value = true }
-
-const track = ref(null)
-const scrollable = ref(false)
-const atStart = ref(true)
-const atEnd = ref(false)
-
-// One card (340px) + track gap (20px). Scroll by ~1.5 cards so a partially
-// visible "next" card pulls fully into view.
-const STEP = (340 + 20) * 1.5
-
-const update = () => {
-  const el = track.value
-  if (!el) return
-  const max = el.scrollWidth - el.clientWidth
-  scrollable.value = max > 1
-  atStart.value = el.scrollLeft <= 1
-  atEnd.value = el.scrollLeft >= max - 1
-}
-
-const scroll = (dir) => {
-  track.value?.scrollBy({ left: dir * STEP, behavior: 'smooth' })
-}
-
-let ro
-onMounted(async () => {
-  await nextTick()
-  update()
-  if (window.ResizeObserver) {
-    ro = new ResizeObserver(update)
-    ro.observe(track.value)
-  }
-})
-onBeforeUnmount(() => ro?.disconnect())
 </script>
 
 <template>
   <section class="rcar">
-    <header v-if="title || subtitle || scrollable" class="rcar__head">
+    <header v-if="title || subtitle" class="rcar__head">
       <div class="rcar__heading">
         <h3 v-if="title" class="rcar__title">{{ title }}</h3>
         <p v-if="subtitle" class="rcar__sub">{{ subtitle }}</p>
       </div>
-      <div v-if="scrollable" class="rcar__nav">
-        <button type="button" class="rcar__arrow" :disabled="atStart" aria-label="Previous rooms" @click="scroll(-1)"><q-icon name="chevron_left" size="22px" /></button>
-        <button type="button" class="rcar__arrow" :disabled="atEnd" aria-label="More rooms" @click="scroll(1)"><q-icon name="chevron_right" size="22px" /></button>
-      </div>
     </header>
 
-    <div ref="track" class="rcar__track" @scroll="update">
+    <!-- Up to 3 room cards per row; additional room types wrap to new rows. -->
+    <div class="rcar__grid">
       <div v-for="(room, i) in rooms" :key="i" class="rcar__item">
         <room-card-group v-if="flow === 'group'" v-bind="room" />
         <room-card-reserve v-else v-bind="room" @price-details="openPrice(room)" />
@@ -88,14 +53,12 @@ onBeforeUnmount(() => ro?.disconnect())
 .rcar__title { font-size: 1.5rem; font-weight: 700; line-height: 1.2; margin: 0; color: var(--ds-color-text); }
 .rcar__sub { margin: 4px 0 0; color: var(--ds-color-text-subtle); font-size: 0.9375rem; }
 
-.rcar__nav { display: flex; gap: 8px; flex: 0 0 auto; }
-.rcar__arrow { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--ds-color-border-bold); background: var(--ds-color-surface); color: var(--ds-color-text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background var(--ds-duration-fast) var(--ds-ease-standard), border-color var(--ds-duration-fast) var(--ds-ease-standard); }
-.rcar__arrow:hover:not(:disabled) { background: var(--ds-color-surface-sunken); }
-.rcar__arrow:disabled { opacity: 0.4; cursor: default; }
+/* Grid: up to three cards per row, wrapping onto additional rows. Cards fill
+   their cell (their intrinsic 360px width is overridden to 100%). */
+.rcar__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+.rcar__item { min-width: 0; display: flex; }
+.rcar__item > :deep(.rcr), .rcar__item > :deep(.rcg) { width: 100%; height: 100%; }
 
-/* Scroll-snapping horizontal track. Native overflow handles touch/trackpad
-   swipe; arrows drive programmatic scroll. Cards keep their intrinsic width. */
-.rcar__track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 2px; padding: 10px 4px 28px; margin: -10px -4px -28px; scrollbar-width: thin; }
-.rcar__item { scroll-snap-align: start; flex: 0 0 auto; }
-.rcar__item > :deep(.rcr), .rcar__item > :deep(.rcg) { height: 100%; }
+@media (max-width: 900px) { .rcar__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .rcar__grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

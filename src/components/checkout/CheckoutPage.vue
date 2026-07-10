@@ -5,7 +5,7 @@
 //   1 Review order  2 Contact & group info  3 Payment  4 Review reservation
 // `mode` ('group' | 'reservation' | 'reservations') toggles the group-details
 // step, the cart body, and the contact form (single vs grouped-by-hotel guests).
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import CartReview from '../CartReview.vue'
 import StepReviewOrder from './steps/StepReviewOrder.vue'
@@ -18,7 +18,16 @@ const props = defineProps({
   cart: { type: Object, default: () => ({}) },
   summary: { type: Object, default: () => ({}) },
   currency: { type: String, default: '$' },
+  // Group flow: render the teams block widget in the contact step.
+  showTeams: { type: Boolean, default: true },
 })
+
+// "Time left to book" countdown for the rail — rooms are held temporarily.
+const heldSecs = ref(props.cart.heldSeconds ?? 895)
+const timerText = computed(() => `${Math.floor(heldSecs.value / 60)} min : ${String(heldSecs.value % 60).padStart(2, '0')} sec`)
+let heldTimer = null
+onMounted(() => { heldTimer = setInterval(() => { if (heldSecs.value > 0) heldSecs.value-- }, 1000) })
+onBeforeUnmount(() => clearInterval(heldTimer))
 const $q = useQuasar()
 const isGroup = computed(() => props.mode === 'group')
 const isMulti = computed(() => props.mode === 'reservations') // multiple room reservations
@@ -49,14 +58,14 @@ const policyHotels = computed(() => {
   return (hs && hs.length) ? hs.map((h) => ({ name: h.name })) : [{}]
 })
 
-// Reservation drops the "Review order" step (the rail already shows the order).
+// Group blocks are held, not charged — no payment step. Reservation flows keep
+// payment but drop the "Review order" step (the rail already shows the order).
 const steps = computed(() => {
-  const rest = [
-    { key: 'contact', label: isGroup.value ? 'Enter contact & group information' : 'Enter contact information' },
-    { key: 'payment', label: 'Add a payment method' },
-    { key: 'final', label: 'Review your reservation' },
-  ]
-  return isGroup.value ? [{ key: 'review', label: 'Review order' }, ...rest] : rest
+  const contact = { key: 'contact', label: isGroup.value ? 'Enter contact & group information' : 'Enter contact information' }
+  const final = { key: 'final', label: 'Review your reservation' }
+  return isGroup.value
+    ? [{ key: 'review', label: 'Review order' }, contact, final]
+    : [contact, { key: 'payment', label: 'Add a payment method' }, final]
 })
 
 const current = ref(1)
@@ -67,9 +76,9 @@ const next = () => { furthest.value = Math.max(furthest.value, current.value + 1
 
 // State captured across steps.
 const contact = ref({})
+// Credit card only — no Google Pay / alternative payment methods.
 const methods = [
   { id: 'amex', logo: 'Amex', last4: '1009', label: 'Amex', sub: 'Default' },
-  { id: 'gpay', logo: 'GooglePay', label: 'Google Pay' },
 ]
 const payment = ref('amex')
 const paymentLabel = computed(() => {
@@ -97,7 +106,6 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
   <div class="ck">
     <div class="ck__inner">
     <div class="ck__header">
-      <button class="ck__back" aria-label="Back"><q-icon name="arrow_back" size="20px" /></button>
       <h1 class="ck__h1">Confirm and pay</h1>
     </div>
 
@@ -121,16 +129,32 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
           <!-- open content — each step is its own component -->
           <div v-if="stepState(i + 1) === 'open'" class="ck__body">
             <step-review-order v-if="s.key === 'review'" :mode="cartMode" :cart="liveCart" :currency="currency" bind @next="next" />
-            <step-contact-info v-else-if="s.key === 'contact'" :mode="mode" :rooms="contactRooms" :reservations="isMulti ? contactReservations : null" v-model="contact" @next="next" />
+            <step-contact-info v-else-if="s.key === 'contact'" :mode="mode" :show-teams="showTeams" :rooms="contactRooms" :reservations="isMulti ? contactReservations : null" v-model="contact" @next="next" />
             <step-payment v-else-if="s.key === 'payment'" v-model="payment" :methods="methods" @next="next" />
             <step-review-reservation v-else :contact-summary="contactSummary" :payment-label="paymentLabel" :total="summary.total" :currency="currency" :flow="policyFlow" :hotels="policyHotels" @confirm="confirm" />
           </div>
         </section>
       </div>
 
-      <!-- RIGHT: sticky order summary — recycles the cart body; price details split into its own card -->
+      <!-- RIGHT: sticky order summary — recycles the cart body; price details
+           split into its own card. The order is always fully expanded. -->
       <aside class="ck__railwrap">
-        <cart-review :mode="cartMode" :cart="liveCart" :currency="currency" readonly bind :show-requests="false" cards :order-title="(isGroup || isMulti) ? 'Review your order' : ''" :collapsible="isGroup || isMulti" />
+        <cart-review :mode="cartMode" :cart="liveCart" :currency="currency" readonly bind :show-requests="false" cards :order-title="(isGroup || isMulti) ? 'Review your order' : ''" />
+
+        <!-- Time left to book — the held-rooms countdown, under the price details -->
+        <div class="ck__timer">
+          <div class="ck__timer-row">
+            <span class="ck__timer-label"><q-icon name="timer" size="18px" /> Time left to book</span>
+            <span class="ck__timer-clock">{{ timerText }}</span>
+          </div>
+          <p class="ck__timer-note">Book before the timer runs out to secure this rate. If the timer expires, you'll need to run your search again.</p>
+        </div>
+
+        <!-- Reservation actions — edit the held reservation or start over -->
+        <div v-if="!isGroup" class="ck__railactions">
+          <button type="button" class="ck__railbtn"><q-icon name="edit" size="18px" /> Edit reservation</button>
+          <button type="button" class="ck__railbtn ck__railbtn--ghost"><q-icon name="restart_alt" size="18px" /> Start over</button>
+        </div>
       </aside>
     </div>
     </div>
@@ -138,12 +162,25 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
 </template>
 
 <style scoped>
-.ck { background: var(--ds-palette-neutral-100); min-height: 100vh; padding: 24px; }
+.ck { background: var(--ds-palette-neutral-100); min-height: 100vh; padding: 12px 24px 40px; }
 .ck__inner { max-width: 1040px; margin: 0 auto; }
-.ck__header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-.ck__back { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--ds-palette-slate-100); color: var(--ds-color-text); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.ck__header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .ck__h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--ds-color-text); }
 .ck__grid { display: grid; grid-template-columns: 1fr 400px; gap: 32px; align-items: start; }
+
+/* Time left to book — held-rooms countdown under the rail's price details. */
+.ck__timer { margin-top: 16px; background: var(--ds-palette-blue-100); border: 1px solid var(--ds-palette-blue-200, #BFDBFE); border-radius: var(--ds-radius-lg); padding: 16px 20px; color: var(--ds-palette-blue-800); }
+.ck__timer-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ck__timer-label { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1rem; }
+.ck__timer-clock { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 1.0625rem; }
+.ck__timer-note { margin: 8px 0 0; font-size: 0.9375rem; line-height: 1.45; }
+
+/* Reservation rail actions — Edit / Start over */
+.ck__railactions { display: flex; gap: 10px; margin-top: 12px; }
+.ck__railbtn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 46px; border: 1px solid var(--ds-color-border-brand); border-radius: var(--ds-radius-md); background: var(--ds-color-surface); color: var(--ds-color-text-brand); font-family: inherit; font-weight: 700; font-size: 0.9375rem; cursor: pointer; transition: background var(--ds-duration-fast) var(--ds-ease-standard); }
+.ck__railbtn:hover { background: var(--ds-palette-navy-50); }
+.ck__railbtn--ghost { border-color: var(--ds-color-border-bold); color: var(--ds-color-text); }
+.ck__railbtn--ghost:hover { background: var(--ds-palette-slate-100); }
 .ck__rail { position: sticky; top: 20px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); overflow: hidden; box-shadow: var(--ds-shadow-1); background: var(--ds-color-surface); }
 .ck__railwrap { position: sticky; top: 20px; }
 

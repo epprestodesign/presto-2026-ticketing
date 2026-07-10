@@ -2,21 +2,26 @@
 // PageFrame — the app shell for full-page compositions: the Global Nav header,
 // a content slot, and the shared footer. Used to render each journey step
 // (Browse, Hotel Details, Checkout, Confirmation) as a fully-flushed-out page,
-// consistent with the Landing Page. `cartMode` is 'reserve' (Book Reservation)
-// or 'hold' (Group Block).
+// consistent with the Landing Page. `cartMode` is 'reserve' (Book Reservation),
+// 'hold' (Group Block), or 'reservations' (Multiple Reservations). The cart
+// button only appears for the Group Block (hold) flow — see GlobalNav showCart.
 import GlobalNav from './GlobalNav.vue'
 import epLogo from '../assets/eventpipe logos/eventpipe-logo.svg'
 
 const props = defineProps({
   brand: { type: String, default: 'Presto' },
-  cartMode: { type: String, default: 'reserve' }, // 'reserve' | 'hold'
+  cartMode: { type: String, default: 'reserve' }, // 'reserve' | 'hold' | 'reservations'
   cart: { type: Object, default: () => ({}) },
+  // 'auto' → cart shows only for the Group Block (hold) flow; true/false forces it.
+  showCart: { type: [Boolean, String], default: 'auto' },
+  // Minimal nav — just the centered brand (e.g. checkout).
+  minimalNav: { type: Boolean, default: false },
 })
 </script>
 
 <template>
   <div class="pf">
-    <global-nav :brand="brand" :cart-mode="cartMode" :cart="cart" />
+    <global-nav :brand="brand" :cart-mode="cartMode" :cart="cart" :show-cart="showCart" :minimal="minimalNav" />
     <div class="pf__body"><slot /></div>
     <footer class="pf__footer">
       <div class="pf__footer-inner">

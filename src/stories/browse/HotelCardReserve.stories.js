@@ -22,8 +22,8 @@ expandable **Availability** panel (per-night rooms-left).
 }
 
 const base = {
-  name: 'The Minuteman Inn', stars: 2.5, distance: '3.48 miles from Acton Boxborough',
-  preferred: true, fromNightly: 100, total: 400,
+  name: 'The Minuteman Inn', city: 'Acton', stars: 2.5, distance: '3.48 miles from Acton Boxborough',
+  preferred: true, refundable: true, fromNightly: 100, total: 400,
   rooms: sampleRooms,
   imageCategories: ['exterior', 'lobby', 'rooms'], seed: 1,
 }
@@ -35,6 +35,13 @@ const render = (args) => ({
 
 /** Fully available — green status, active CTA. */
 export const FullyAvailable = { render, args: { ...base, availability: 'available' } }
+
+/** Availability panel expanded — the room-type carousel (2 cards + a peek, dots). */
+export const AvailabilityOpen = {
+  name: 'Availability Open',
+  render,
+  args: { ...base, availability: 'available', openAvailability: true },
+}
 
 /** Has availability but does not match the selected filters. */
 export const DoesntMatchFilters = {

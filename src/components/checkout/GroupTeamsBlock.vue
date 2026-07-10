@@ -9,6 +9,9 @@ import PhoneField from './PhoneField.vue'
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
   showErrors: { type: Boolean, default: false },
+  // Render the teams block widget. Off → a group block held without team holding
+  // (just the block name + primary contact).
+  showTeams: { type: Boolean, default: true },
   // Initial state — lets stories render each edge case of the teams flow.
   initialView: { type: String, default: 'count' }, // count | list | add
   initialNotHolding: { type: Boolean, default: false },
@@ -21,8 +24,12 @@ const view = ref(props.initialView) // count | list | add
 const notHolding = ref(props.initialNotHolding)
 const groupBlockName = ref(props.modelValue.groupBlockName || '')
 const showSpecial = ref(false)
-const showOrg = ref(false)
 const expected = ref(props.modelValue.expected ?? props.initialExpected ?? 1)
+
+// Additional email addresses — beyond the primary contact email (optional).
+const additionalEmails = ref([...(props.modelValue.additionalEmails || [])])
+const addEmail = () => additionalEmails.value.push('')
+const removeEmail = (i) => additionalEmails.value.splice(i, 1)
 const query = ref('')
 
 const clubs = ['Arsenal', 'Chelsea', 'Liverpool', 'Manchester City', 'Tottenham', 'Everton', 'Leeds United', 'Newcastle', 'Aston Villa', 'Brighton']
@@ -81,15 +88,30 @@ const cErr = (f) => {
   return ''
 }
 const teamsErr = computed(() => (props.showErrors && added.value.length === 0 ? 'Add at least one team' : ''))
-const blockNameErr = computed(() => (props.showErrors && added.value.length > 0 && !groupBlockName.value.trim() ? 'Required' : ''))
+const blockNameErr = computed(() => (props.showErrors && !groupBlockName.value.trim() ? 'Required' : ''))
 
-watch([added, expected, contact, notHolding, groupBlockName], () => emit('update:modelValue', { expected: expected.value, teams: [...added.value], contact: { ...contact }, notHolding: notHolding.value, groupBlockName: groupBlockName.value }), { deep: true })
+watch([added, expected, contact, notHolding, groupBlockName, additionalEmails], () => emit('update:modelValue', {
+  expected: expected.value,
+  teams: [...added.value],
+  contact: { ...contact },
+  notHolding: notHolding.value,
+  groupBlockName: groupBlockName.value,
+  additionalEmails: additionalEmails.value.filter((e) => e.trim()),
+}), { deep: true })
 </script>
 
 <template>
   <div class="gtb">
+    <!-- Group block name (required) — the block's identifier, shown to guests -->
+    <label class="gtb__field gtb__field--full gtb__blockname-top">
+      <span>Group Block Name <i class="gtb__req">*</i></span>
+      <input v-model="groupBlockName" placeholder="e.g. Spring Cup — Eagles SC" :class="{ 'is-error': blockNameErr }" />
+      <small v-if="blockNameErr" class="gtb__errmsg">{{ blockNameErr }}</small>
+      <small class="gtb__hint">A name for this room block — shown to guests when they book.</small>
+    </label>
+
     <!-- primary contact -->
-    <h4 class="gtb__h gtb__h--first">Primary contact</h4>
+    <h4 class="gtb__h">Primary contact</h4>
     <div class="gtb__grid">
       <label class="gtb__field">
         <span>First name <i class="gtb__req">*</i></span>
@@ -106,21 +128,37 @@ watch([added, expected, contact, notHolding, groupBlockName], () => emit('update
         <input v-model="contact.email" type="email" placeholder="youraccount@eventpipe.com" :class="{ 'is-error': cErr('email') }" @blur="touched.email = true" />
         <small v-if="cErr('email')" class="gtb__errmsg">{{ cErr('email') }}</small>
       </label>
+
+      <!-- additional email addresses -->
+      <div v-for="(e, i) in additionalEmails" :key="'email-' + i" class="gtb__field gtb__field--full">
+        <span>Additional email</span>
+        <div class="gtb__emailrow">
+          <input v-model="additionalEmails[i]" type="email" placeholder="name@example.com" />
+          <button type="button" class="gtb__emailremove" aria-label="Remove email" @click="removeEmail(i)"><q-icon name="close" size="18px" /></button>
+        </div>
+      </div>
+      <div class="gtb__field gtb__field--full">
+        <button type="button" class="gtb__addreq" @click="addEmail"><q-icon name="add_circle" size="22px" /> Add another email</button>
+      </div>
+
       <div class="gtb__field gtb__field--full">
         <span>Phone number <i class="gtb__req">*</i></span>
         <phone-field v-model="contact.mobile" :error="!!cErr('mobile')" @blur="touched.mobile = true" />
         <small v-if="cErr('mobile')" class="gtb__errmsg">{{ cErr('mobile') }}</small>
       </div>
-      <label v-if="showOrg" class="gtb__field gtb__field--full"><span>Organization name</span><input v-model="contact.organization" placeholder="Organization" /></label>
+      <label class="gtb__field gtb__field--full">
+        <span>Organization name <i class="gtb__req">*</i></span>
+        <input v-model="contact.organization" placeholder="Organization" :class="{ 'is-error': cErr('organization') }" @blur="touched.organization = true" />
+        <small v-if="cErr('organization')" class="gtb__errmsg">{{ cErr('organization') }}</small>
+      </label>
       <label v-if="showSpecial" class="gtb__field gtb__field--full"><span>Special requests</span><input v-model="contact.special" placeholder="Additional notes (optional)" /></label>
     </div>
     <div class="gtb__addrow">
-      <button v-if="!showOrg" class="gtb__addreq" @click="showOrg = true"><q-icon name="add_circle" size="22px" /> Add organization name</button>
       <button v-if="!showSpecial" class="gtb__addreq" @click="showSpecial = true"><q-icon name="add_circle" size="22px" /> Add a special request</button>
     </div>
 
-    <!-- teams flow card -->
-    <div class="gtb__flow">
+    <!-- teams flow card (hidden when holding a block without team assignment) -->
+    <div v-if="showTeams" class="gtb__flow">
       <div class="gtb__bar">
         <span v-if="notHolding">Teams — skipped</span>
         <span v-else>Step {{ view === 'count' ? '1' : '2' }} of 2 — {{ view === 'count' ? 'How many teams?' : 'Select and Add Teams' }}</span>
@@ -203,14 +241,6 @@ watch([added, expected, contact, notHolding, groupBlockName], () => emit('update
         </template>
       </div>
     </div>
-
-    <!-- Group block name — appears once teams are added, before the step's Next -->
-    <label v-if="!notHolding && added.length" class="gtb__field gtb__field--full gtb__blockname">
-      <span>Group Block Name <i class="gtb__req">*</i></span>
-      <input v-model="groupBlockName" placeholder="e.g. Spring Cup — Eagles SC" :class="{ 'is-error': blockNameErr }" />
-      <small v-if="blockNameErr" class="gtb__errmsg">{{ blockNameErr }}</small>
-      <small class="gtb__hint">A name for this room block — shown to guests when they book.</small>
-    </label>
   </div>
 </template>
 
@@ -228,8 +258,13 @@ watch([added, expected, contact, notHolding, groupBlockName], () => emit('update
 .gtb__field span { font-size: 0.8125rem; font-weight: 600; color: var(--ds-color-text); }
 .gtb__req { color: var(--ds-color-text-danger); font-style: normal; }
 .gtb__errmsg { color: var(--ds-color-text-danger); font-size: 0.75rem; font-weight: 500; }
-.gtb__blockname { margin-top: 24px; }
+.gtb__blockname-top { margin-bottom: 24px; }
 .gtb__hint { color: var(--ds-color-text-subtle); font-size: 0.75rem; }
+/* additional email row — input + remove button */
+.gtb__emailrow { display: flex; align-items: center; gap: 8px; }
+.gtb__emailrow input { flex: 1; }
+.gtb__emailremove { width: 40px; height: 40px; flex: none; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-md); background: var(--ds-color-surface); color: var(--ds-color-text-subtle); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.gtb__emailremove:hover { background: var(--ds-palette-slate-100); color: var(--ds-color-text); }
 .gtb__errmsg--block { margin: 8px 0 0; }
 .gtb input { height: 46px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-md); padding: 0 14px; font-family: inherit; font-size: 0.9375rem; color: var(--ds-color-text); outline: none; transition: border-color var(--ds-duration-fast) var(--ds-ease-standard); width: 100%; }
 .gtb input:focus { border-color: var(--ds-color-border-focused); }

@@ -9,13 +9,13 @@ defineProps({
   modelValue: { type: String, default: 'amex' },
   methods: { type: Array, default: () => ([
     { id: 'amex', logo: 'Amex', last4: '1009', label: 'Amex', sub: 'Default' },
-    { id: 'gpay', logo: 'GooglePay', label: 'Google Pay' },
   ]) },
 })
 const emit = defineEmits(['update:modelValue'])
 
 const dialogOpen = ref(false)
-const strip = ['Visa', 'Mastercard', 'Amex', 'Discover', 'PayPal', 'Venmo', 'Klarna']
+// Credit card only — no Google Pay / PayPal / Venmo / Klarna.
+const strip = ['Visa', 'Mastercard', 'Amex', 'Discover']
 const onConfirm = (m) => { if (m) emit('update:modelValue', m.id) }
 </script>
 

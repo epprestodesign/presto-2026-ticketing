@@ -20,6 +20,7 @@ export const reserveRooms = [
   { roomType: 'Urban King', bedConfig: '1 King Bed', maxOccupancy: 2, imageCategories: ['rooms'], seed: 0, features: feat(), pricePerNight: 179, total: 573.0, roomCount: 1, availability: 'available', nights: rNights(5, 6, 5) },
   { roomType: 'Double Queen', bedConfig: '2 Queen Beds', maxOccupancy: 4, imageCategories: ['rooms'], seed: 1, features: feat([{ label: 'Need to know', value: 'Rollaway beds available on request' }]), pricePerNight: 199, total: 637.0, roomCount: 1, availability: 'limited', nights: rNights(3, 2, 1) },
   { roomType: 'Two-Room Suite King', bedConfig: '1 King Bed, Separate Living Room', maxOccupancy: 4, imageCategories: ['suites'], seed: 0, features: feat([{ label: 'Space', value: '620 sq ft, Sofa bed, Dining area' }, { label: 'Need to know', value: 'Complimentary evening reception' }]), pricePerNight: 269, total: 861.0, roomCount: 1, availability: 'available', nights: rNights(4, 4, 3) },
+  { roomType: 'Deluxe King', bedConfig: '1 King Bed', maxOccupancy: 3, imageCategories: ['rooms'], seed: 6, features: feat([{ label: 'View', value: 'Pool or courtyard view' }]), pricePerNight: 209, total: 669.0, roomCount: 1, availability: 'available', nights: rNights(4, 5, 4) },
   { roomType: 'Accessible King', bedConfig: '1 King Bed', maxOccupancy: 2, imageCategories: ['rooms'], seed: 2, features: feat([{ label: 'Accessibility', value: 'Roll-in shower, Grab bars, Lowered fixtures' }]), pricePerNight: 189, total: 605.0, roomCount: 1, availability: 'soldout', nights: rNights(0, 0, 0) },
 ]
 
@@ -28,6 +29,7 @@ export const groupRooms = [
   { roomType: 'Urban King', bedConfig: '1 King Bed', maxOccupancy: 2, imageCategories: ['rooms'], seed: 3, features: feat(), availability: 'available', nights: gNights(8, 10, 6, 179) },
   { roomType: 'Double Queen', bedConfig: '2 Queen Beds', maxOccupancy: 4, imageCategories: ['rooms'], seed: 4, features: feat([{ label: 'Need to know', value: 'Rollaway beds available on request' }]), availability: 'available', nights: gNights(6, 5, 7, 199) },
   { roomType: 'Two-Room Suite King', bedConfig: '1 King Bed, Separate Living Room', maxOccupancy: 4, imageCategories: ['suites'], seed: 1, features: feat([{ label: 'Space', value: '620 sq ft, Sofa bed, Dining area' }]), availability: 'limited', nights: gNights(2, 1, 3, 269) },
+  { roomType: 'Deluxe King', bedConfig: '1 King Bed', maxOccupancy: 3, imageCategories: ['rooms'], seed: 6, features: feat([{ label: 'View', value: 'Pool or courtyard view' }]), availability: 'available', nights: gNights(5, 4, 6, 209) },
   { roomType: 'Accessible Queen', bedConfig: '1 Queen Bed', maxOccupancy: 2, imageCategories: ['rooms'], seed: 5, features: feat([{ label: 'Accessibility', value: 'Roll-in shower, Grab bars' }]), availability: 'soldout', nights: gNights(0, 0, 0, 189) },
 ]
 

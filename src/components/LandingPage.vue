@@ -5,7 +5,7 @@
 //   attending, event information, closing) → Display Ads → Footer.
 // `mode` switches the widget + cart between Book Reservations ('reservations')
 // and Group Block ('group'). All copy is prop-driven; defaults describe a
-// sample IBJJF event.
+// sample youth soccer tournament (age divisions U9–U19).
 import defaultBg from '../../background-img/defaultBackgroundImage.png'
 import GlobalNav from './GlobalNav.vue'
 import BookingWidget from './BookingWidget.vue'
@@ -16,25 +16,25 @@ import epLogoWhite from '../assets/eventpipe logos/eventpipe-logo-fff.svg'
 const props = defineProps({
   mode: { type: String, default: 'reservations' }, // 'reservations' | 'group'
   brand: { type: String, default: 'Presto' },
-  eventName: { type: String, default: 'Virginia International Open IBJJF Jiu-Jitsu Championship 2026' },
+  eventName: { type: String, default: 'Virginia International Youth Soccer Cup 2026' },
   eventDates: { type: String, default: 'Sat, 7/18/2026 - Sun, 7/19/2026' },
 
   // Event description content (the centered copy block).
   intro: {
     type: Array,
     default: () => [
-      'Join competitors from across the country for one of the premier Brazilian Jiu-Jitsu tournaments on the IBJJF calendar. The Virginia International Open brings together athletes of all belt levels, coaches, academy teams, families, and passionate fans for an exciting weekend of world-class competition.',
-      "Hosted at the Fredericksburg Convention Center in Fredericksburg, Virginia, this championship features two full days of matches across Juvenile, Adult, and Master divisions. Whether you're stepping onto the mats, coaching your team, or cheering from the stands, Presto makes it easy to plan your trip and stay close to the action.",
+      'Join clubs from across the country for one of the premier youth soccer tournaments in the region. The Virginia International Youth Soccer Cup brings together players, coaches, club teams, families, and passionate fans for an exciting weekend of competitive matches across age divisions U9 through U19.',
+      "Hosted at the Fredericksburg Sportsplex in Fredericksburg, Virginia, this tournament features two full days of matches across Boys and Girls brackets from U9 to U19. Whether you're stepping onto the pitch, coaching your squad, or cheering from the sidelines, Presto makes it easy to plan your trip and stay close to the action.",
     ],
   },
   benefits: {
     type: Array,
     default: () => [
-      'Official event hotel options near the venue',
+      'Official event hotel options near the fields',
       'Exclusive group and team rates when available',
-      'Flexible accommodations for athletes, coaches, and families',
+      'Flexible accommodations for players, coaches, and families',
       'Easy online booking with instant confirmation',
-      'Stay together with your academy or team',
+      'Stay together with your club or team',
       'Convenient access to restaurants, shopping, and local attractions',
     ],
   },
@@ -42,10 +42,10 @@ const props = defineProps({
   attending: {
     type: Array,
     default: () => [
-      { title: 'Athletes', text: 'Compete against top Brazilian Jiu-Jitsu practitioners from across the region while enjoying a seamless travel experience close to the venue.' },
-      { title: 'Coaches & Academies', text: 'Keep your entire team together with convenient hotel options that simplify tournament logistics throughout the weekend.' },
-      { title: 'Friends & Family', text: 'Support your competitor while enjoying everything Fredericksburg has to offer, from local dining and historic attractions to family-friendly entertainment between matches.' },
-      { title: 'Fans & Spectators', text: 'Experience high-level Brazilian Jiu-Jitsu competition featuring rising talent and experienced competitors from a wide range of divisions and academies.' },
+      { title: 'Players', text: 'Compete against top youth soccer clubs from across the region in U9–U19 divisions while enjoying a seamless travel experience close to the fields.' },
+      { title: 'Coaches & Clubs', text: 'Keep your entire roster together with convenient hotel options that simplify tournament logistics throughout the weekend.' },
+      { title: 'Friends & Family', text: 'Support your player while enjoying everything Fredericksburg has to offer, from local dining and historic attractions to family-friendly entertainment between matches.' },
+      { title: 'Fans & Spectators', text: 'Experience competitive youth soccer featuring rising talent from a wide range of age divisions and clubs.' },
     ],
   },
   eventInfoTitle: { type: String, default: 'Event Information' },
@@ -54,7 +54,7 @@ const props = defineProps({
     default: () => ({
       dates: 'July 18–19, 2026',
       lines: [
-        'Venue: Fredericksburg Convention Center – Hall A & B',
+        'Venue: Fredericksburg Sportsplex – Fields 1–8',
         '2371 Carl D. Silver Parkway',
         'Fredericksburg, Virginia 22401',
       ],
@@ -63,8 +63,8 @@ const props = defineProps({
   closing: {
     type: Array,
     default: () => [
-      'Spectator admission is free, making it a great weekend for families, teammates, and BJJ enthusiasts to experience the excitement of IBJJF competition together.',
-      'Book your accommodations early to secure the best available rates and stay close to the championship throughout the weekend.',
+      'Spectator admission is free, making it a great weekend for families, teammates, and soccer fans to experience the excitement of the tournament together.',
+      'Book your accommodations early to secure the best available rates and stay close to the fields throughout the weekend.',
     ],
   },
 

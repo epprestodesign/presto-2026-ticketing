@@ -31,14 +31,17 @@ const emit = defineEmits(['submit'])
 
 const isGroup = computed(() => props.flow === 'group')
 const multi = computed(() => props.hotels.length > 1)
+// Group blocks acknowledge every hotel's policies with a SINGLE checkbox; the
+// reservation flow keeps a per-hotel checkbox when multiple hotels are shown.
+const oneCheckbox = computed(() => isGroup.value)
 const cta = computed(() => props.ctaLabel || (isGroup.value ? 'Hold Group Block Now' : 'Book Now'))
 const singleAgreement = computed(() => props.agreementText || (isGroup.value
-  ? 'By clicking this checkbox, I acknowledge that I have read and agree to the Hotel and GrandStay Reservation Policies.'
-  : 'By clicking this checkbox, I acknowledge that I have read and agree to the Reservation Policies and I authorize GrandStay to charge the above credit card.'))
+  ? 'By clicking this checkbox, I acknowledge that I have read and agree to the Hotel and HoCo Book Reservation Policies.'
+  : 'By clicking this checkbox, I acknowledge that I have read and agree to the Reservation Policies and I authorize HoCoBook to charge the above credit card.'))
 const policiesFor = (h) => (h && h.policies) || DEFAULT_POLICIES
 
-// Agreement state — one flag per hotel (single card = one flag).
-const agreed = ref(props.hotels.map(() => false))
+// Agreement state — one flag for the group single-checkbox, else one per hotel.
+const agreed = ref(props.flow === 'group' ? [false] : props.hotels.map(() => false))
 const allAgreed = computed(() => agreed.value.every(Boolean))
 
 // Accordion open state (multi only) — first hotel open by default.
@@ -65,14 +68,10 @@ const submit = () => { if (allAgreed.value) emit('submit') }
           <p class="pol__secbody">{{ p.body }}</p>
         </div>
       </div>
-
-      <label class="pol__agree">
-        <input type="checkbox" v-model="agreed[0]" class="pol__check" />
-        <span>{{ singleAgreement }}</span>
-      </label>
     </template>
 
-    <!-- MULTIPLE HOTELS — accordion, one agreement checkbox each -->
+    <!-- MULTIPLE HOTELS — accordion. Group flow: policies only (one shared
+         checkbox below); reservation flow: a per-hotel agreement checkbox. -->
     <template v-else>
       <div v-for="(h, i) in hotels" :key="i" class="pol__ac">
         <button type="button" class="pol__achead" :aria-expanded="open[i]" @click="toggle(i)">
@@ -85,13 +84,19 @@ const submit = () => { if (allAgreed.value) emit('submit') }
             <h4 class="pol__sectitle">{{ p.title }}</h4>
             <p class="pol__secbody">{{ p.body }}</p>
           </div>
-          <label class="pol__agree pol__agree--inac">
+          <label v-if="!oneCheckbox" class="pol__agree pol__agree--inac">
             <input type="checkbox" v-model="agreed[i]" class="pol__check" />
             <span>I have read and agree to <strong>{{ h.name }}</strong>'s Hotel and GrandStay Reservation Policies.</span>
           </label>
         </div>
       </div>
     </template>
+
+    <!-- Single shared agreement checkbox: single hotel, or the group one-checkbox. -->
+    <label v-if="!multi || oneCheckbox" class="pol__agree">
+      <input type="checkbox" v-model="agreed[0]" class="pol__check" />
+      <span>{{ singleAgreement }}</span>
+    </label>
 
     <button type="button" class="pol__cta" :class="{ 'pol__cta--ready': allAgreed }" :disabled="!allAgreed" @click="submit">{{ cta }}</button>
   </div>

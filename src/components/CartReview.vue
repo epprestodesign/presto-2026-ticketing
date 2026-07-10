@@ -33,6 +33,10 @@ const isReserve = computed(() => props.mode === 'reserve')
 // 'reservations' shares the multi-hotel hierarchy with 'hold' but each night is
 // a fixed booking (qty 1) shown as a date + rate row — no quantity stepper.
 const isReservations = computed(() => props.mode === 'reservations')
+// Group blocks (hold) are held, not charged: no taxes, property fees, or totals —
+// each room just shows its nightly cost. So the aggregated Price details card is
+// omitted for hold (kept for reservations, which are booked/charged).
+const isHold = computed(() => props.mode === 'hold')
 
 // --- Imagery (reserve carousel + per-hotel thumbnails) ---
 const lib = ref(null)
@@ -80,8 +84,9 @@ const hotelSummary = (h) => {
     const nights = h.rooms.reduce((s, r) => s + r.nights.length, 0)
     return `${rooms} room${rooms === 1 ? '' : 's'} · ${nights} night${nights === 1 ? '' : 's'} · ${money(hotelSubtotal(h))}`
   }
+  // hold: group blocks show no cost totals — just the room count.
   const rn = hotelRooms(h)
-  return `${rn} room${rn === 1 ? '' : 's'} · ${money(hotelSubtotal(h))}`
+  return `${rn} room${rn === 1 ? '' : 's'}`
 }
 
 const roomLines = computed(() => {
@@ -228,7 +233,10 @@ defineExpose({ clear })
         <button v-if="!readonly && showAddHotel" class="cr__addhotel"><q-icon name="add" size="18px" /> {{ isReservations ? 'Add another reservation' : 'Add another hotel' }}</button>
         </div>
 
-        <div v-if="totalRooms > 0 && showPrice" class="cr__pricecard">
+        <!-- Reservations are booked/charged → full price breakdown. Group blocks
+             (hold) are held, not charged → no totals/taxes/fees (each room shows
+             its nightly cost above). -->
+        <div v-if="totalRooms > 0 && showPrice && !isHold" class="cr__pricecard">
           <h4 class="cr__price-h">Price details</h4>
           <div v-for="(l, i) in roomLines" :key="i" class="cr__kv"><span>{{ l.label }} · {{ l.nights }} night{{ l.nights === 1 ? '' : 's' }}</span><span>{{ money(l.subtotal) }}</span></div>
           <div class="cr__rule" />

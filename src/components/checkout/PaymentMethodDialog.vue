@@ -10,7 +10,6 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   methods: { type: Array, default: () => ([
     { id: 'amex', logo: 'Amex', label: 'Amex *1009', sub: 'Exp. 5/27' },
-    { id: 'gpay', logo: 'GooglePay', label: 'Google Pay' },
   ]) },
   selected: { type: String, default: 'amex' },
 })
@@ -20,13 +19,9 @@ const saved = ref(props.methods.map((m) => ({ ...m })))
 const sel = ref(props.selected)
 const addOpen = ref(false)
 
+// Credit card only — no Google Pay / Venmo / PayPal / Klarna / Amazon Pay / Affirm.
 const addMethods = [
   { id: 'card', name: 'Debit/Credit', add: true },
-  { id: 'venmo', name: 'Venmo', logo: 'Venmo' },
-  { id: 'paypal', name: 'PayPal', logo: 'PayPal' },
-  { id: 'klarna', name: 'Klarna', logo: 'Klarna' },
-  { id: 'amazon', name: 'Amazon Pay', logo: 'AmazonPay' },
-  { id: 'affirm', name: 'Affirm', logo: 'Affirm' },
 ]
 
 const close = () => emit('update:modelValue', false)

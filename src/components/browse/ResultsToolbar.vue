@@ -18,7 +18,7 @@ defineProps({
   filtersApplied: { type: Number, default: 0 },
   // When > 0, render the Group Block "searching for N rooms" clause.
   rooms: { type: Number, default: 0 },
-  modelValue: { type: String, default: 'recommended' }, // sort value
+  modelValue: { type: String, default: 'distance' }, // sort value
 })
 defineEmits(['update:modelValue', 'clear-filters'])
 </script>

@@ -1,176 +1,154 @@
 // CONFIRMATION / Confirmation Page — the post-checkout success screen.
-// Two variants mirror the two booking journeys: a single hotel **Reservation**
-// and a group/team **Group Hold** room block.
+// Structured to match the production confirmation: a success banner, a Summary
+// section (contact + booking ID + Book-in-Block / Copy-Link / Print, a meta grid,
+// and per-hotel rooms held by night), and a per-hotel Policies section.
+// Two variants live here (single Reservation + Multiple Reservations); the Group
+// Block variant lives in ConfirmationPageGroup.stories.js and reuses holdData.
 import ConfirmationPage from '../../components/confirmation/ConfirmationPage.vue'
 import PageFrame from '../../components/PageFrame.vue'
 
-// Shared post-booking content (area tips + FAQ) reused by both variants.
-const areaTips = [
-  { icon: 'restaurant', title: 'Eat nearby', text: 'Plenty of cafés and family-friendly restaurants within a 5-minute walk.' },
-  { icon: 'directions_transit', title: 'Getting around', text: 'A transit stop is one block away; downtown is a 10-minute ride.' },
-  { icon: 'local_parking', title: 'Parking', text: 'On-site self-parking is available; garage entrance is on the north side.' },
-]
-const faqs = [
-  { q: 'What time is check-in and check-out?', a: 'Check-in begins at 3:00pm and check-out is at 11:00am. Early check-in may be available on request.' },
-  { q: 'Can I modify or cancel my booking?', a: 'Yes — use Change or Cancel above. Free cancellation applies up until the date shown in the cancellation policy.' },
-  { q: 'Is breakfast included?', a: 'A complimentary breakfast is included with this rate and served daily from 6:30–10:00am.' },
-  { q: 'Is parking available?', a: 'On-site self-parking is available. See the location details for the garage entrance.' },
-  { q: 'Are pets allowed?', a: 'This property is pet friendly. A small cleaning fee may apply — contact the hotel for details.' },
-  { q: 'How do I get help during my stay?', a: 'Use the “Need help?” options below to call or email our support team anytime.' },
-]
-const help = { phone: '+1 (800) 555-0142', email: 'youraccount@eventpipe.com' }
+const AMENITIES_NOTICE = 'Kindly note that amenities like laundry, pools, parking rates, breakfast and restaurants are not guaranteed. For the latest updates on available amenities, please visit the hotel website.'
 
-// Single hotel stay — matches the Expedia-style confirmation reference.
+// Single hotel stay.
 const reserveData = {
-  itinerary: '72055771948934',
+  contactName: 'Alex Smith',
+  confirmationId: '72055771948934',
+  reservedOn: 'Mon, 06/14/2027 02:14 PM EST',
+  guest: 'Alex Smith — (555) 018-2245',
   email: 'youraccount@eventpipe.com',
-  hotel: {
-    name: 'Days Inn by Wyndham Carson City',
-    location: 'Carson City',
-    rating: { score: '7.0/10', label: 'Good', reviews: 1003 },
-    checkIn: 'Mon, Jul 1, 3:00pm',
-    checkOut: 'Tue, Jul 2, 11:00am',
-    roomTitle: 'Room, 1 Queen Bed, Non Smoking',
-    features: [
-      { icon: 'bed', label: '1 Queen Bed' },
-      { icon: 'group', label: 'Sleeps 2' },
-      { icon: 'free_breakfast', label: 'Breakfast included' },
-      { icon: 'pets', label: 'Pet friendly' },
-    ],
-  },
-  party: [
-    { name: 'Alex Smith', role: 'You', status: 'host' },
-    { name: 'Unknown Guest', status: 'unknown' },
+  hotels: [
+    {
+      name: 'Days Inn by Wyndham Carson City',
+      stars: 3, address: '4100 N Carson St, Carson City, NV, US, 89706', seed: 1,
+      checkIn: 'Mon, 07/01/2027 03:00 PM', checkOut: 'Wed, 07/03/2027 11:00 AM',
+      rooms: [
+        { type: 'Room, 1 Queen Bed, Non Smoking', note: '1 Queen Bed · Sleeps 2 · Breakfast included', nights: [
+          { date: 'Mon, 07/01/2027', qty: 1, price: 128 },
+          { date: 'Tue, 07/02/2027', qty: 1, price: 128 },
+        ] },
+      ],
+    },
   ],
-  cancellation: {
-    freeUntil: 'Thu, Oct 10, 4:00pm',
-    text: 'A cancellation fee will not be charged if you cancel before Thu, Oct 10 at 4:00pm. If you cancel after that, you agree to be charged a fee of $128.00. Any waiver of the fee is at the sole discretion of the property.',
-  },
-  location: { lat: 39.1638, lng: -119.7674, address: '4100 N Carson St, Carson City, NV 89706', label: 'Days Inn by Wyndham Carson City' },
-  areaTips,
-  faqs,
-  help,
+  policies: [
+    { hotel: 'Days Inn by Wyndham Carson City', items: [
+      { title: 'Cancellation Policy', body: 'A cancellation fee will not be charged if you cancel before Thu, 06/24/2027 at 4:00 PM. If you cancel after that, you agree to be charged a fee of $128.00.' },
+      { title: 'Deposit', body: 'The full stay is charged to the card on file at booking. No additional deposit is collected at check-in.' },
+      { title: 'Amenities Notice', body: AMENITIES_NOTICE },
+      { title: 'Refund Policy', body: 'Eligible refunds are returned to the original payment method within 5–7 business days of cancellation.' },
+    ] },
+  ],
 }
 
-// Group/team room block — one card per hotel, rooms held by night.
+// Group/team room block — one block per hotel, rooms held by night.
 export const holdData = {
-  blockName: 'Spring Cup — Eagles SC',
-  itinerary: '72055771948934',
+  contactName: 'Coach Lee',
+  groupId: 'G-00584977',
+  reservedOn: 'Thu, 06/11/2026 03:31 PM EST',
+  releaseDate: 'Thu, 06/18/2026 11:59 PM PT',
+  organizationName: 'Eagles SC',
+  groupContact: 'Coach Lee — (518) 796-3050',
   email: 'youraccount@eventpipe.com',
-  teams: [
-    { name: 'Eagles SC', ageDivision: 'U14', gender: 'Boys' },
-    { name: 'Eagles SC', ageDivision: 'U12', gender: 'Girls' },
-    { name: 'Arsenal U16 Boys' },
-    { name: 'Chelsea U10 Girls' },
-  ],
-  party: [
-    { name: 'Coach Lee', role: 'Organizer', status: 'host' },
-    { name: 'Jordan Maye', role: 'Assistant', status: 'invited' },
-    { name: 'Unknown Guest', status: 'unknown' },
-  ],
-  cancellation: {
-    freeUntil: 'Mon, Jun 16, 4:00pm',
-    text: 'Held rooms can be released without charge until Mon, Jun 16 at 4:00pm. After that, unreleased rooms in the block may be subject to the property’s group cancellation terms. Contact us to adjust your block.',
-  },
-  location: { lat: 41.8888, lng: -87.6256, address: '511 N Columbus Dr, Chicago, IL 60611', label: 'Embassy Suites Chicago Downtown' },
-  areaTips: [
-    { icon: 'sports_soccer', title: 'Near the fields', text: 'The tournament complex is a 12-minute drive; shuttle pickup is out front.' },
-    { icon: 'restaurant', title: 'Team meals', text: 'Several large-group restaurants nearby can seat a full roster — reserve ahead.' },
-    { icon: 'local_parking', title: 'Bus parking', text: 'Oversized-vehicle parking is available; ask the front desk for the permit.' },
-  ],
-  faqs,
-  help,
   hotels: [
     {
       name: 'Embassy Suites Chicago Downtown',
-      location: 'Chicago, IL',
-      rating: { score: '8.6/10', label: 'Excellent', reviews: 2417 },
+      stars: 4, address: '511 N Columbus Dr, Chicago, IL, US, 60611', seed: 2,
+      checkIn: 'Wed, 06/16/2027 03:00 PM', checkOut: 'Sat, 06/19/2027 11:00 AM',
       rooms: [
-        { type: 'Two-Room Suite King', summary: '1 King Bed · Sleeps 4', nights: [
-          { date: 'Tue, Jun 23', qty: 4 }, { date: 'Wed, Jun 24', qty: 1 },
+        { type: 'Two-Room Suite King', note: '1 King Bed · Sleeps 4', nights: [
+          { date: 'Wed, 06/16/2027', qty: 4, price: 269 },
+          { date: 'Thu, 06/17/2027', qty: 4, price: 269 },
+          { date: 'Fri, 06/18/2027', qty: 1, price: 269 },
         ] },
-        { type: 'Two-Room Suite Double', summary: '2 Queen Beds · Sleeps 4', nights: [
-          { date: 'Tue, Jun 23', qty: 1 },
+        { type: 'Two-Room Suite Double', note: '2 Queen Beds · Sleeps 4', nights: [
+          { date: 'Wed, 06/16/2027', qty: 1, price: 289 },
         ] },
       ],
     },
     {
       name: 'The Concord Hotel',
-      location: 'Chicago, IL',
-      rating: { score: '8.1/10', label: 'Very good', reviews: 1190 },
+      stars: 3.5, address: '540 N State St, Chicago, IL, US, 60654', seed: 0,
+      checkIn: 'Wed, 06/16/2027 04:00 PM', checkOut: 'Sat, 06/19/2027 11:00 AM',
       rooms: [
-        { type: 'King Studio', summary: '1 King Bed · Sleeps 2', nights: [
-          { date: 'Tue, Jun 23', qty: 1 },
+        { type: 'King Studio', note: '1 King Bed · Sleeps 2', nights: [
+          { date: 'Wed, 06/16/2027', qty: 2, price: 165 },
+          { date: 'Thu, 06/17/2027', qty: 2, price: 165 },
         ] },
       ],
     },
   ],
+  policies: [
+    { hotel: 'Embassy Suites Chicago Downtown', items: [
+      { title: 'Group Cancellation Policy', body: 'Held rooms may be released without charge until the group block release date shown above. After that date, unreleased rooms in the block may be subject to the property’s group cancellation terms.' },
+      { title: 'Deposit', body: 'A credit card is required to hold the block. Individual attendees provide payment at booking; no deposit is charged to the group organizer.' },
+      { title: 'Additional Policies & Amenities', body: 'Complimentary breakfast is included with every held room. Oversized-vehicle parking is available on request — ask the front desk for the permit.' },
+      { title: 'Amenities Notice', body: AMENITIES_NOTICE },
+      { title: 'Refund Policy', body: 'Refunds for individually booked rooms follow the hotel’s standard cancellation window. Contact us to adjust your block.' },
+    ] },
+    { hotel: 'The Concord Hotel', items: [
+      { title: 'Group Cancellation Policy', body: 'Rooms in this block may be released up to 72 hours before check-in without penalty. Unreleased rooms after that window are charged one night’s rate plus tax.' },
+      { title: 'Amenities Notice', body: AMENITIES_NOTICE },
+    ] },
+  ],
 }
 
-// Multiple room reservations — one card per reservation, rooms with occupancy.
-// Edge cases: (1) one reservation with two differently-occupied rooms (2 adults
-// + 1 child, and a 1-guest room); (2) the same guest with one room today and one
-// room at a different hotel tomorrow — two separate reservation cards.
+// Multiple room reservations — one block per reservation (different hotels/dates).
 const reservationsData = {
-  heading: 'Your reservations are confirmed!',
-  ctaLabel: 'View your bookings',
-  itinerary: '72055771948934',
+  contactName: 'Alex Smith',
+  confirmationId: '72055771948934',
+  reservedOn: 'Fri, 06/18/2027 09:02 AM EST',
+  guest: 'Alex Smith — (555) 018-2245',
   email: 'youraccount@eventpipe.com',
-  reservations: [
-    // Edge case 1 — one reservation, two rooms with different occupancy.
+  hotels: [
     {
-      hotel: {
-        name: 'Hilton Orlando Lake Buena Vista',
-        location: 'Orlando, FL',
-        rating: { score: '8.8/10', label: 'Excellent', reviews: 3120 },
-      },
-      checkIn: 'Mon, Jun 29, 3:00pm',
-      checkOut: 'Wed, Jul 1, 11:00am',
+      name: 'Hilton Orlando Lake Buena Vista',
+      stars: 4, address: '1751 Hotel Plaza Blvd, Orlando, FL, US, 32830', seed: 0,
+      checkIn: 'Mon, 06/29/2027 03:00 PM', checkOut: 'Wed, 07/01/2027 11:00 AM',
       rooms: [
-        { label: 'Room 1', type: 'King Room', summary: '1 King Bed · Sleeps 3', guests: '2 adults · 1 child' },
-        { label: 'Room 2', type: 'Queen Room', summary: '1 Queen Bed · Sleeps 2', guests: '1 adult' },
+        { type: 'King Room', note: 'Room 1 · 2 adults · 1 child', nights: [
+          { date: 'Mon, 06/29/2027', qty: 1, price: 301 },
+          { date: 'Tue, 06/30/2027', qty: 1, price: 319 },
+        ] },
+        { type: 'Queen Room', note: 'Room 2 · 1 adult', nights: [
+          { date: 'Mon, 06/29/2027', qty: 1, price: 279 },
+          { date: 'Tue, 06/30/2027', qty: 1, price: 279 },
+        ] },
       ],
     },
-    // Edge case 2a — one guest, one room, checking in today.
     {
-      hotel: {
-        name: 'Omni Orlando Resort at ChampionsGate',
-        location: 'ChampionsGate, FL',
-        rating: { score: '8.4/10', label: 'Very good', reviews: 1985 },
-      },
-      checkIn: 'Tue, Jun 23, 3:00pm',
-      checkOut: 'Wed, Jun 24, 11:00am',
+      name: 'Omni Orlando Resort at ChampionsGate',
+      stars: 4, address: '1500 Masters Blvd, ChampionsGate, FL, US, 33896', seed: 2,
+      checkIn: 'Tue, 06/23/2027 03:00 PM', checkOut: 'Wed, 06/24/2027 11:00 AM',
       rooms: [
-        { label: 'Room 1', type: 'Double Queen Room', summary: '2 Queen Beds · Sleeps 4', guests: '1 adult' },
+        { type: 'Double Queen Room', note: 'Room 1 · 1 adult', nights: [
+          { date: 'Tue, 06/23/2027', qty: 1, price: 209 },
+        ] },
       ],
     },
-    // Edge case 2b — same guest, one room at a different hotel, checking in tomorrow.
     {
-      hotel: {
-        name: 'Margaritaville Resort Orlando',
-        location: 'Kissimmee, FL',
-        rating: { score: '8.1/10', label: 'Very good', reviews: 1432 },
-      },
-      checkIn: 'Wed, Jun 24, 3:00pm',
-      checkOut: 'Thu, Jun 25, 11:00am',
+      name: 'Margaritaville Resort Orlando',
+      stars: 4, address: '8000 Fins Up Cir, Kissimmee, FL, US, 34747', seed: 4,
+      checkIn: 'Wed, 06/24/2027 03:00 PM', checkOut: 'Thu, 06/25/2027 11:00 AM',
       rooms: [
-        { label: 'Room 1', type: 'King Suite', summary: '1 King Bed · Sleeps 2', guests: '1 adult' },
+        { type: 'King Suite', note: 'Room 1 · 1 adult', nights: [
+          { date: 'Wed, 06/24/2027', qty: 1, price: 245 },
+        ] },
       ],
     },
   ],
-  party: [
-    { name: 'Alex Smith', role: 'You', status: 'host' },
-    { name: 'Jordan Maye', role: 'Traveler', status: 'invited' },
-    { name: 'Unknown Guest', status: 'unknown' },
+  policies: [
+    { hotel: 'Hilton Orlando Lake Buena Vista', items: [
+      { title: 'Cancellation Policy', body: 'Free cancellation applies to each reservation until the date shown for that hotel. After that, the property’s individual cancellation terms apply per room.' },
+      { title: 'Amenities Notice', body: AMENITIES_NOTICE },
+    ] },
+    { hotel: 'Omni Orlando Resort at ChampionsGate', items: [
+      { title: 'Cancellation Policy', body: 'This reservation may be cancelled up to 48 hours before check-in for a full refund. Late cancellations are charged one night’s rate plus tax.' },
+      { title: 'Amenities Notice', body: AMENITIES_NOTICE },
+    ] },
+    { hotel: 'Margaritaville Resort Orlando', items: [
+      { title: 'Cancellation Policy', body: 'Non-refundable rate. Changes and cancellations are not permitted after booking.' },
+      { title: 'Amenities Notice', body: AMENITIES_NOTICE },
+    ] },
   ],
-  cancellation: {
-    freeUntil: 'Sat, Jun 21, 4:00pm',
-    text: 'Free cancellation applies to each reservation until the date shown for that hotel. After that, the property’s individual cancellation terms apply per room. Manage any reservation independently above.',
-  },
-  location: { lat: 28.3892, lng: -81.5417, address: '1751 Hotel Plaza Blvd, Orlando, FL 32830', label: 'Hilton Orlando Lake Buena Vista' },
-  areaTips,
-  faqs,
-  help,
 }
 
 export default {
@@ -183,12 +161,13 @@ export default {
     layout: 'fullscreen',
     docs: { description: { component: `
 ## Confirmation Page — Book Reservation
-The post-checkout success screen for the single-reservation flow. The hero,
-itinerary meta, reward banner, and "get the app" QR section are shared; the body:
+The post-checkout success screen for the reservation flow: a success banner, a
+**Summary** (contact + confirmation #, Copy Booking Link / Print, a reserved /
+guest / email meta grid, and one block per hotel with the rooms and per-night
+rates), and a per-hotel **Policies** section.
 
-- **Reservation** — a single hotel stay: check-in / check-out and room features.
-- **Multiple Room Reservations** — one card per reservation, showing per-room
-  occupancy and each reservation's own hotel + dates.
+- **Single Reservation** — one hotel stay.
+- **Multiple Reservations** — one block per reservation (different hotels / dates).
 
 Accents use the DS primary (Navy).
 ` } },
@@ -205,13 +184,8 @@ export const SingleReservation = {
   }),
 }
 
-/**
- * Multiple room reservations — one card per reservation, with room details laid
- * out like Group Hold (room type + summary) but showing per-room occupancy.
- * Covers the edge cases: a single reservation with two differently-occupied
- * rooms (2 adults + 1 child, and a 1-guest room), and one guest booking a room
- * today plus a room at a different hotel tomorrow (two separate cards).
- */
+/** Multiple room reservations — one block per reservation, each with its own
+ *  hotel, dates, and rooms. */
 export const MultipleReservations = {
   name: 'Multiple Reservations',
   render: () => ({

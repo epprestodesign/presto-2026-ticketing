@@ -88,7 +88,9 @@ const startingPrice = computed(() => (props.nights.length ? Math.min(...props.ni
 .rcg--soldout { opacity: 0.6; }
 .rcg__media { width: 100%; height: 168px; object-fit: cover; display: block; }
 
-.rcg__head { padding: 20px 22px 16px; display: flex; flex-direction: column; gap: 8px; }
+/* Head grows to fill, pushing the Rooms-per-Night + price sections to a
+   consistent baseline so they align across equal-height cards in the grid. */
+.rcg__head { flex: 1; padding: 20px 22px 16px; display: flex; flex-direction: column; gap: 8px; }
 .rcg__title { margin: 0; font-size: 1.375rem; font-weight: 700; color: var(--ds-color-text-brand); line-height: 1.2; }
 .rcg__bed { color: var(--ds-color-text-subtle); font-size: 1rem; }
 .rcg__occ { display: inline-flex; align-items: center; gap: 8px; color: var(--ds-color-text); font-size: 1rem; }
@@ -108,7 +110,7 @@ const startingPrice = computed(() => (props.nights.length ? Math.min(...props.ni
 .rcg__left.is-limited { color: var(--ds-palette-orange-600); }
 .rcg__left.is-sold { color: var(--ds-color-text-subtlest); }
 
-.rcg__foot { padding: 16px 22px 20px; border-top: 1px solid var(--ds-color-border); margin-top: auto; }
+.rcg__foot { padding: 16px 22px 20px; border-top: 1px solid var(--ds-color-border); }
 .rcg__starting { color: var(--ds-color-text-subtle); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.04em; }
 .rcg__amount { color: var(--ds-color-text-brand); margin-top: 2px; }
 .rcg__amount strong { font-size: 1.5rem; font-weight: 700; }

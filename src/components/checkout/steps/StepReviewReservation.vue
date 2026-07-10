@@ -36,8 +36,9 @@ const canConfirm = computed(() => protection.value !== null)
 
 <template>
   <div class="srr">
-    <!-- Protect your stay -->
-    <section class="srr__sec srr__sec--first">
+    <!-- Protect your stay — reservations only; group blocks aren't charged so
+         no booking protection is offered. -->
+    <section v-if="flow !== 'group'" class="srr__sec srr__sec--first">
       <h4 class="srr__h">Protect your stay</h4>
       <p class="srr__sub">Select an option to continue.</p>
       <div class="srr__plans">
@@ -56,7 +57,7 @@ const canConfirm = computed(() => protection.value !== null)
     </section>
 
     <!-- Cancellation policy -->
-    <section class="srr__sec">
+    <section class="srr__sec" :class="{ 'srr__sec--first': flow === 'group' }">
       <h4 class="srr__h">Cancellation policy</h4>
       <div class="srr__refund"><q-icon name="check_circle" size="18px" /> Fully refundable before {{ cancellation.refundableBefore }}</div>
       <p class="srr__policy">{{ cancellation.policy }}</p>

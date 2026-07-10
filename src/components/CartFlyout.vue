@@ -89,9 +89,10 @@ onBeforeUnmount(() => clearInterval(timer))
             <div class="cf__timer-track"><div class="cf__timer-fill" :style="{ width: progressPct }" /></div>
           </div>
           <div class="cf__actions">
-            <q-btn unelevated no-caps class="cf__cta" :class="{ 'is-disabled': mode === 'hold' && count === 0 }" :tabindex="(mode === 'hold' && count === 0) ? -1 : 0">
+            <!-- Group blocks (hold) are held, not charged → no total shown. -->
+            <q-btn unelevated no-caps class="cf__cta" :class="{ 'is-disabled': mode === 'hold' && count === 0, 'cf__cta--nototal': mode === 'hold' }" :tabindex="(mode === 'hold' && count === 0) ? -1 : 0">
               <span class="cf__cta-label">Go to checkout</span>
-              <span class="cf__cta-total">{{ money(total) }}</span>
+              <span v-if="mode !== 'hold'" class="cf__cta-total">{{ money(total) }}</span>
             </q-btn>
           </div>
         </div>
@@ -149,6 +150,7 @@ onBeforeUnmount(() => clearInterval(timer))
 .cf__cta { width: 100%; height: 54px; border-radius: var(--ds-radius-button); background: var(--ds-color-background-brand-bold); color: #fff; font-weight: 700; font-size: 1rem; }
 .cf__cta.is-disabled { background: var(--ds-palette-slate-200); color: var(--ds-color-text-subtlest); pointer-events: none; }
 .cf__cta :deep(.q-btn__content) { width: 100%; justify-content: space-between; flex-wrap: nowrap; padding: 0 10px; }
+.cf__cta--nototal :deep(.q-btn__content) { justify-content: center; }
 
 /* Special requests sub-flyout */
 .cf__sub { position: absolute; top: 0; right: 0; height: 100%; width: 500px; max-width: 92vw; background: var(--ds-color-surface); display: flex; flex-direction: column; box-shadow: var(--ds-shadow-4); z-index: 10; animation: cf-slide 0.22s var(--ds-ease-standard); }

@@ -26,4 +26,12 @@ export const sampleRooms = [
     { date: 'Tue, 6/15/2027', roomsLeft: 1 }, { date: 'Wed, 6/16/2027', roomsLeft: 1 },
     { date: 'Thu, 6/17/2027', roomsLeft: 1 }, { date: 'Fri, 6/18/2027', roomsLeft: 2 },
   ] },
+  { type: 'Deluxe King - Room, 1 King Bed', nightly: 140, nights: [
+    { date: 'Tue, 6/15/2027', roomsLeft: 22 }, { date: 'Wed, 6/16/2027', roomsLeft: 18 },
+    { date: 'Thu, 6/17/2027', roomsLeft: 25 }, { date: 'Fri, 6/18/2027', roomsLeft: 14 },
+  ] },
+  { type: 'Family Suite - 2 Queen Beds, Bunk', nightly: 210, nights: [
+    { date: 'Tue, 6/15/2027', roomsLeft: 9 }, { date: 'Wed, 6/16/2027', roomsLeft: 4 },
+    { date: 'Thu, 6/17/2027', roomsLeft: 7 }, { date: 'Fri, 6/18/2027', roomsLeft: 5 },
+  ] },
 ]

@@ -4,14 +4,12 @@
 import { computed, ref } from 'vue'
 
 const props = defineProps({
-  modelValue: { type: String, default: 'recommended' },
+  modelValue: { type: String, default: 'distance' },
   options: { type: Array, default: () => ([
-    { value: 'recommended', label: 'Recommended' },
-    { value: 'price_asc', label: 'Price (low to high)' },
-    { value: 'price_desc', label: 'Price (high to low)' },
-    { value: 'guest_rating', label: 'Guest rating' },
-    { value: 'star_rating', label: 'Star rating' },
     { value: 'distance', label: 'Distance' },
+    { value: 'price_asc', label: 'Price: Low to High' },
+    { value: 'price_desc', label: 'Price: High to Low' },
+    { value: 'guest_rating', label: 'Guest Rating' },
   ]) },
   label: { type: String, default: 'Sort by' },
   // 'pill' — rounded pill with a leading swap icon and inline "Sort by:" label.

@@ -78,7 +78,7 @@ const reserveSections = [
     ],
   },
   {
-    heading: 'The below hotels do not match your filters',
+    heading: 'The below hotels have availability for your selected dates but do not match your selected filters',
     hotels: [
       { name: 'Kimpton Gray Hotel', stars: null, distance: '2.4 mi from Main Arena', fromNightly: 249, total: 996, availability: 'unmatched', seed: 3 },
       { name: 'The Whitman Boutique', stars: 4, distance: '2.9 mi from Main Arena', fromNightly: 279, total: 1116, availability: 'unmatched', seed: 6 },
@@ -113,6 +113,11 @@ const groupSections = [
     hotels: [
       { name: 'Kimpton Gray Hotel', stars: null, distance: '2.4 mi from Main Arena', startingPrice: 249, availability: 'partial', roomsMax: 4, roomsRequested: 10, seed: 3 },
       { name: 'Hampton Inn & Suites', stars: 3, distance: '1.1 mi from Main Arena', startingPrice: 179, availability: 'partial', roomsMax: 6, roomsRequested: 10, seed: 4 },
+    ],
+  },
+  {
+    heading: 'The below hotels do not have availability for your selected dates',
+    hotels: [
       { name: 'Holiday Inn Express Chicago', stars: 2, distance: '3.5 mi from Main Arena', startingPrice: 109, availability: 'unavailable', seed: 5 },
     ],
   },
@@ -124,11 +129,19 @@ const sections = computed(() => (isGroup.value ? groupSections : reserveSections
 // Availability panel. Reserve-flow availability keys map onto the group card's
 // states, and every hotel gets sample room-availability data.
 const AVAIL_MAP = { available: 'matches', unmatched: 'partial', unavailable: 'unavailable' }
+// Grey city subtitle under each hotel name — assigned deterministically by seed
+// so the sample listings read like a real metro spread.
+const CITIES = ['Kansas City', 'Overland Park', 'Lenexa', 'Olathe', 'Shawnee', 'Leawood', 'Merriam', 'Prairie Village', 'Liberty', 'Gladstone', 'Independence', 'Blue Springs', 'Raytown', 'Grandview']
 const displaySections = computed(() =>
   sections.value.map((s) => ({
     heading: s.heading,
     hotels: s.hotels.map((h) => ({
       name: h.name,
+      // Book Reservation flow drives qualitative status wording on the card.
+      flow: props.flow,
+      // Book Reservation → "Choose Your Room"; Group Block → "Select Rooms".
+      ctaLabel: isGroup.value ? 'Select Rooms' : 'Choose Your Room',
+      city: CITIES[(h.seed ?? 0) % CITIES.length],
       stars: h.stars,
       distance: h.distance,
       preferred: h.preferred,
@@ -139,6 +152,9 @@ const displaySections = computed(() =>
       roomsAvailable: h.roomsAvailable ?? 5,
       roomsMax: h.roomsMax ?? 4,
       roomsRequested: h.roomsRequested ?? 10,
+      // Vary the refund-policy chip + Low Rate Guarantee pill across listings.
+      refundable: (h.seed ?? 0) % 3 !== 2,
+      lowRateGuarantee: (h.seed ?? 0) % 2 === 0,
       rooms: sampleRooms,
     })),
   }))
@@ -162,17 +178,6 @@ const resultCount = computed(() => {
 // toolbar as "N properties available — searching for R rooms".
 const roomsRequested = 2
 
-// --- Pagination -------------------------------------------------------------
-// The primary (matching) results section paginates; the trailing "don't match" /
-// "no availability" sections show once, on the last page.
-const PER_PAGE = 4
-const page = ref(1)
-const pageCount = computed(() => Math.max(1, Math.ceil(mainHotels.value.length / PER_PAGE)))
-const pagedMain = computed(() => {
-  const start = (page.value - 1) * PER_PAGE
-  return mainHotels.value.slice(start, start + PER_PAGE)
-})
-
 // Filter sidebar v-models.
 const fBudget = ref({ min: 20, max: 522 })
 const fStars = ref([4, 5])
@@ -180,8 +185,8 @@ const fAmenities = ref(['Free WiFi', 'Free Breakfast'])
 const fBrands = ref(['Cambria', 'Comfort'])
 const priceHistogram = [8, 14, 11, 24, 38, 52, 47, 61, 44, 70, 56, 66, 51, 43, 47, 31, 35, 27, 31, 22, 28, 34, 30, 24, 18, 14, 22, 10, 7, 5]
 
-// Sort control.
-const sort = ref('recommended')
+// Sort control — Browse Hotels defaults to sorting by Distance.
+const sort = ref('distance')
 </script>
 
 <template>
@@ -260,7 +265,7 @@ const sort = ref('recommended')
           <!-- FULL / PARTIAL — matching block (paginated) + fallback blocks -->
           <template v-else>
             <hotel-card-group
-              v-for="(hotel, hi) in pagedMain"
+              v-for="(hotel, hi) in mainHotels"
               :key="'main-' + hi"
               v-bind="hotel"
               class="hlp__card"
@@ -280,18 +285,6 @@ const sort = ref('recommended')
                 class="hlp__card"
               />
             </template>
-
-            <!-- pagination -->
-            <div v-if="pageCount > 1" class="hlp__pagination">
-              <q-pagination
-                v-model="page"
-                :max="pageCount"
-                :max-pages="6"
-                boundary-numbers
-                direction-links
-                color="primary"
-              />
-            </div>
           </template>
         </div>
 
@@ -344,9 +337,6 @@ const sort = ref('recommended')
 /* results toolbar (sits at the top of the results column, aligned to cards) */
 .hlp__toolbar { margin-bottom: 20px; }
 
-/* pagination */
-.hlp__pagination { display: flex; justify-content: center; margin-top: 12px; }
-
 /* 3-column grid */
 .hlp__grid {
   display: grid;
@@ -380,10 +370,10 @@ const sort = ref('recommended')
 .hlp__card { width: 100%; }
 
 /* loading skeleton — mirrors the hotel card layout */
-.hlp__skel { display: flex; border: 1px solid rgba(0,0,0,0.04); border-radius: 12px; overflow: hidden; background: var(--ds-color-surface); box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06); }
-.hlp__skel-media { width: 230px; height: 212px; flex: none; border-radius: 0; }
-.hlp__skel-body { flex: 1; min-width: 0; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
-.hlp__skel-price { width: 250px; flex: none; padding: 20px 24px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.hlp__skel { display: flex; min-height: 360px; border: 1px solid rgba(0,0,0,0.04); border-radius: 12px; overflow: hidden; background: var(--ds-color-surface); box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06); }
+.hlp__skel-media { width: 280px; height: auto; flex: none; border-radius: 0; }
+.hlp__skel-body { flex: 1; min-width: 0; padding: 28px 32px; display: flex; flex-direction: column; gap: 12px; }
+.hlp__skel-price { width: 260px; flex: none; padding: 28px 32px; display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; gap: 10px; }
 
 /* empty / error state panels */
 .hlp__state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 56px 24px; background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06); }

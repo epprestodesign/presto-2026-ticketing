@@ -19,6 +19,8 @@ const props = defineProps({
   reservations: { type: Array, default: null },
   teamName: { type: Boolean, default: false },
   customFields: { type: Array, default: () => [] },
+  // Group flow: render the teams block widget (off → block w/o team holding).
+  showTeams: { type: Boolean, default: true },
 })
 const emit = defineEmits(['update:modelValue', 'next'])
 
@@ -28,15 +30,18 @@ const valid = computed(() => {
   if (props.mode !== 'group') return resValid.value
   const m = props.modelValue || {}
   const c = m.contact || {}
-  const teamsOk = m.notHolding || ((m.teams && m.teams.length) && (m.groupBlockName || '').trim())
-  return !!(c.firstName && c.lastName && c.mobile && c.email && teamsOk)
+  // Group Block Name + Organization are mandatory; teams required unless the
+  // teams widget is hidden or the organizer isn't holding for a team.
+  const teamsOk = !props.showTeams || m.notHolding || (m.teams && m.teams.length)
+  const blockOk = (m.groupBlockName || '').trim()
+  return !!(c.firstName && c.lastName && c.mobile && c.email && c.organization && blockOk && teamsOk)
 })
 const onNext = () => { if (valid.value) emit('next'); else { showErrors.value = true } }
 </script>
 
 <template>
   <div class="step">
-    <group-teams-block v-if="mode === 'group'" :model-value="modelValue" :show-errors="showErrors" @update:model-value="emit('update:modelValue', $event)" />
+    <group-teams-block v-if="mode === 'group'" :model-value="modelValue" :show-teams="showTeams" :show-errors="showErrors" @update:model-value="emit('update:modelValue', $event)" />
     <reservation-guests
       v-else
       :rooms="rooms" :reservations="reservations" :team-name="teamName" :custom-fields="customFields"

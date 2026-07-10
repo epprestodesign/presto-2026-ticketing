@@ -51,5 +51,7 @@ const make = (cartMode) => () => ({
   template: `<page-frame cart-mode="${cartMode}">${hero}${body}</page-frame>`,
 })
 
+// Book Reservation books directly — no running cart, so the cart button is hidden
+// (GlobalNav shows the cart only for the Group Block 'hold' flow).
 export const BookReservation = { name: 'Book Reservation', render: make('reserve') }
 export const GroupBlock = { name: 'Group Block', render: make('hold') }

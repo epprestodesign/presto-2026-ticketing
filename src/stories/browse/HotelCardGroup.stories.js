@@ -22,8 +22,8 @@ expandable **Availability** panel.
 }
 
 const base = {
-  name: 'Embassy Suites Chicago Downtown', stars: 4, distance: '0.3 mi from Main Arena',
-  preferred: true, startingPrice: 269,
+  name: 'Embassy Suites Chicago Downtown', city: 'Chicago', stars: 4, distance: '0.3 mi from Main Arena',
+  preferred: true, refundable: true, startingPrice: 269,
   rooms: sampleRooms,
   imageCategories: ['exterior', 'lobby', 'rooms'], seed: 2,
 }
@@ -38,6 +38,13 @@ export const MatchesRequest = {
   name: 'Matches Request',
   render,
   args: { ...base, availability: 'matches', roomsAvailable: 3 },
+}
+
+/** Availability panel expanded — the room-type carousel (2 cards + a peek, dots). */
+export const AvailabilityOpen = {
+  name: 'Availability Open',
+  render,
+  args: { ...base, availability: 'matches', roomsAvailable: 8, openAvailability: true },
 }
 
 /** Has rooms, but fewer than the block requested. */

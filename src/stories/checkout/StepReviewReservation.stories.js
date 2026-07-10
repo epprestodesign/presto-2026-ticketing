@@ -10,5 +10,6 @@ export default {
 
 const wrap = (inner) => ({ components: { StepReviewReservation }, template: `<div style="max-width:640px;margin:0 auto;padding:32px">${inner}</div>` })
 
-export const GroupHold = { render: () => wrap(`<step-review-reservation contact-summary="3 teams · Sam Girard" payment-label="Amex ····1009" :total="2578.56" />`) }
+// Group blocks: no booking protection (held, not charged) + a single policies checkbox.
+export const GroupHold = { render: () => wrap(`<step-review-reservation flow="group" contact-summary="3 teams · Sam Girard" :total="2578.56" />`) }
 export const Reservation = { render: () => wrap(`<step-review-reservation contact-summary="Sam Girard · 2 guests" payment-label="Amex ····1009" :total="322.31" />`) }

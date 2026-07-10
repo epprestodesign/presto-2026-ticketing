@@ -39,7 +39,7 @@ export const Page = {
         checkIn: { date: '06/23/2026', time: '4:00pm' }, checkOut: { date: '06/24/2026', time: '11:00am' }, nights: 1,
         highlights: [{ icon: 'kitchen', label: 'Kitchen' }, { icon: 'ac_unit', label: 'Air conditioning' }, { icon: 'microwave', label: 'Microwave' }],
         roomType: 'Aparthotel', bedConfig: '1 King Bed and 1 Queen Sofa Bed', sleeps: 2, amenities: [{ icon: 'wifi', label: 'Free WiFi' }],
-        priceDetails: { nights: 1, rooms: 1, rate: 164.78, subtotal: 164.78, program: 'OneKeyCash applied', discount: '$26.55 off', taxes: 47.53, propertyFee: 110.0, total: 322.31 },
+        priceDetails: { nights: 1, rooms: 1, rate: 164.78, subtotal: 164.78, taxes: 47.53, propertyFee: 110.0, total: 322.31 },
         roomsLeft: 1,
       }
       const summary = computed(() => ({
@@ -63,7 +63,7 @@ export const Page = {
       }))
       return { cart, summary }
     },
-    template: `<page-frame cart-mode="reserve"><checkout-page mode="reservation" :cart="cart" :summary="summary" /></page-frame>`,
+    template: `<page-frame cart-mode="reserve" brand="Secure Checkout" minimal-nav><checkout-page mode="reservation" :cart="cart" :summary="summary" /></page-frame>`,
   }),
 }
 
@@ -109,6 +109,6 @@ export const MultipleRoomReservations = {
       }))
       return { cart, summary }
     },
-    template: `<page-frame cart-mode="reserve"><checkout-page mode="reservations" :cart="cart" :summary="summary" /></page-frame>`,
+    template: `<page-frame cart-mode="reserve" brand="Secure Checkout" minimal-nav><checkout-page mode="reservations" :cart="cart" :summary="summary" /></page-frame>`,
   }),
 }
