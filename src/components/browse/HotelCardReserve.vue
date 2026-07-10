@@ -97,8 +97,6 @@ const money = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { m
           </div>
 
           <div v-if="distance" class="hc__distance"><q-icon name="place" size="18px" /> <span>{{ distance }}</span></div>
-
-          <div v-if="refundable" class="hc__refund">Fully Refundable</div>
         </div>
 
         <div class="hc__footer">
@@ -110,7 +108,6 @@ const money = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { m
             <div class="hc__from">From {{ money(fromNightly) }} nightly</div>
             <div class="hc__total">{{ money(total) }} total</div>
             <div class="hc__taxes">Total includes taxes &amp; fees</div>
-            <div v-if="lowRateGuarantee" class="hc__lrg"><q-icon name="check" size="15px" /> Low Rate Guarantee</div>
             <button type="button" class="hc__cta" :class="{ 'hc__cta--muted': unavailable }" @click="emit('choose')">{{ ctaLabel }}</button>
           </div>
         </div>
@@ -160,7 +157,6 @@ const money = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { m
 .hc__dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
 .hc__distance { display: inline-flex; align-items: center; gap: 6px; color: var(--ds-color-text); font-size: 1rem; }
 .hc__distance .q-icon { color: var(--ds-color-text-brand); }
-.hc__refund { align-self: flex-start; background: var(--ds-palette-slate-100); color: var(--ds-color-text); font-size: 0.8125rem; font-weight: 700; padding: 6px 12px; border-radius: var(--ds-radius-md); }
 /* footer — availability (left) + price (right), pinned to the bottom of the card */
 .hc__footer { margin-top: auto; padding-top: 20px; display: flex; align-items: flex-end; justify-content: flex-end; gap: 16px; }
 /* Availability sits bottom-left, height-matched to the CTA so the two align. */
@@ -172,7 +168,6 @@ const money = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { m
 .hc__from { color: var(--ds-color-text-subtle); font-size: 0.9375rem; }
 .hc__total { color: var(--ds-color-text-brand); font-size: 1.25rem; font-weight: 700; }
 .hc__taxes { color: var(--ds-color-text-subtle); font-size: 0.8125rem; margin-bottom: 6px; }
-.hc__lrg { display: inline-flex; align-items: center; gap: 4px; color: var(--ds-color-text-success); border: 1px solid var(--ds-color-text-success); border-radius: var(--ds-radius-pill); padding: 3px 12px; font-size: 0.8125rem; font-weight: 600; margin-bottom: 10px; }
 .hc__cta { height: 52px; padding: 0 24px; border: 0; border-radius: var(--ds-radius-button); background: var(--ds-color-background-brand-bold); color: #fff; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background var(--ds-duration-fast) var(--ds-ease-standard); }
 .hc__cta:hover { background: var(--ds-palette-navy-800); }
 .hc__cta--muted { background: var(--ds-palette-navy-400); }
@@ -190,6 +185,5 @@ const money = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { m
 .hc--vertical .hc__footer { flex-direction: column; align-items: stretch; gap: 12px; margin-top: 12px; padding-top: 0; }
 .hc--vertical .hc__availtoggle { align-self: flex-start; min-height: 0; }
 .hc--vertical .hc__price { align-items: stretch; text-align: left; padding-top: 16px; border-top: 1px solid var(--ds-color-border); }
-.hc--vertical .hc__lrg { align-self: flex-start; }
 .hc--vertical .hc__cta { width: 100%; }
 </style>

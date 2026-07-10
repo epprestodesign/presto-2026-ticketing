@@ -5,8 +5,8 @@ import PaymentForm from '../PaymentForm.vue'
 
 defineProps({
   modelValue: { type: Object, default: () => ({}) },
-  // Hold reassurance line shown above the card fields.
-  reassurance: { type: String, default: '$0.00 due now. Payment information is only needed to hold your reservation.' },
+  // Optional reassurance line above the card fields (hidden by default).
+  reassurance: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue', 'next'])
 </script>

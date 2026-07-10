@@ -10,9 +10,9 @@ import { paymentLogo } from '../../lib/paymentLogos'
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
-  // Hold reassurance line — the card only guarantees the booking, nothing is
-  // charged now. Pass '' to hide it.
-  reassurance: { type: String, default: '$0.00 due now. Payment information is only needed to hold your reservation.' },
+  // Optional reassurance line above the card fields (hidden by default). Pass a
+  // string (e.g. a hold "$0 due now" note) to show it.
+  reassurance: { type: String, default: '' },
   showErrors: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue'])

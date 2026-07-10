@@ -9,6 +9,13 @@ import CartFlyout from './CartFlyout.vue'
 const props = defineProps({
   brand: { type: String, default: 'Soccer League' },
   contactLabel: { type: String, default: 'Contact Us' },
+  // Contact details shown in the Contact Us dropdown.
+  contactInfo: { type: Object, default: () => ({
+    name: 'EventPipe Travel',
+    hours: 'Monday through Friday, 8:30am–5:30pm Eastern Time',
+    phone: '(888) 640-6400',
+    email: 'support@eventpipe.com',
+  }) },
   manageLabel: { type: String, default: 'Manage Booking' },
   cartMode: { type: String, default: 'reserve' }, // reserve | hold | reservations
   cart: { type: Object, default: () => ({}) },
@@ -42,7 +49,26 @@ const count = ref(0)
       <a class="gnav__brand" href="#" @click.prevent>{{ brand }}</a>
 
       <div v-if="!minimal" class="gnav__actions">
-        <a class="gnav__contact" href="#" @click.prevent="emit('contact')">{{ contactLabel }}</a>
+        <a class="gnav__contact" href="#" @click.prevent="emit('contact')">
+          {{ contactLabel }}
+          <q-menu anchor="bottom right" self="top right" :offset="[0, 10]" class="gnav__contactmenu">
+            <div class="gnav__contactcard">
+              <h4 class="gnav__contact-name">{{ contactInfo.name }}</h4>
+              <div class="gnav__contact-block">
+                <span class="gnav__contact-h">Hours</span>
+                <p class="gnav__contact-p">{{ contactInfo.hours }}</p>
+              </div>
+              <div class="gnav__contact-block">
+                <span class="gnav__contact-h">By Phone</span>
+                <a class="gnav__contact-row" :href="'tel:' + contactInfo.phone.replace(/[^0-9+]/g, '')"><q-icon name="call" size="18px" /> {{ contactInfo.phone }}</a>
+              </div>
+              <div class="gnav__contact-block">
+                <span class="gnav__contact-h">By Email</span>
+                <a class="gnav__contact-row" :href="'mailto:' + contactInfo.email"><q-icon name="mail" size="18px" /> {{ contactInfo.email }}</a>
+              </div>
+            </div>
+          </q-menu>
+        </a>
         <button class="gnav__manage" @click="emit('manage')">{{ manageLabel }}</button>
         <button v-if="cartVisible" class="gnav__iconbtn" aria-label="Open cart" @click="cartOpen = true">
           <q-icon name="shopping_cart" size="22px" />
@@ -70,4 +96,18 @@ const count = ref(0)
 .gnav__iconbtn { position: relative; width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--ds-color-border-brand); background: transparent; color: var(--ds-color-text-brand); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background var(--ds-duration-fast) var(--ds-ease-standard), border-color var(--ds-duration-fast) var(--ds-ease-standard); }
 .gnav__iconbtn:hover { background: var(--ds-palette-navy-50); border-color: var(--ds-color-border-brand); }
 .gnav__badge { position: absolute; top: -2px; right: -2px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: var(--ds-radius-pill); background: var(--ds-color-background-danger-bold); color: #fff; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+</style>
+
+<!-- Unscoped: q-menu content is teleported outside this component. -->
+<style>
+.gnav__contactmenu { border-radius: var(--ds-radius-lg); box-shadow: var(--ds-shadow-3, 0 8px 24px rgba(0,0,0,0.18)); }
+.gnav__contactmenu .gnav__contactcard { width: 320px; max-width: 88vw; padding: 24px; }
+.gnav__contactmenu .gnav__contact-name { margin: 0 0 18px; text-align: center; font-size: 1.25rem; font-weight: 800; color: var(--ds-color-text-brand); }
+.gnav__contactmenu .gnav__contact-block { margin-top: 18px; }
+.gnav__contactmenu .gnav__contact-block:first-of-type { margin-top: 0; }
+.gnav__contactmenu .gnav__contact-h { display: block; font-size: 1rem; font-weight: 700; color: var(--ds-color-text); margin-bottom: 5px; }
+.gnav__contactmenu .gnav__contact-p { margin: 0; color: var(--ds-color-text); font-size: 0.9375rem; line-height: 1.45; }
+.gnav__contactmenu .gnav__contact-row { display: inline-flex; align-items: center; gap: 10px; color: var(--ds-color-text); font-size: 0.9375rem; text-decoration: none; }
+.gnav__contactmenu .gnav__contact-row:hover { text-decoration: underline; }
+.gnav__contactmenu .gnav__contact-row .q-icon { color: var(--ds-color-text-brand); flex: none; }
 </style>

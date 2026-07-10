@@ -82,7 +82,8 @@ const heroStyle = { backgroundImage: `${scrim}, url(${defaultBg})` }
 <template>
   <div class="lp">
     <!-- Global nav -->
-    <global-nav :brand="brand" :cart-mode="mode === 'group' ? 'hold' : 'reserve'" />
+    <!-- No cart on the landing page (nothing has been added yet). -->
+    <global-nav :brand="brand" :cart-mode="mode === 'group' ? 'hold' : 'reserve'" :show-cart="false" />
 
     <!-- Hero (Foundations / Hero Banner — Landing Page imagery) -->
     <section class="lp__hero" :style="heroStyle">

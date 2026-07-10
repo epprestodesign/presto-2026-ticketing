@@ -105,7 +105,8 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
 
           <div v-if="distance" class="hc__distance"><q-icon name="place" size="18px" /> <span>{{ distance }}</span></div>
 
-          <div v-if="refundable" class="hc__refund">Fully Refundable</div>
+          <!-- Book Reservation flow omits the Fully Refundable chip. -->
+          <div v-if="refundable && flow !== 'reserve'" class="hc__refund">Fully Refundable</div>
         </div>
 
         <div class="hc__footer">
@@ -116,7 +117,8 @@ const money2 = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { 
           <div class="hc__price">
             <div class="hc__pricelabel">STARTING PRICE</div>
             <div class="hc__amount"><strong>{{ money2(startingPrice) }}</strong> <span>/ night</span></div>
-            <div v-if="lowRateGuarantee" class="hc__lrg"><q-icon name="check" size="15px" /> Low Rate Guarantee</div>
+            <!-- Book Reservation flow omits the Low Rate Guarantee pill. -->
+            <div v-if="lowRateGuarantee && flow !== 'reserve'" class="hc__lrg"><q-icon name="check" size="15px" /> Low Rate Guarantee</div>
             <button type="button" class="hc__cta" :class="{ 'hc__cta--muted': unavailable }" @click="emit('select')">{{ ctaLabel }}</button>
           </div>
         </div>

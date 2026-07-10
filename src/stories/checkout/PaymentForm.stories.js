@@ -10,9 +10,7 @@ export default {
   parameters: { docs: { description: { component: `
 The inline **Payment Method** form: **Card Information** (cardholder name, card
 number, expiration, security code) + **Billing Information** (address, country,
-city/state, postal code), built from DS field styles. Credit card only — no
-dialogs. The green line reassures that nothing is charged now; the card only
-holds the reservation.
+city/state, postal code), built from DS field styles. Credit card only — no dialogs.
 ` } } },
 }
 
