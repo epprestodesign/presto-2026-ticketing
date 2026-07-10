@@ -117,9 +117,10 @@ const preview = {
           'Checkout Experience', [
             'Book Reservation', 'Group Block',
             'Components', [
-              'Steps', ['Review Order', 'Contact Info', 'Payment', 'Review Reservation'],
-              'Policies', 'Payment Dialogs',
+              'Book Reservation', ['Review Order', 'Contact Info', 'Reservation Guests', 'Payment', 'Review Reservation'],
+              'Group Block', ['Review Order', 'Contact Info', 'Review Reservation'],
             ],
+            'Old Designs',
           ],
           'Confirmation', [
             'Book Reservation', 'Group Block',

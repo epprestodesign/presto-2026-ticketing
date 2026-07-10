@@ -76,14 +76,11 @@ const next = () => { furthest.value = Math.max(furthest.value, current.value + 1
 
 // State captured across steps.
 const contact = ref({})
-// Credit card only — no Google Pay / alternative payment methods.
-const methods = [
-  { id: 'amex', logo: 'Amex', last4: '1009', label: 'Amex', sub: 'Default' },
-]
-const payment = ref('amex')
+// Payment is the inline card + billing form (credit card only; no dialogs).
+const payment = ref({})
 const paymentLabel = computed(() => {
-  const m = methods.find((x) => x.id === payment.value)
-  return m ? (m.last4 ? `${m.label} ····${m.last4}` : m.label) : ''
+  const digits = (payment.value.cardNumber || '').replace(/\D/g, '')
+  return digits.length >= 4 ? `Card ending ${digits.slice(-4)}` : 'Card details'
 })
 const contactSummary = computed(() => {
   const c = contact.value || {}
@@ -130,7 +127,7 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
           <div v-if="stepState(i + 1) === 'open'" class="ck__body">
             <step-review-order v-if="s.key === 'review'" :mode="cartMode" :cart="liveCart" :currency="currency" bind @next="next" />
             <step-contact-info v-else-if="s.key === 'contact'" :mode="mode" :show-teams="showTeams" :rooms="contactRooms" :reservations="isMulti ? contactReservations : null" v-model="contact" @next="next" />
-            <step-payment v-else-if="s.key === 'payment'" v-model="payment" :methods="methods" @next="next" />
+            <step-payment v-else-if="s.key === 'payment'" v-model="payment" @next="next" />
             <step-review-reservation v-else :contact-summary="contactSummary" :payment-label="paymentLabel" :total="summary.total" :currency="currency" :flow="policyFlow" :hotels="policyHotels" @confirm="confirm" />
           </div>
         </section>

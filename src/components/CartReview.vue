@@ -29,6 +29,8 @@ const props = defineProps({
 const emit = defineEmits(['update:count', 'update:total', 'requests'])
 
 const money = (n) => props.currency + Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+// Taxes & Fees disclaimer — shown in a tooltip on the price-details Taxes line.
+const TAX_DISCLAIMER = 'This charge includes estimated amounts the travel service provider (i.e. hotel, car rental company) pays for their taxes, and/or taxes that we pay, to taxing authorities on your booking (including but not limited to sales, occupancy, and value added tax). This amount may also include any amounts charged to us for resort fees, cleaning fees, and other fees and/or a fee we, the hotel supplier and/or the site you booked on, retain as part of the compensation for our and/or their services, which varies based on factors such as location, the amount, and how you booked. For more details, please see the terms and conditions.'
 const isReserve = computed(() => props.mode === 'reserve')
 // 'reservations' shares the multi-hotel hierarchy with 'hold' but each night is
 // a fixed booking (qty 1) shown as a date + rate row — no quantity stepper.
@@ -181,8 +183,7 @@ defineExpose({ clear })
           <span>{{ money(cart.priceDetails.subtotal) }}</span>
         </div>
         <div v-if="cart.priceDetails.discount" class="cr__discount">{{ cart.priceDetails.discount }}</div>
-        <div class="cr__kv"><span>Taxes</span><span>{{ money(cart.priceDetails.taxes) }}</span></div>
-        <div v-if="cart.priceDetails.propertyFee != null" class="cr__kv"><span>Property fee</span><span>{{ money(cart.priceDetails.propertyFee) }}</span></div>
+        <div class="cr__kv"><span class="cr__taxlabel">Taxes &amp; Fees <button type="button" class="cr__info" aria-label="About taxes and fees"><q-icon name="info" size="16px" /><q-tooltip class="cr__tooltip" anchor="top middle" self="bottom middle" :offset="[0, 8]" max-width="360px">{{ TAX_DISCLAIMER }}</q-tooltip></button></span><span>{{ money((cart.priceDetails.taxes || 0) + (cart.priceDetails.propertyFee || 0)) }}</span></div>
         <div class="cr__rule" />
         <div class="cr__kv cr__kv--total"><span>Total</span><span>{{ money(cart.priceDetails.total) }}</span></div>
         <div class="cr__quoted">Rates are quoted in USD ($).</div>
@@ -240,8 +241,7 @@ defineExpose({ clear })
           <h4 class="cr__price-h">Price details</h4>
           <div v-for="(l, i) in roomLines" :key="i" class="cr__kv"><span>{{ l.label }} · {{ l.nights }} night{{ l.nights === 1 ? '' : 's' }}</span><span>{{ money(l.subtotal) }}</span></div>
           <div class="cr__rule" />
-          <div class="cr__kv"><span>Taxes</span><span>{{ money(holdTaxes) }}</span></div>
-          <div class="cr__kv"><span>Property fee</span><span>{{ money(holdFee) }}</span></div>
+          <div class="cr__kv"><span class="cr__taxlabel">Taxes &amp; Fees <button type="button" class="cr__info" aria-label="About taxes and fees"><q-icon name="info" size="16px" /><q-tooltip class="cr__tooltip" anchor="top middle" self="bottom middle" :offset="[0, 8]" max-width="360px">{{ TAX_DISCLAIMER }}</q-tooltip></button></span><span>{{ money(holdTaxes + holdFee) }}</span></div>
           <div class="cr__rule" />
           <div class="cr__kv cr__kv--total"><span>Total</span><span>{{ money(holdTotal) }}</span></div>
           <div class="cr__quoted">Rates are quoted in USD ($).</div>
@@ -327,6 +327,11 @@ defineExpose({ clear })
 .cr__kv--total { font-size: 1.0625rem; }
 .cr__kv--total > span { color: var(--ds-color-text) !important; font-weight: 700; }
 
+/* Taxes & Fees info tooltip trigger */
+.cr__taxlabel { display: inline-flex; align-items: center; }
+.cr__info { display: inline-flex; align-items: center; margin-left: 5px; padding: 0; border: 0; background: none; color: var(--ds-color-text); cursor: pointer; }
+.cr__info:hover { color: var(--ds-color-text-brand); }
+
 /* Price details card */
 .cr__pricecard { background: var(--ds-color-surface); margin: 6px 20px 20px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md); padding: 16px; }
 .cr__price-h { font-size: 1.0625rem; font-weight: 700; margin: 0 0 12px; color: var(--ds-color-text); }
@@ -337,4 +342,9 @@ defineExpose({ clear })
 .cr__discount { display: inline-block; background: var(--ds-palette-green-600); color: #fff; font-weight: 600; font-size: 0.8125rem; padding: 3px 10px; border-radius: var(--ds-radius-sm); margin-top: 10px; }
 .cr__quoted { color: var(--ds-color-text-subtlest); font-size: 0.75rem; margin-top: 12px; }
 .cr__heldnote { display: flex; align-items: center; gap: 7px; margin-top: 12px; background: var(--ds-color-background-warning); color: var(--ds-palette-amber-800); border: 1px solid var(--ds-palette-amber-200); border-radius: var(--ds-radius-md); padding: 9px 12px; font-size: 0.8125rem; }
+</style>
+
+<!-- Unscoped: q-tooltip content is teleported outside this component. -->
+<style>
+.cr__tooltip { max-width: 360px; font-size: 0.8125rem; line-height: 1.5; padding: 12px 14px; }
 </style>

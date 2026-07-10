@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import GroupTeamsBlock from '../../components/checkout/GroupTeamsBlock.vue'
 
 export default {
-  title: 'Checkout Experience/Components/Steps/Contact Info/Group Block/Teams Block',
+  title: 'Checkout Experience/Components/Group Block/Contact Info/Teams Block',
   component: GroupTeamsBlock,
   tags: ['autodocs'],
   parameters: {

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import StepContactInfo from '../../components/checkout/steps/StepContactInfo.vue'
 
 export default {
-  title: 'Checkout Experience/Components/Steps/Contact Info/Group Block',
+  title: 'Checkout Experience/Components/Group Block/Contact Info',
   component: StepContactInfo,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: 'Step 2 — Group Block: the teams block (search / add teams + primary contact).' } } },

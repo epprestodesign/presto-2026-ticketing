@@ -4,10 +4,14 @@ import PaymentMethodDialog from '../../components/checkout/PaymentMethodDialog.v
 import AddPaymentDialog from '../../components/checkout/AddPaymentDialog.vue'
 
 export default {
-  title: 'Checkout Experience/Components/Payment Dialogs',
+  title: 'Checkout Experience/Old Designs/Payment Dialogs',
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: `
-Instacart-style payment surfaces used in the checkout's **Add a payment method** step:
+> **Old design.** The checkout Payment step now uses the inline
+> **Payment Method** form (Components → Payment Method) — no dialogs. Kept here
+> for reference.
+
+Instacart-style payment surfaces:
 - **Payment Method** — saved methods (single-select) + an "Add payment method" list.
 - **Add Payment** — card form with a Save that enables once valid.
 Logos come from the local \`creditCards\` SVG set.

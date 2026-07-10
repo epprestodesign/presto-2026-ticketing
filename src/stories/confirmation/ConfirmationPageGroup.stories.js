@@ -25,6 +25,6 @@ export const Page = {
   render: () => ({
     components: { PageFrame, ConfirmationPage },
     setup: () => ({ data: holdData }),
-    template: `<page-frame cart-mode="hold"><confirmation-page mode="hold" :data="data" /></page-frame>`,
+    template: `<page-frame cart-mode="hold" :show-cart="false"><confirmation-page mode="hold" :data="data" /></page-frame>`,
   }),
 }
