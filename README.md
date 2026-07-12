@@ -44,22 +44,35 @@ node scripts/gen-tokens-data.mjs
 ## Storybook structure
 The sidebar mirrors how product & design think — **primitives** plus **experience flows**:
 
-- **Primitives:** Foundations · Inputs · Data Display · Feedback · Layout · Navigation
-- **Experience flows:** Browse Hotels · Hotel Details · Checkout Experience · Confirmation · Manage Booking
+- **Primitives:** Foundations · **Components** (Actions · Forms · Feedback & Status ·
+  Layout & Structure · Media & Visuals · Typography & Content)
+- **Experience flows:** App Shell · Landing Page · Browse Hotels · Hotel Details ·
+  Checkout Experience · Confirmation · Manage Booking
 
-Flow surfaces that differ by booking type are split into **Book Reservation** and
-**Group Block** sub-folders (Hotel Details, Checkout Experience, Global Nav,
-Confirmation). Highlights:
+Read **Getting Started** first — **Introduction** (the IA + booking modes),
+**Architecture & Conventions** (the machine map + mode-name cheat-sheet), and
+**User Journey & Build Spec** (every stage of every flow, with edge cases, for
+building the localized prototype).
 
-- **Browse Hotels** — Booking Widget (tabs / dropdown / radio flow selectors),
-  Hotel Listing Card (Horizontal + Vertical × Book Reservation + Group Block, each
-  with availability edge cases and a room-availability carousel), Search & Filters,
-  Hotel Map.
-- **Hotel Details** — a wireframe Hotel Detail Page plus its sections; the Room
-  Cards and "Select Your Room" Rooms carousel, split Book Reservation / Group Block.
-- **Checkout Experience** — the stepped Checkout Page, per-step stories, Payment
-  Dialogs, and the **Policies** agreement (single-hotel card / multi-hotel accordion
-  with per-hotel agreement checkboxes).
+Every experience flow follows the same shape: a top-level **Book Reservation** and
+**Group Block** story (the composed page) plus a **Components** folder of the pieces
+it's built from. Three booking modes run throughout — **reserve** (single stay,
+charged) · **hold** (group/team block, *not* charged) · **reservations** (multiple
+stays, charged). Highlights:
+
+- **Browse Hotels** — Booking Widget, Hotel Listing Card (Horizontal primary,
+  Vertical legacy × Book Reservation + Group Block, each with three availability
+  edge cases and an expandable room-availability panel), Result States, Search &
+  Filters, Hotel Map (search-radius). No pagination on the composed pages.
+- **Hotel Details** — the Hotel Detail Page plus its sections; the Room Cards
+  (no image / no amenities; sold-out "Unavailable" state) and "Select Your Room"
+  Rooms **grid** (not a carousel), split Book Reservation / Group Block.
+- **Checkout Experience** — the stepped Checkout Page, per-step stories, the inline
+  **Payment** form (credit card only; the old Payment Dialogs live under **Old
+  Designs**), and the **Policies** agreement (single-hotel / group single-checkbox
+  / multi-hotel per-hotel checkboxes). Group Block collects no payment.
+- **Confirmation** — success banner + Summary + per-hotel Policies (Book
+  Reservation / Group Block).
 
 ## Imagery — using it in Claude prototypes
 

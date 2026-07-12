@@ -55,7 +55,7 @@ const preview = {
     options: {
       storySort: {
         order: [
-          'Getting Started', ['Introduction', 'Architecture & Conventions', 'Story Template'],
+          'Getting Started', ['Introduction', 'Architecture & Conventions', 'User Journey & Build Spec', 'Story Template'],
           'Foundations', [
             'Colors', 'Palette', 'Typography', 'Icons', 'Imagery',
             'Spacing', 'Border Radius', 'Elevation', 'Breakpoints', 'Motion',

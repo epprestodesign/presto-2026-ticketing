@@ -4,18 +4,41 @@ import { Meta } from '@storybook/addon-docs/blocks'
 
 # Presto Design System
 
-A **themed [Quasar](https://quasar.dev) component library** for a consumer
-**hotel booking & reservation** experience, documented and QA'd in Storybook.
+A **themed [Quasar](https://quasar.dev) component library** for a youth-sports
+**event travel — hotel booking & reservation** experience (EventPipe / Presto
+branding), documented and QA'd in Storybook.
 
-Every example, label, and edge case is written around the booking journey —
-searching destinations, comparing rooms and amenities, holding rooms for a group
-or making a single reservation, paying, confirming, and managing the booking
-afterward. The library spans the **mobile booking app, desktop web, and
-host/admin surfaces**.
+Every example, label, and edge case is written around one real journey: a team
+or family traveling to a tournament — searching hotels near the venue, comparing
+rooms, **reserving a single stay**, **holding a room block for a group/team**, or
+**booking several rooms at once**, then paying (when applicable), confirming, and
+managing the booking afterward. The reference event throughout is the
+**Virginia International Youth Soccer Cup 2026** (divisions **U9–U19**,
+Fredericksburg Sportsplex, July 18–19 2026).
 
-> **Building with an AI agent?** Read **Getting Started → Architecture &
-> Conventions** first — it's the machine-oriented map (task → location,
-> conventions, and the shared components to reuse instead of rebuild).
+> **Building the localized prototype or a full user journey?** Read
+> **Getting Started → User Journey & Build Spec** — it specifies every stage of
+> every flow (all three booking modes) and its edge cases. Read **Architecture &
+> Conventions** for the machine-oriented map (task → file, conventions, and the
+> shared components to reuse instead of rebuild).
+
+---
+
+## The three booking modes (learn these first)
+
+Three modes run through every flow and are named on nearly every component.
+**The concept is stable; the exact prop name/value differs by component** — see
+the cheat-sheet in **Architecture & Conventions** before wiring anything.
+
+| Mode | Plain meaning | Charged? | Seen as |
+| --- | --- | --- | --- |
+| **reserve** | One **single stay** — one hotel, one check-in/out, one guest party. | Yes — credit card at checkout. | `reserve` / `reservation` |
+| **hold** | **Hold a block of rooms** for a group or team — multiple hotels, rooms held **per night** via steppers, optional teams block. | No — the organizer holds; attendees pay later. | `hold` / `group` |
+| **reservations** | **Multiple room reservations** at once — several hotels/rooms booked together, per-hotel guest info, one checkout. | Yes — credit card at checkout. | `reservations` |
+
+The single biggest source of bugs is mode-name drift across components
+(`reserve` vs `reservation`, `hold` vs `group`). The Build Spec and Architecture
+doc both carry the canonical mapping.
 
 ---
 
@@ -24,139 +47,117 @@ host/admin surfaces**.
 The sidebar is organized the way product and design think, not alphabetically.
 It has **two layers**:
 
-**1. Experience flows** — the booking journey, in order:
+**1. Primitives** — the design-system building blocks, all under one
+**Components** parent: **Actions, Forms, Feedback & Status, Layout & Structure,
+Media & Visuals, Typography & Content** (plus **Foundations** for the raw tokens).
 
-`Browse Hotels` → `Hotel Details` → `Checkout Experience` → `Confirmation` → `Manage Booking`
+**2. Experience flows** — the booking journey, in order:
 
-**2. Primitives** — the design-system building blocks every flow is assembled
-from: **Foundations, Inputs, Data Display, Feedback, Layout, Navigation**.
+`Landing Page` → `Browse Hotels` → `Hotel Details` → `Checkout Experience` → `Confirmation` → `Manage Booking`
 
-Three recurring **booking modes** run through the flows and you'll see them named
-everywhere:
-
-- **`reserve`** — a single **hotel reservation** (one stay, check-in/out, one guest party).
-- **`hold`** — **holding rooms for a group or team** (multiple hotels, rooms held per night via quantity steppers, teams/block).
-- **`reservations`** — **multiple room reservations** at once (several hotels → rooms → booked nights, shown as date + rate rows; no quantity selector).
+Every experience flow follows the **same shape**: a top-level **Book Reservation**
+and **Group Block** story (the composed page for that mode) plus a **Components**
+folder holding the pieces that page is built from. **App Shell** holds the chrome
+(Global Nav & Cart, Page Frame) shared by all flows.
 
 ---
 
-## Categories at a glance
+## Sidebar map
 
 | Category | What it's for |
 | --- | --- |
-| **Foundations** | Design tokens made visible — palette, color, type, icons, imagery, elevation, spacing, radius, breakpoints, motion. |
-| **Inputs** | Form controls — buttons, fields, selects, pickers, toggles, steppers, **choice chips, range, checkbox tree, phone field**. |
-| **Data Display** | Read-only presentation — avatars, badges, chips, lists, **list item, accordion, rating**, tables, tooltips, typography. |
-| **Feedback** | Status & messaging — alerts, banners, dialogs, **modal** (`DsModal`), snackbars, **toasts**, progress, skeletons, backdrops. |
-| **Layout** | Structural primitives — box, **card**, container, grid, stack, image list, section header, **side panel** (right/left/center). |
-| **Navigation** | Wayfinding & chrome — global nav, tabs, menus, breadcrumbs, pagination, steppers. |
-| **Browse Hotels** | Discovery — search, filters (incl. an "All Filters" modal), listing cards, map (with search-radius), availability. |
-| **Hotel Details** | The chosen hotel — photo hero gallery, summary header, room selection (rooms carousel + room cards), amenities, policies, room booking dialog. |
-| **Checkout Experience** | The stepped checkout — review, contact/group, payment, review reservation. |
-| **Confirmation** | Post-booking success page + everything you need after booking. |
-| **Manage Booking** | The account page — profile, communications, payment, security, help. |
+| **Getting Started** | Introduction (this page), Architecture & Conventions, User Journey & Build Spec. |
+| **Foundations** | Design tokens made visible — colors, palette, type, icons, imagery, spacing, radius, elevation, breakpoints, motion. |
+| **Components → Actions** | Button, Dialog, **Modal** (`DsModal`), **Side Panel** (`DsSidePanel`), Backdrop. |
+| **Components → Forms** | Text/Area/Select/Autocomplete, Checkbox + **Checkbox Tree**, Radio, **Choice Chips**, Switch, Date/Time Picker, Slider, **Range**, Rating, **Quantity Stepper**, **Phone Field**, Transfer List. |
+| **Components → Feedback & Status** | Alert, Banner, Badge, Snackbar, **Toast**, Progress, Skeleton. |
+| **Components → Layout & Structure** | Box, **Card** (`DsCard`), Container, Grid, Stack, Divider, Section Header, List, **List Item**, **Accordion**, Tabs, Table. |
+| **Components → Media & Visuals** | Avatar, Icon, **Image List**, Display Ad, Hero Banner, Rating. |
+| **Components → Typography & Content** | Typography, Chip, **Amenity**, Tooltip. |
+| **App Shell** | **Global Nav & Cart** (Book Reservation / Group Block variants) and **Page Frame** (the nav + content + footer shell). |
+| **Landing Page** | The event landing page (Book Reservation / Group Block) + its Booking Widgets (Core / Teams). |
+| **Browse Hotels** | Discovery — booking widget, filters (+ "All Filters" modal), listing cards, map (search-radius), availability, result states. |
+| **Hotel Details** | The chosen hotel — photo gallery, summary header, detail tabs, room selection (rooms grid + room cards), amenities, policies. |
+| **Checkout Experience** | The stepped checkout — review order, contact/group info, payment, review reservation; Old Designs holds the retired payment dialogs. |
+| **Confirmation** | Post-booking success page (Book Reservation / Group Block). |
+| **Manage Booking** | The account page (pinned last) — profile, communications, payment, security, help. |
 
 ---
 
 ## Experience flows
 
-### Browse Hotels
-**Discover and choose where to stay.** Search a destination, filter results,
-compare listings on cards or a map, and start a booking.
+### Landing Page
+**The event entry point.** Global nav → hero (event name + dates) → **Booking
+Widget** → event description / who's attending / venue info → display ads →
+footer. `mode` picks the widget + cart behavior: **Group Block** shows the
+**Teams Booking Widget** (registered teams + rooms-needed); **Book Reservation**
+shows the **Core Booking Widget** (travelers + rooms). No cart badge here —
+nothing has been added yet.
 
-- **Booking Widget** — destination + dates + guests search entry.
-- **Hotel Listing Card** — the core result card (**horizontal**; the vertical
-  orientation is deprecated), with a photo carousel, rating, price, and a
-  **group-booking** mode that adds an **Availability** secondary button opening
-  the **Availability Dialog** (hotel summary + a `hold`-mode rooms carousel).
-- **Hotel Map** — map-only results with price-pill markers and clustering (with a
-  zoom cutoff so pins de-cluster as you zoom in), native **+/- zoom** controls, and
-  a **search-radius** circle centered on the event location that's **two-way bound**
-  to a slider — zoom or ⌘-scroll the map and the radius follows; drag the slider and
-  the map reframes (Google Maps, with a graceful no-key fallback).
-- **Search & Filters** — one `Filter` component covering every filter type
-  (Amenities list/grid with **inline search**, **Room Type** chips always ordered
-  least→max bed occupancy (twin → double → queen → king → suite), Guest Rating,
-  Star Rating, Hotel class, **Brands tree with inline search**, Budget range with a
-  **per-night ⇄ total** toggle, **editable Min/Max** + price histogram, Property
-  Search + autocomplete). Long amenity lists collapse behind a **"View more /
-  Fewer"** toggle. An **All Filters** button opens a modal consolidating every
-  filter into accordion sections with a live "Show N results" footer.
-- **Forms, Empty States, Loading States** — supporting patterns for the flow.
+### Browse Hotels
+**Discover and choose where to stay.** Search entry, filter, compare on cards or
+a map, and start a booking.
+
+- **Hotel Listing Card** — the core **horizontal** result card (vertical is a
+  legacy variant kept for reference). **Book Reservations** cards CTA **"Choose
+  Your Room"**; **Group Block** cards CTA **"Select Rooms"**. Each has three
+  availability edge cases and an expandable **Availability** panel
+  (`RoomAvailability` — per-room, per-night rooms-left).
+- **Result States** — Full / Partial / No Results / Error / Loading, with firm
+  section separators between availability blocks (matches → doesn't-match-filters
+  → no-availability). Exact copy is in the Build Spec.
+- **Hotel Map** — price-pill markers, clustering, native +/- zoom, and a
+  **search-radius** circle two-way bound to a slider (Google Maps, graceful
+  no-key fallback).
+- **Search & Filters** — one `Filter` component for every filter type (amenities
+  with inline search, room-type chips ordered least→max occupancy, ratings,
+  brands tree, budget with per-night ⇄ total toggle + histogram). An **All
+  Filters** modal consolidates them with a live "Show N results" count.
+- Pagination exists as a primitive (**Components → Footer → Pagination**) but the
+  composed browse pages **no longer paginate** — results render as one list.
 
 ### Hotel Details
-**The chosen hotel, end to end.** A composed detail screen and the pieces it's
-built from — each is also its own story.
+**The chosen hotel, end to end.** `HotelDetailPage` composes: optional booking
+widget band → back link → **Photo Gallery** (mosaic + "see all" modal) → sticky
+**Detail Tabs** (Overview / Rooms / Property / Amenities / Policies) → **Summary
+Header** → About → **Rooms** → Amenities → Policies. `roomsFlow` (`reserve` /
+`group`) selects the room card + widget mode.
 
-- **Hotel Detail Page** — the full composition: hero gallery → sticky detail tabs
-  → summary header → room selection → about / amenities / policies.
-- **Photo Gallery** — the hero photo **mosaic** (lead image + cluster) with a
-  "See all photos" modal (reuses `DsImageList`).
-- **Detail Tabs** — Overview / Rooms / Property / Amenities / Policies section nav.
-- **Hotel Summary Header** — name + stars, address, guest score, popular
-  amenities, and a mini-map.
-- **Rooms** + **Room Card** — the "Select Your Room" **carousel** of room cards
-  (`reserve` & `hold` modes; sold-out, limited, discounted, refundable states).
-- **Room Booking Dialog** — the per-room booking modal (moved here from Browse).
-- **Amenities** + **Policies & Property** — categorized amenities and the
-  policies / "about the property" blocks.
+- **Rooms** — the "Select Your Room" section is a **responsive grid** (not a
+  carousel): up to 3 cards per row, wrapping. Sold-out rooms stay visible and
+  disabled, never removed.
+- **Room Card** — no room-type image, no amenities list. Header (room type / bed
+  config / occupancy) + per-night rooms-left + price + CTA. Sold-out shows a red
+  **"Sold Out"** night, a disabled **"Unavailable"** button, and a note.
 
 ### Checkout Experience
-**Turn a selection into a booking.** An Airbnb-style stepped flow, with each step
-its own component and a sticky order-summary rail.
+**Turn a selection into a booking.** An Airbnb-style "Confirm and pay" — a
+stepped accordion on the left, a sticky order-summary rail on the right, and a
+minimal centered **"Secure Checkout"** nav (no Manage Booking / cart). A **"Time
+left to book"** timer sits under the price details.
 
-- **Checkout Page** — orchestrates the steps; **Group Block**, **Reservation**, and
-  **Multiple Room Reservations** (`reservations` mode) variants.
-- **Steps** — *Review Order*, *Contact Info* (for `hold`, the group/teams block +
-  required Group Block Name; for `reserve`, **per-room guest information** that's
-  aware of the booking widget's room/traveler selection — team name + event
-  custom fields, and additional guests pre-seeded from occupancy; for
-  `reservations`, the same per-room forms **grouped by hotel/reservation**),
-  *Payment*, *Review Reservation* (protection + cancellation policy).
-- **Payment Dialogs** — Instacart-style payment-method and add-card surfaces.
+- **Book Reservation** (`reserve`) & **Multiple Room Reservations**
+  (`reservations`): **Contact info → Payment (credit card only) → Review
+  reservation** (trip protection + cancellation + policies). Rail shows the order
+  + Edit reservation / Start over.
+- **Group Block** (`hold`): **Review order → Contact & group info → Review
+  reservation**. **No payment, no protection, no totals/taxes** — nightly cost
+  only. Requires a **Group Block Name**, a **mandatory Organization**, supports
+  **additional emails**, and a **single** policies checkbox for all hotels.
+- **Old Designs** holds the retired Instacart-style payment dialogs (superseded
+  by the inline `PaymentForm`).
 
 ### Confirmation
-**The post-booking page.** A `ConfirmationPage` with **Reservation** and **Group
-Block** variants: success hero, itinerary, and post-booking modules — experience
-**rating**, **who's going**, **cancellation** + change/cancel, **add to
-calendar**, **location** (live map), **area tips**, **FAQ**, and **help/contact**.
+**The post-booking success page.** Redesigned to match production: a success
+**banner** → **Summary** (booking/group ID, release date, action buttons —
+Book in Block (hold) / Copy Booking Link / Print — meta grid, and per-hotel rooms
+held/booked per night) → per-hotel **Policies**. The older post-booking modules
+(rating, who's-going, calendar, live map, area tips, FAQ, help) were removed.
 
 ### Manage Booking
-**The account home** (pinned last). A two-column page: avatar + name + Edit
-profile on the left with a selectable menu; section content on the right —
-**Profile** (Basic info / Contact / More details / Additional travelers with a
-full-height edit modal), **Communications** toggles, **Payment methods** (add via
-the checkout dialog; edit/delete), **Security**, and **Help & feedback**.
-
----
-
-## Primitives (building blocks)
-
-The flows above are assembled from these. Each story has a **Docs** tab with
-usage, props, and guidance.
-
-- **Foundations** — the tokens themselves, made visible. Start here to understand
-  the palette, type scale, spacing, radius, and motion the whole system uses.
-- **Inputs** — every form control, including the booking-specific **Quantity
-  Stepper**, plus primitives extracted from the booking flows: **Choice Chips**
-  (chip toggle group), **Range** (dual-handle slider), **Checkbox Tree** (parent
-  selects children), and **Phone Field** (country-code input).
-- **Data Display** — avatars, badges, chips, dividers, icons, lists, tables,
-  tooltips, typography, plus **List Item** (the standard row), **Accordion**
-  (expand/collapse), **Rating** (read-only review score), and **Amenity** (the
-  atomic icon + label unit, sourced from the shared amenities catalog —
-  `src/lib/amenities.js`, the single source of truth used by the header,
-  amenities section, cards, and filters).
-- **Feedback** — alerts, banners (Atlassian-Flag style), dialogs, **Modal**
-  (`DsModal` — the centered dialog shell behind the availability / all-filters /
-  map dialogs), snackbars, **Toast** (DS-styled Quasar Notify) — all sharing one
-  hue convention — progress, skeletons, backdrops.
-- **Layout** — `Ds*` structural wrappers: Box, **Card** (the standard surface),
-  Container, Grid, Stack, Image List, Section Header, and **Side Panel** (the
-  slide-over chrome — right / left / center — behind the cart fly-out and the
-  profile edit sheet).
-- **Navigation** — Global Nav (brand + Manage Booking + cart, with a fly-out),
-  tabs, menus, breadcrumbs, pagination, steppers.
+**The account home** (pinned last). Two-column page: avatar + name + Edit profile
+on the left; section content on the right — **Profile**, **Communications**,
+**Payment methods**, **Security**, **Help & feedback**.
 
 ---
 
@@ -165,11 +166,12 @@ usage, props, and guidance.
 | What you want to change | File |
 | --- | --- |
 | Brand colors, base font, global radius | `src/css/quasar.variables.scss` |
-| Design tokens (palette, color roles, spacing, radius, type) | `src/css/ds-palette.scss`, `src/css/ds-color-tokens.scss`, `src/css/tokens.scss` |
+| Design tokens (palette, roles, spacing, radius, type) | `src/css/ds-palette.scss`, `src/css/ds-color-tokens.scss`, `src/css/tokens.scss` |
 | Per-component overrides & global CSS (incl. `.ds-toast`) | `src/css/app.scss` |
 | Sidebar order / category IA | `.storybook/preview.js` (`storySort`) |
 | Amenities (catalog, filter list, popular set) | `src/lib/amenities.js` (single source of truth) |
-| Components | `src/components/` (top-level primitives + `browse/`, `details/`, `checkout/`, `confirmation/`, `managebooking/`) |
+| Hotel imagery | `src/lib/imagery.js` (+ hosted manifest, see `README.md`) |
+| Components | `src/components/` (primitives + `browse/`, `details/`, `checkout/`, `confirmation/`, `managebooking/`) |
 | Stories | `src/stories/<category>/*.stories.js` |
 
 ## Workflow
@@ -181,6 +183,5 @@ usage, props, and guidance.
 
 ## Deploy
 
-The build output is a plain static site (GitHub Pages, Netlify, any static host).
-Pushing to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`.
-See `README.md` for details.
+The build output is a plain static site. Pushing to `main` deploys to GitHub
+Pages via `.github/workflows/deploy.yml`. See `README.md` for details.
