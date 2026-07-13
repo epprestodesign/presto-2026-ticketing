@@ -14,6 +14,25 @@ Storybook is published to GitHub Pages on every push to `main`:
 
 **https://epprestodesign.github.io/presto-2026/**
 
+## Interactive prototype
+A clickable, end-to-end **booking journey** built entirely from the real library
+components (zero forks) — all three modes: **Book Reservation**, **Group Block**,
+and **Multiple Reservations**. Search hotels on a live Google map, filter, pick
+rooms, checkout, and confirm, at 1440px.
+
+**▶ Launch: https://epprestodesign.github.io/presto-2026/prototype/**
+
+It's deployed alongside Storybook (also linked from the Storybook **Getting
+Started → Introduction** page). Source lives in [`prototype/`](prototype/) — a
+small Vite app that imports the library from `../src` via the `@lib` alias and has
+no dependencies of its own (they resolve from this repo's `node_modules`).
+
+```bash
+cd prototype
+cp .env.example .env          # add your Google Maps key (optional; map degrades gracefully)
+node ../node_modules/vite/bin/vite.js --port 6100 --host   # → http://localhost:6100
+```
+
 ## Local development
 ```bash
 pnpm install
@@ -140,5 +159,6 @@ required by the Unsplash API Guidelines.
 
 ## Deployment
 Handled by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): builds
-Storybook and publishes `storybook-static/` to GitHub Pages on every push to
-`main`. Pages is already enabled (**Settings → Pages → Source: GitHub Actions**).
+Storybook, builds the [`prototype/`](prototype/) app (nested at `/prototype/`), and
+publishes `storybook-static/` to GitHub Pages on every push to `main`. Pages is
+already enabled (**Settings → Pages → Source: GitHub Actions**).
