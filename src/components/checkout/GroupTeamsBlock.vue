@@ -43,7 +43,16 @@ const genders = ['Boys', 'Girls', 'Coed']
 const unlisted = reactive({ name: '', ageDivision: '', gender: '' })
 const unlistedValid = computed(() => unlisted.name && unlisted.ageDivision && unlisted.gender)
 
-const contact = reactive({ firstName: '', lastName: '', mobile: '', email: '', organization: '', special: '', ...(props.modelValue.contact || {}) })
+const contact = reactive({ firstName: '', lastName: '', mobile: '', email: '', organization: '', special: '', orgCountry: 'United States', orgAddress: '', orgCity: '', orgPostal: '', orgState: '', ...(props.modelValue.contact || {}) })
+
+// DES-77: organization address. State/Province options follow the country
+// (default United States); country itself has a default so is never "Required".
+const orgCountries = ['United States', 'Canada', 'Other']
+const US_STATES = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming']
+const CA_PROVINCES = ['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Nova Scotia', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Northwest Territories', 'Nunavut', 'Yukon']
+const orgStateOptions = computed(() => (contact.orgCountry === 'United States' ? US_STATES : contact.orgCountry === 'Canada' ? CA_PROVINCES : []))
+const orgStateLabel = computed(() => (contact.orgCountry === 'Canada' ? 'Province' : 'State/Province'))
+watch(() => contact.orgCountry, () => { contact.orgState = '' })
 
 const filtered = computed(() => available.value.filter((t) => t.name.toLowerCase().includes(query.value.toLowerCase()) && !added.value.includes(t.name)))
 const anyChecked = computed(() => available.value.some((t) => t.checked))
@@ -150,6 +159,32 @@ watch([added, expected, contact, notHolding, groupBlockName, additionalEmails], 
         <span>Organization name <i class="gtb__req">*</i></span>
         <input v-model="contact.organization" placeholder="Organization" :class="{ 'is-error': cErr('organization') }" @blur="touched.organization = true" />
         <small v-if="cErr('organization')" class="gtb__errmsg">{{ cErr('organization') }}</small>
+      </label>
+      <!-- DES-77: organization address (all required; State/Province follows Country) -->
+      <label class="gtb__field gtb__field--full">
+        <span>Organization Country <i class="gtb__req">*</i></span>
+        <div class="gtb__selectwrap"><select v-model="contact.orgCountry"><option v-for="c in orgCountries" :key="c" :value="c">{{ c }}</option></select><q-icon name="expand_more" size="18px" /></div>
+      </label>
+      <label class="gtb__field gtb__field--full">
+        <span>Organization Address <i class="gtb__req">*</i></span>
+        <input v-model="contact.orgAddress" placeholder="Street address" :class="{ 'is-error': cErr('orgAddress') }" @blur="touched.orgAddress = true" />
+        <small v-if="cErr('orgAddress')" class="gtb__errmsg">{{ cErr('orgAddress') }}</small>
+      </label>
+      <label class="gtb__field">
+        <span>Organization City <i class="gtb__req">*</i></span>
+        <input v-model="contact.orgCity" placeholder="City" :class="{ 'is-error': cErr('orgCity') }" @blur="touched.orgCity = true" />
+        <small v-if="cErr('orgCity')" class="gtb__errmsg">{{ cErr('orgCity') }}</small>
+      </label>
+      <label class="gtb__field">
+        <span>Organization Postal Code <i class="gtb__req">*</i></span>
+        <input v-model="contact.orgPostal" placeholder="Postal code" :class="{ 'is-error': cErr('orgPostal') }" @blur="touched.orgPostal = true" />
+        <small v-if="cErr('orgPostal')" class="gtb__errmsg">{{ cErr('orgPostal') }}</small>
+      </label>
+      <!-- State/Province: US states or Canada provinces; removed entirely for Other. -->
+      <label v-if="contact.orgCountry !== 'Other'" class="gtb__field gtb__field--full">
+        <span>Organization {{ orgStateLabel }} <i class="gtb__req">*</i></span>
+        <div class="gtb__selectwrap"><select v-model="contact.orgState" @blur="touched.orgState = true"><option value="" disabled>Select {{ orgStateLabel.toLowerCase() }}</option><option v-for="s in orgStateOptions" :key="s" :value="s">{{ s }}</option></select><q-icon name="expand_more" size="18px" /></div>
+        <small v-if="cErr('orgState')" class="gtb__errmsg">{{ cErr('orgState') }}</small>
       </label>
       <label v-if="showSpecial" class="gtb__field gtb__field--full"><span>Special requests</span><input v-model="contact.special" placeholder="Additional notes (optional)" /></label>
     </div>

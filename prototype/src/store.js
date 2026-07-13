@@ -24,6 +24,32 @@ export const journey = reactive({
   cartOpen: false,
 })
 
+// ── Group-block hold timer (DES-84) ──
+// Group rooms are held temporarily the moment the FIRST room is added to the
+// cart — not when the guest reaches checkout. This single shared countdown is
+// started on that first add and lives here (not in any screen) so it keeps
+// running across browse → details → checkout. The floating HoldTimerPill
+// (rendered in the app shell) and the checkout rail both read `remaining`.
+const HOLD_DURATION = 15 * 60 // seconds a group block is held
+export const holdTimer = reactive({ active: false, remaining: HOLD_DURATION })
+let holdInterval = null
+
+export function startHoldTimer() {
+  if (holdTimer.active) return // already counting — don't restart on later adds
+  holdTimer.active = true
+  holdTimer.remaining = HOLD_DURATION
+  holdInterval = setInterval(() => {
+    if (holdTimer.remaining > 0) holdTimer.remaining--
+    else stopHoldTimer()
+  }, 1000)
+}
+
+export function stopHoldTimer() {
+  holdTimer.active = false
+  holdTimer.remaining = HOLD_DURATION
+  if (holdInterval) { clearInterval(holdInterval); holdInterval = null }
+}
+
 // ── Derived modes (map the canonical flow → each component's prop vocabulary) ──
 
 export const cartCount = computed(() => journey.cart.length)
@@ -64,6 +90,7 @@ export function startFlow(widgetMode) {
   journey.flow = widgetMode === 'group' ? 'group' : 'reserve'
   journey.cart = []
   journey.active = null
+  stopHoldTimer() // a fresh search clears any prior hold
   nav('browse')
 }
 
@@ -104,6 +131,9 @@ export function addRoomToHold(room) {
   } else {
     entry.rooms.push({ ...room, nights: room.nights.map((n) => ({ ...n })) })
   }
+  // DES-84: the hold clock starts the moment the first room is held (no-op on
+  // subsequent adds — the block is already being held).
+  startHoldTimer()
 }
 
 // Total rooms held/booked across the cart (for the app-bar badge).
@@ -128,6 +158,7 @@ export function resetJourney() {
   journey.flow = 'reserve'
   journey.active = null
   journey.cart = []
+  stopHoldTimer()
   nav('landing')
 }
 

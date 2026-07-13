@@ -5,9 +5,18 @@
 // navigation is driven by matching the click target here. Capture phase + document
 // scope also catches TELEPORTED nodes (the cart fly-out, menus) that render
 // outside the active screen's DOM subtree.
-import { onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
-import { journey, nav, startFlow, openHotel, addActiveToCart, addRoomToHold, cartRoomCount, backToBrowse, goToCheckout, resetJourney } from './store.js'
+import { onMounted, onBeforeUnmount, watch, nextTick, computed } from 'vue'
+import { journey, holdTimer, nav, startFlow, openHotel, addActiveToCart, addRoomToHold, cartRoomCount, backToBrowse, goToCheckout, resetJourney } from './store.js'
 import { getHotelByName, getHotel } from './hotels.js'
+import HoldTimerPill from '@lib/components/HoldTimerPill.vue'
+// EventPipe wordmark (same asset the footer uses) — shown in the app bar in place
+// of the "Presto" text, recolored via CSS mask. Exposed as a CSS var on the root.
+import epLogo from '@lib/assets/eventpipe logos/eventpipe-logo.svg'
+
+// DES-84: the group-block hold timer floats across the whole workflow. On the
+// checkout screen the rail already shows the same countdown, so hide the pill
+// there to avoid two clocks; everywhere else (browse/details) it floats.
+const showHoldPill = computed(() => holdTimer.active && journey.screen !== 'checkout')
 
 // Open the nav cart fly-out by triggering the library's cart button (the flyout
 // is controlled inside GlobalNav; this is the no-library-change way to open it).
@@ -127,10 +136,13 @@ function onClickCapture(e) {
   }
 
   if (screen === 'checkout') {
-    // Rail actions: "Edit reservation" → Browse (to change/add) · "Start over" → reset.
+    // Rail actions: "Start over" → reset · "Edit reservation" → the hotel's
+    // Details page (DES-87; falls back to Browse if no active hotel, e.g. group).
     const rail = t.closest('.ck__railbtn')
     if (rail) {
-      if (/start over/i.test(rail.textContent || '')) resetJourney()
+      const label = rail.textContent || ''
+      if (/start over/i.test(label)) resetJourney()
+      else if (/edit reservation/i.test(label) && journey.active) openHotel(journey.active)
       else backToBrowse()
       return
     }
@@ -153,10 +165,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
 </script>
 
 <template>
-  <div class="proto">
+  <div class="proto" :style="{ '--ep-logo': `url(${epLogo})` }">
     <div class="proto__stage">
       <component :is="screens[journey.screen]" />
     </div>
+    <!-- DES-84: floating hold countdown — starts on first room added, persists
+         across screens (hidden on checkout, where the rail carries the timer). -->
+    <hold-timer-pill v-if="showHoldPill" :seconds="holdTimer.remaining" />
   </div>
 </template>
 
@@ -192,6 +207,47 @@ body { background: var(--ds-palette-slate-100, #f1f2f4); }
   background: transparent !important;
   border-bottom: 0 !important;
 }
+
+/* App-bar brand: replace the "Presto" wordmark with the EventPipe logo (the same
+   asset the footer uses), at the footer's 30px height, recolored to #01103F via a
+   CSS mask. Prototype-only — no library change. The minimal checkout nav keeps its
+   text label ("Secure Checkout"). Logo aspect 128×33 → width 30 × 128/33 ≈ 116px. */
+.gnav:not(.gnav--minimal) .gnav__brand {
+  display: inline-block !important;
+  width: 116px;
+  height: 30px;
+  font-size: 0 !important;
+  color: transparent !important;
+  background-color: #01103F !important;
+  -webkit-mask: var(--ep-logo) no-repeat left center / contain;
+  mask: var(--ep-logo) no-repeat left center / contain;
+}
+
+/* DES-89: "Booking type" → "Booking Type" (capitalize the field label). */
+.bw__field--mode .q-field__label { text-transform: capitalize; }
+
+/* DES-83: surface the "time left to book" timer at the TOP of the checkout rail
+   so it's visible on arrival. The rail is display:block with the tall order
+   summary first, which pushed the timer below the fold — make it a flex column
+   and pull the timer above the summary card. */
+.ck__railwrap { display: flex !important; flex-direction: column; }
+.ck__railwrap .ck__timer { order: -1; margin-bottom: 16px; }
+
+/* DES-78: no special-request field on the group block checkout. `.gtb__addrow`
+   uniquely wraps the "Add a special request" button (group-only); the field only
+   appears after clicking it, so hiding the row removes it entirely. */
+.gtb__addrow { display: none !important; }
+
+/* DES-79: on the GROUP checkout only, drop the "Cancellation policy" + "Special
+   check-in instructions" Review section (covered by the Policies section below).
+   In the group flow it's the first section (Protect-your-stay is hidden), so it's
+   `.srr__sec--first`; scoped to group via the prototype `.proto-ck--group` wrapper. */
+.proto-ck--group .srr__sec--first { display: none !important; }
+
+/* DES-74: remove the date-flexibility chips (Exact dates / ±1 / ±2 / ±3 / ±7 days)
+   and their separator from the Check-in–Check-out date picker. */
+.bw-menu .row.q-gutter-sm.justify-start { display: none !important; }
+.bw-menu .q-separator.q-mt-md { display: none !important; }
 
 /* Browse: make hotel names read as links to their Details page. */
 .hc__name { cursor: pointer; }

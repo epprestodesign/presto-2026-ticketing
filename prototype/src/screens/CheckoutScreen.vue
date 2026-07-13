@@ -5,17 +5,30 @@
 // payment). The final CTA ("Book Now"/"Hold Group Block Now") is intercepted
 // globally (App.vue) → Confirmation.
 import { computed } from 'vue'
-import { journey, cartMode, checkoutMode } from '../store.js'
+import { journey, holdTimer, cartMode, checkoutMode } from '../store.js'
 import { cartFor, summaryFor } from '../fixtures.js'
 import PageFrame from '@lib/components/PageFrame.vue'
 import CheckoutPage from '@lib/components/checkout/CheckoutPage.vue'
 
-const cart = computed(() => cartFor(journey.cart, checkoutMode.value))
+// DES-84: for a group block, the rail's "Time left to book" continues the same
+// hold that started when the first room was added — seed it from the shared
+// timer so it doesn't reset to a fresh countdown on arrival.
+const cart = computed(() => {
+  const c = cartFor(journey.cart, checkoutMode.value)
+  if (checkoutMode.value === 'group' && holdTimer.active) c.heldSeconds = holdTimer.remaining
+  return c
+})
 const summary = computed(() => summaryFor(journey.cart, checkoutMode.value))
 </script>
 
 <template>
-  <page-frame brand="Secure Checkout" minimal-nav :cart-mode="cartMode">
-    <checkout-page :mode="checkoutMode" :cart="cart" :summary="summary" :show-teams="false" />
+  <!-- DES-81/DES-82: full site header (EventPipe logo + Contact Us + Manage
+       Booking), same as the rest of the booking site — not the minimal nav. -->
+  <page-frame brand="Presto" :cart-mode="cartMode">
+    <!-- proto-ck--group scopes group-only checkout tweaks (DES-79) without
+         touching the individual flow. -->
+    <div :class="{ 'proto-ck--group': checkoutMode === 'group' }">
+      <checkout-page :mode="checkoutMode" :cart="cart" :summary="summary" :show-teams="false" />
+    </div>
   </page-frame>
 </template>

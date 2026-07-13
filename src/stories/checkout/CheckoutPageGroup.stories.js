@@ -34,7 +34,9 @@ const build = (showTeams) => () => ({
       heldSeconds: 372,
       hotels: [
         { name: 'Embassy Suites Chicago Downtown', imageCategories: ['suites', 'rooms'], seed: 0, rooms: [
-          { type: 'Two-Room Suite King', summary: '1 King Bed · Sleeps 4', price: 269, nights: [{ date: 'Tue, Jun 23', qty: 4, roomsLeft: 6 }, { date: 'Wed, Jun 24', qty: 1, roomsLeft: 5 }] },
+          // DES-90: nights held at differing nightly rates (weekend uplift) — the
+          // rail breaks the cost out per night instead of a single "/nt" rate.
+          { type: 'Two-Room Suite King', summary: '1 King Bed · Sleeps 4', nights: [{ date: 'Tue, Jun 23', qty: 4, roomsLeft: 6, price: 269 }, { date: 'Wed, Jun 24', qty: 1, roomsLeft: 5, price: 299 }] },
           { type: 'Two-Room Suite Double', summary: '2 Queen Beds · Sleeps 4', price: 289, nights: [{ date: 'Tue, Jun 23', qty: 1, roomsLeft: 5 }, { date: 'Wed, Jun 24', qty: 1, roomsLeft: 4 }] },
         ] },
         { name: 'The Concord Hotel', imageCategories: ['lobby', 'rooms'], seed: 2, rooms: [

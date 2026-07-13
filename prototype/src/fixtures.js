@@ -75,7 +75,8 @@ function roomsForHotel(hotel, flow) {
     const base = hotel.startingPrice ?? 199
     return GROUP_ROOMS.map((r, i) => ({
       ...r,
-      nights: r.nights.map((n) => ({ ...n, price: base + i * 30 })),
+      // DES-90: per-night rates can differ across the stay (e.g. weekend uplift).
+      nights: r.nights.map((n, ni) => ({ ...n, price: base + i * 30 + ni * 10 })),
     }))
   }
   const base = hotel.fromNightly ?? 179
@@ -137,7 +138,27 @@ export function cartFor(hotels, mode) {
       bedConfig: '1 King Bed',
       sleeps: 2,
       amenities: [{ icon: 'microwave', label: 'Microwave' }],
-      priceDetails: { nights: 3, rooms: 1, rate: 179, subtotal: 537, taxes: 64.44, propertyFee: 90, total: 691.44 },
+      // DES-85: itemized breakdown — `lines` enables CartReview's detailed layout.
+      priceDetails: {
+        nights: 3, rooms: 1, rate: 179, subtotal: 537, taxes: 64.44, propertyFee: 90, total: 691.44,
+        lines: [
+          { label: 'Check In', value: 'Wed, 6/16/2027', text: true },
+          { label: 'Check Out', value: 'Sat, 6/19/2027', text: true },
+          { label: 'Wed, 6/16/2027', value: 110 },
+          { label: 'Thu, 6/17/2027', value: 115 },
+          { label: 'Fri, 6/18/2027', value: 120 },
+          { label: 'Booking Fee', value: 10 },
+          { label: 'Taxes', value: 15 },
+          { label: 'Secondary Fee', value: 2 },
+          { label: 'Guest Fees', value: 15 },
+          { label: 'Resort Fees', value: 45 },
+        ],
+        subtotals: [
+          { label: 'Room Cost', value: 432 },
+          { label: 'Due Today', value: 162 },
+        ],
+        balanceDue: 270,
+      },
       roomsLeft: 3,
     }
   }
@@ -188,7 +209,7 @@ export function cartFor(hotels, mode) {
       rooms: (h.rooms && h.rooms.length)
         ? h.rooms.map((r) => ({
             type: r.type, summary: r.summary || '', price: r.price,
-            nights: r.nights.map((n) => ({ date: n.date, qty: n.qty, roomsLeft: n.roomsLeft ?? 6 })),
+            nights: r.nights.map((n) => ({ date: n.date, qty: n.qty, roomsLeft: n.roomsLeft ?? 6, price: n.price ?? r.price })),
           }))
         : fallback,
     })),

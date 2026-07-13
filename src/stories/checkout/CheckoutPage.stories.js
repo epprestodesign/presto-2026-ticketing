@@ -39,7 +39,27 @@ export const Page = {
         checkIn: { date: '06/23/2026', time: '4:00pm' }, checkOut: { date: '06/24/2026', time: '11:00am' }, nights: 1,
         highlights: [{ icon: 'kitchen', label: 'Kitchen' }, { icon: 'ac_unit', label: 'Air conditioning' }, { icon: 'microwave', label: 'Microwave' }],
         roomType: 'Aparthotel', bedConfig: '1 King Bed and 1 Queen Sofa Bed', sleeps: 2, amenities: [{ icon: 'wifi', label: 'Free WiFi' }],
-        priceDetails: { nights: 1, rooms: 1, rate: 164.78, subtotal: 164.78, taxes: 47.53, propertyFee: 110.0, total: 322.31 },
+        // DES-85: itemized breakdown — `lines` enables CartReview's detailed layout.
+        priceDetails: {
+          nights: 1, rooms: 1, rate: 164.78, subtotal: 164.78, taxes: 47.53, propertyFee: 110.0, total: 322.31,
+          lines: [
+            { label: 'Check In', value: 'Wed, 03/31/2027', text: true },
+            { label: 'Check Out', value: 'Sat, 04/03/2027', text: true },
+            { label: 'Wed, 03/31/2027', value: 110 },
+            { label: 'Thu, 04/01/2027', value: 115 },
+            { label: 'Fri, 04/02/2027', value: 120 },
+            { label: 'Booking Fee', value: 10 },
+            { label: 'Taxes', value: 15 },
+            { label: 'Secondary Fee', value: 2 },
+            { label: 'Guest Fees', value: 15 },
+            { label: 'Resort Fees', value: 45 },
+          ],
+          subtotals: [
+            { label: 'Room Cost', value: 432 },
+            { label: 'Due Today', value: 162 },
+          ],
+          balanceDue: 270,
+        },
         roomsLeft: 1,
       }
       const summary = computed(() => ({

@@ -26,6 +26,19 @@ const isGroup = computed(() => journey.flow === 'group')
 
 const results = computed(() => sortHotels(filterHotels(HOTELS, filters.value, roomsFlow.value), sort.value, roomsFlow.value))
 const filtersApplied = computed(() => countFilters(filters.value))
+
+// DES-75/76: hotels are grouped into availability tiers — (1) match, (2) have
+// availability but don't match filters, (3) sold out — each sorted by the applied
+// sort, with a firm line-break message between tiers. `results` is already
+// filtered + sorted, so filtering each tier preserves the sort order.
+const tier1 = computed(() => results.value.filter((h) => h.availability === 'available'))
+const tier2 = computed(() => results.value.filter((h) => h.availability === 'unmatched'))
+const tier3 = computed(() => results.value.filter((h) => h.availability === 'unavailable'))
+// First break message differs by flow; the second (sold out) is shared.
+const msgUnmatched = computed(() => (isGroup.value
+  ? 'The hotels below have availability but may not match your selected filters or have enough rooms for all nights selected.'
+  : 'The below hotels have availability for your selected dates but do not match your selected filters'))
+const MSG_UNAVAILABLE = 'The below hotels do not have availability for your selected dates'
 const navCart = computed(() => (journey.cart.length ? cartFor(journey.cart, checkoutMode.value) : {}))
 
 // A hotel record → the props its card expects (reserve vs group differ).
@@ -64,13 +77,25 @@ const clearFilters = () => railRef.value?.clearAll()
         <browse-filters ref="railRef" class="brail" :hotels="results" @update:filters="filters = $event" />
         <div class="bresults">
           <results-toolbar v-model="sort" :count="results.length" :filters-applied="filtersApplied" @clear-filters="clearFilters" />
-          <div v-if="results.length" class="bcards">
-            <component
-              :is="isGroup ? HotelCardGroup : HotelCardReserve"
-              v-for="h in results" :key="h.id"
-              v-bind="cardProps(h)"
-              @choose="open(h)" @select="open(h)"
-            />
+          <div v-if="results.length" class="bgroups">
+            <!-- Tier 1 — match the search requirements -->
+            <div v-if="tier1.length" class="bcards">
+              <component :is="isGroup ? HotelCardGroup : HotelCardReserve" v-for="h in tier1" :key="h.id" v-bind="cardProps(h)" @choose="open(h)" @select="open(h)" />
+            </div>
+            <!-- Break → Tier 2 — have availability but don't match filters -->
+            <template v-if="tier2.length">
+              <p class="bbreak">{{ msgUnmatched }}</p>
+              <div class="bcards">
+                <component :is="isGroup ? HotelCardGroup : HotelCardReserve" v-for="h in tier2" :key="h.id" v-bind="cardProps(h)" @choose="open(h)" @select="open(h)" />
+              </div>
+            </template>
+            <!-- Break → Tier 3 — sold out / no availability -->
+            <template v-if="tier3.length">
+              <p class="bbreak">{{ MSG_UNAVAILABLE }}</p>
+              <div class="bcards">
+                <component :is="isGroup ? HotelCardGroup : HotelCardReserve" v-for="h in tier3" :key="h.id" v-bind="cardProps(h)" @choose="open(h)" @select="open(h)" />
+              </div>
+            </template>
           </div>
           <div v-else class="bempty">
             <h3>No properties match your search</h3>
@@ -104,7 +129,10 @@ const clearFilters = () => railRef.value?.clearAll()
 .bcontainer { max-width: var(--col); margin-inline: auto; padding: 28px 24px 48px; }
 .bgrid { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 28px; align-items: start; }
 .bresults { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.bgroups { display: flex; flex-direction: column; gap: 20px; }
 .bcards { display: flex; flex-direction: column; gap: 20px; }
+/* DES-75/76: firm section separator + message between availability tiers. */
+.bbreak { margin: 4px 0; padding-top: 22px; border-top: 1px solid var(--ds-color-border); color: var(--ds-color-text-subtle); font-size: 0.9375rem; font-weight: 600; line-height: 1.4; }
 .bempty { padding: 48px 24px; text-align: center; color: var(--ds-color-text-subtle); }
 .bempty h3 { color: var(--ds-color-text-brand); margin: 0 0 8px; font-size: 1.25rem; }
 

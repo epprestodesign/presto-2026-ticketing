@@ -75,7 +75,17 @@ const clear = () => { hotels.value = []; openHotels.value = [] }
 // Per-night quantity: fixed at 1 for reservations, else the chosen hold qty.
 // Per-night cost honours an optional per-night `price`, falling back to the room rate.
 const nightQty = (n) => (isReservations.value ? 1 : (n.qty ?? 0))
-const nightCost = (n, r) => nightQty(n) * (n.price ?? r.price)
+// Per-night unit price, honouring an optional per-night override, else the room rate.
+const nightPrice = (n, r) => n.price ?? r.price
+const nightCost = (n, r) => nightQty(n) * nightPrice(n, r)
+// DES-90: the room-head "/nt" rate is only meaningful when every night is the
+// same price. When nightly rates differ, hide it — the per-night rows below
+// carry each night's individual cost.
+const roomFlatPrice = (r) => {
+  if (!r.nights?.length) return r.price ?? null
+  const p = nightPrice(r.nights[0], r)
+  return r.nights.every((n) => nightPrice(n, r) === p) ? p : null
+}
 const hotelRooms = (h) => h.rooms.reduce((s, r) => s + r.nights.reduce((a, n) => a + nightQty(n), 0), 0)
 const hotelSubtotal = (h) => h.rooms.reduce((s, r) => s + r.nights.reduce((a, n) => a + nightCost(n, r), 0), 0)
 const totalRooms = computed(() => hotels.value.reduce((s, h) => s + hotelRooms(h), 0))
@@ -174,6 +184,20 @@ defineExpose({ clear })
       </div>
 
       <div v-if="cart.priceDetails && showPrice" class="cr__pricecard">
+        <!-- DES-85: itemized per-night + fee breakdown when priceDetails.lines is
+             provided (Check-in/out → per-night → each fee → Room Cost / Due Today
+             / Balance due); otherwise the simple nights × rooms × rate card. -->
+        <template v-if="cart.priceDetails.lines">
+          <div v-for="(l, i) in cart.priceDetails.lines" :key="i" class="cr__kv"><span>{{ l.label }}</span><span>{{ l.text ? l.value : money(l.value) }}</span></div>
+          <div class="cr__rule" />
+          <div v-for="(s, i) in cart.priceDetails.subtotals" :key="'sub' + i" class="cr__kv cr__kv--total"><span>{{ s.label }}</span><span>{{ money(s.value) }}</span></div>
+          <template v-if="cart.priceDetails.balanceDue != null">
+            <div class="cr__rule" />
+            <div class="cr__kv cr__kv--total"><span>Balance due</span><span>{{ money(cart.priceDetails.balanceDue) }}</span></div>
+          </template>
+          <div class="cr__quoted">Rates are quoted in USD ($).</div>
+        </template>
+        <template v-else>
         <h4 class="cr__price-h">Price details</h4>
         <div class="cr__priceline">
           <div class="cr__priceline-l">
@@ -188,6 +212,7 @@ defineExpose({ clear })
         <div class="cr__kv cr__kv--total"><span>Total</span><span>{{ money(cart.priceDetails.total) }}</span></div>
         <div class="cr__quoted">Rates are quoted in USD ($).</div>
         <div v-if="cart.roomsLeft" class="cr__heldnote"><q-icon name="king_bed" size="15px" /> <span>We have {{ cart.roomsLeft }} room{{ cart.roomsLeft === 1 ? '' : 's' }} left at this price!</span></div>
+        </template>
       </div>
     </template>
 
@@ -214,7 +239,7 @@ defineExpose({ clear })
                   <span class="cr__rtitle">{{ r.type }}</span>
                   <span v-if="r.summary" class="cr__rsummary">{{ r.summary }}</span>
                 </div>
-                <span class="cr__rprice">{{ money(r.price) }}<small>/nt</small></span>
+                <span v-if="roomFlatPrice(r) != null" class="cr__rprice">{{ money(roomFlatPrice(r)) }}<small>/nt</small></span>
               </div>
               <div v-for="(n, ni) in r.nights" :key="ni" class="cr__dayrow">
                 <div class="cr__dayinfo">
@@ -225,7 +250,10 @@ defineExpose({ clear })
                 <span v-if="isReservations" class="cr__nightprice">{{ money(n.price ?? r.price) }}</span>
                 <!-- hold: editable per-night quantity -->
                 <quantity-stepper v-else-if="!readonly" v-model="n.qty" :min="1" :max="n.roomsLeft" removable size="sm" @remove="removeNight(hi, ri, ni)" />
-                <span v-else class="cr__qty">{{ n.qty }} room{{ n.qty === 1 ? '' : 's' }}</span>
+                <!-- DES-90: readonly hold (group block checkout) — rooms held that
+                     night + that night's per-room cost, so differing nightly
+                     rates are broken out per night. -->
+                <span v-else class="cr__nightcost"><span class="cr__nightcost-n">{{ n.qty }}</span><q-icon name="king_bed" size="16px" /><span class="cr__nightcost-p">{{ money(nightPrice(n, r)) }}</span></span>
               </div>
             </div>
           </div>
@@ -316,6 +344,11 @@ defineExpose({ clear })
 .cr__left { font-size: 0.75rem; font-weight: 600; color: var(--ds-palette-orange-600); white-space: nowrap; }
 .cr__qty { font-weight: 600; font-size: 0.875rem; color: var(--ds-color-text); white-space: nowrap; }
 .cr__nightprice { font-weight: 600; font-size: 0.875rem; color: var(--ds-color-text); white-space: nowrap; }
+/* DES-90: readonly hold night — qty + bed icon + per-night cost. */
+.cr__nightcost { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.cr__nightcost-n { font-weight: 600; font-size: 0.875rem; color: var(--ds-color-text-subtle); }
+.cr__nightcost :deep(.q-icon) { color: var(--ds-color-text-subtle); }
+.cr__nightcost-p { font-weight: 700; font-size: 0.875rem; color: var(--ds-palette-green-600); }
 .cr__addhotel { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 14px 20px 20px; padding: 10px 18px; border: 1px solid var(--ds-color-background-brand-bold); border-radius: var(--ds-radius-pill); background: var(--ds-color-surface); color: var(--ds-color-text); font-weight: 600; font-size: 0.9375rem; cursor: pointer; transition: background var(--ds-duration-fast) var(--ds-ease-standard), color var(--ds-duration-fast) var(--ds-ease-standard); }
 .cr__addhotel:hover { background: var(--ds-color-background-brand-bold); color: #fff; }
 

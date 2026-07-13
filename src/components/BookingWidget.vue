@@ -110,7 +110,8 @@ const travelersTotal = computed(() => rooms.reduce((s, r) => s + r.adults + r.ch
 const travelersLabel = computed(() => `${travelersTotal.value} traveler${travelersTotal.value !== 1 ? 's' : ''}, ${rooms.length} room${rooms.length !== 1 ? 's' : ''}`)
 
 // Group Block swaps the Travelers popover for a simple "Rooms Needed" number input.
-const roomsNeeded = ref(10)
+// DES-80: no default — the organizer must enter how many rooms they need.
+const roomsNeeded = ref(null)
 </script>
 
 <template>
@@ -181,7 +182,8 @@ const roomsNeeded = ref(10)
       </div>
 
       <!-- DATES -->
-      <div v-if="showDates || mode === 'reservations'" class="bw__field col">
+      <!-- DES-88: show Check-in–Check-out in Group Block too (with Rooms Needed). -->
+      <div v-if="showDates || mode === 'reservations' || mode === 'group'" class="bw__field col">
         <q-input outlined stack-label readonly class="bw__input cursor-pointer" label="Check-in - Check-out" :model-value="dateLabel">
           <template #prepend><q-icon name="calendar_month" /></template>
         </q-input>
@@ -199,7 +201,7 @@ const roomsNeeded = ref(10)
       <!-- ROOMS NEEDED (Group Block) — replaces the Travelers popover -->
       <div v-if="mode === 'group'" class="bw__field col">
         <q-input outlined stack-label type="number" min="1" class="bw__input"
-          label="Rooms Needed" v-model.number="roomsNeeded">
+          label="Rooms Needed" placeholder="Enter number of rooms" v-model.number="roomsNeeded">
           <template #prepend><q-icon name="meeting_room" /></template>
         </q-input>
       </div>
