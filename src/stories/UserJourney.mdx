@@ -98,8 +98,8 @@ payment step, no protection, no totals/taxes anywhere).
     `unmatched` → orange **"Adjust your search parameters"**; `unavailable` →
     grey **"No availability for selected dates"** (card dimmed, CTA muted).
   - **Group card** (`availability`, group flow): `matches` → green
-    **"{n} rooms available — matches request"**; `partial` → orange
-    **"{max} rooms max — {requested} requested"**; `unavailable` → grey
+    **"\{n\} rooms available — matches request"**; `partial` → orange
+    **"\{max\} rooms max — \{requested\} requested"**; `unavailable` → grey
     **"No availability for selected dates"** (dimmed, muted CTA).
 - **Expandable Availability panel** — the *Availability* toggle opens
   `RoomAvailability` (per-room-type, per-night rooms-left) inline. Group results
@@ -172,7 +172,7 @@ mode:**
    - reserve → single guest party via `ReservationGuests` (one *"Room N — Guest
      Information"* block per room; Additional Guests pre-seeded from occupancy).
    - reservations → the same per-room forms **grouped by hotel/reservation**
-     (*"Reservation N — {hotel}"*).
+     (*"Reservation N — \{hotel\}"*).
    - **Required per room:** First name, Last name, Mobile (+ Team Name and any
      required event custom fields if enabled). Incomplete → inline errors, no
      advance.
@@ -191,7 +191,7 @@ mode:**
      Reservation Policies and I authorize HoCoBook to charge the above credit
      card."* CTA **"Book Now"** → emits **`confirm`**.
    - Multi-hotel (`reservations`) uses a **per-hotel** checkbox instead: *"I have
-     read and agree to {hotel}'s Hotel and GrandStay Reservation Policies."*
+     read and agree to \{hotel\}'s Hotel and GrandStay Reservation Policies."*
 
 **Rail (`CartReview`):** reserve = single-stay summary + **Price details card**
 (nights × rooms × rate, discount, **Taxes & Fees** line + info tooltip, Total,
