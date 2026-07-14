@@ -97,7 +97,9 @@ const heroStyle = { backgroundImage: `${scrim}, url(${defaultBg})` }
     <!-- Booking Widget -->
     <section class="lp__widget">
       <div class="lp__widget-card">
-        <booking-widget :mode="mode" :tabs="false" :show-teams="showTeams" />
+        <!-- DES-91: the landing booking type starts blank (no default selection),
+             independent of the page's cart context. -->
+        <booking-widget mode="" :tabs="false" :show-teams="showTeams" />
       </div>
     </section>
 

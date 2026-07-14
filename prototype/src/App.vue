@@ -238,11 +238,11 @@ body { background: var(--ds-palette-slate-100, #f1f2f4); }
    appears after clicking it, so hiding the row removes it entirely. */
 .gtb__addrow { display: none !important; }
 
-/* DES-79: on the GROUP checkout only, drop the "Cancellation policy" + "Special
-   check-in instructions" Review section (covered by the Policies section below).
-   In the group flow it's the first section (Protect-your-stay is hidden), so it's
-   `.srr__sec--first`; scoped to group via the prototype `.proto-ck--group` wrapper. */
-.proto-ck--group .srr__sec--first { display: none !important; }
+/* DES-79 superseded by DES-92: the "Cancellation policy" + "Special check-in
+   instructions" Review section was removed from StepReviewReservation.vue for
+   BOTH flows (it duplicated the Policies section), so the prototype no longer
+   needs to hide it for group — and hiding `.srr__sec--first` would now wrongly
+   hide the group's first visible section (Policies). */
 
 /* DES-74: remove the date-flexibility chips (Exact dates / ±1 / ±2 / ±3 / ±7 days)
    and their separator from the Check-in–Check-out date picker. */

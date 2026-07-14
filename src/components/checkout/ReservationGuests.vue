@@ -27,6 +27,17 @@ const emit = defineEmits(['update:modelValue', 'update:valid'])
 
 const cfKey = (cf, i) => cf.key || `cf${i}`
 const additionalCount = (room) => Math.max(0, (room.adults || 1) + (room.children || 0) - 1)
+// DES-93: a valid email is required for the reservation; additional emails are optional.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// DES-94: reservation address. United States / Canada collect a full address
+// (address + city + state/province + postal code); "Other" collects none.
+const COUNTRIES = ['United States', 'Canada', 'Other']
+const US_STATES = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming']
+const CA_PROVINCES = ['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Nova Scotia', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Northwest Territories', 'Nunavut', 'Yukon']
+const collectsAddress = (country) => country !== 'Other'
+const stateOptions = (country) => (country === 'United States' ? US_STATES : country === 'Canada' ? CA_PROVINCES : [])
+const stateLabel = (country) => (country === 'Canada' ? 'Province' : 'State/Province')
 
 // Build per-room state, hydrating from modelValue when present.
 const blank = () => ({ firstName: '', lastName: '' })
@@ -39,6 +50,15 @@ const makeRoom = (room, i) => {
     firstName: saved?.firstName ?? '',
     lastName: saved?.lastName ?? '',
     mobile: saved?.mobile ?? '',
+    email: saved?.email ?? '',
+    additionalEmails: saved?.additionalEmails?.length ? saved.additionalEmails.map((e) => reactive({ value: e.value ?? '' })) : [],
+    country: saved?.country ?? 'United States',
+    address1: saved?.address1 ?? '',
+    address2: saved?.address2 ?? '',
+    address3: saved?.address3 ?? '',
+    city: saved?.city ?? '',
+    state: saved?.state ?? '',
+    postal: saved?.postal ?? '',
     hotelRewards: saved?.hotelRewards ?? '',
     specialRequests: saved?.specialRequests ?? '',
     teamName: saved?.teamName ?? '',
@@ -65,9 +85,22 @@ const reqErr = (i, f, val) => (showErr(i, f) && !val ? 'Required' : '')
 const addGuest = (i) => roomsData[i].additionalGuests.push(reactive(blank()))
 const removeGuest = (i, gi) => roomsData[i].additionalGuests.splice(gi, 1)
 
+// DES-93: email — required (valid format); additional emails optional (valid if filled).
+const emailErr = (i, val) => {
+  if (!showErr(i, 'email')) return ''
+  if (!val) return 'Required'
+  return EMAIL_RE.test(val) ? '' : 'Enter a valid email address'
+}
+const addEmail = (i) => roomsData[i].additionalEmails.push(reactive({ value: '' }))
+const removeEmail = (i, ei) => roomsData[i].additionalEmails.splice(ei, 1)
+
 // Validity: First, Last, Mobile per room; Team Name when enabled; required customs.
 const roomValid = (r) => {
   if (!r.firstName || !r.lastName || !r.mobile) return false
+  if (!r.email || !EMAIL_RE.test(r.email)) return false
+  if (r.additionalEmails.some((e) => e.value && !EMAIL_RE.test(e.value))) return false
+  // DES-94: US/Canada require a full address; "Other" requires nothing.
+  if (collectsAddress(r.country) && (!r.address1 || !r.city || !r.state || !r.postal)) return false
   if (props.teamName && !r.teamName) return false
   for (let ci = 0; ci < props.customFields.length; ci++) {
     const cf = props.customFields[ci]
@@ -77,7 +110,7 @@ const roomValid = (r) => {
 }
 const valid = computed(() => roomsData.length > 0 && roomsData.every(roomValid))
 
-watch(roomsData, () => emit('update:modelValue', roomsData.map((r) => ({ ...r, additionalGuests: r.additionalGuests.map((g) => ({ ...g })) }))), { deep: true, immediate: true })
+watch(roomsData, () => emit('update:modelValue', roomsData.map((r) => ({ ...r, additionalGuests: r.additionalGuests.map((g) => ({ ...g })), additionalEmails: r.additionalEmails.map((e) => ({ ...e })) }))), { deep: true, immediate: true })
 watch(valid, (v) => emit('update:valid', v), { immediate: true })
 </script>
 
@@ -108,6 +141,23 @@ watch(valid, (v) => emit('update:valid', v), { immediate: true })
           <small v-if="reqErr(i, 'mobile', room.mobile)" class="cgf__err">Required</small>
         </div>
 
+        <!-- Email — DES-93: required email + optional additional email addresses. -->
+        <label class="cgf__field cgf__field--full">
+          <span>Email address <i class="cgf__req">*</i></span>
+          <input type="email" inputmode="email" v-model="room.email" placeholder="you@example.com" :class="{ 'is-error': emailErr(i, room.email) }" @blur="touch(i, 'email')" />
+          <small v-if="emailErr(i, room.email)" class="cgf__err">{{ emailErr(i, room.email) }}</small>
+        </label>
+        <div v-for="(e, ei) in room.additionalEmails" :key="'em' + ei" class="cgf__field cgf__field--full">
+          <span>Additional email <em class="rg__opt">(optional)</em></span>
+          <div class="rg__emailrow">
+            <input type="email" inputmode="email" v-model="e.value" placeholder="name@example.com" :class="{ 'is-error': showErrors && e.value && !EMAIL_RE.test(e.value) }" />
+            <button type="button" class="rg__remove" aria-label="Remove email" @click="removeEmail(i, ei)"><q-icon name="close" size="18px" /></button>
+          </div>
+        </div>
+        <div class="cgf__field cgf__field--full">
+          <button type="button" class="rg__addbtn" @click="addEmail(i)"><q-icon name="add" size="18px" /> Add another email address</button>
+        </div>
+
         <label class="cgf__field cgf__field--full">
           <span>Hotel rewards #</span>
           <input v-model="room.hotelRewards" placeholder="Optional" />
@@ -135,6 +185,58 @@ watch(valid, (v) => emit('update:valid', v), { immediate: true })
           </div>
           <input v-else v-model="room.custom[cfKey(cf, ci)]" :placeholder="cf.optional ? 'Optional' : cf.label" :class="{ 'is-error': cf.required && reqErr(i, `cf-${ci}`, room.custom[cfKey(cf, ci)]) }" @blur="touch(i, `cf-${ci}`)" />
           <small v-if="cf.required && reqErr(i, `cf-${ci}`, room.custom[cfKey(cf, ci)])" class="cgf__err">Required</small>
+        </div>
+
+        <!-- Address — DES-94: United States / Canada collect a full address;
+             "Other" collects none (only the Country selector shows). -->
+        <template v-if="collectsAddress(room.country)">
+          <label class="cgf__field cgf__field--full">
+            <span>Address Line 1 <i class="cgf__req">*</i></span>
+            <input v-model="room.address1" placeholder="Address Line 1" :class="{ 'is-error': reqErr(i, 'address1', room.address1) }" @blur="touch(i, 'address1')" />
+            <small v-if="reqErr(i, 'address1', room.address1)" class="cgf__err">Required</small>
+          </label>
+          <label class="cgf__field cgf__field--full">
+            <span>Address Line 2 <em class="rg__opt">(optional)</em></span>
+            <input v-model="room.address2" placeholder="Address Line 2" />
+          </label>
+          <label class="cgf__field cgf__field--full">
+            <span>Address Line 3 <em class="rg__opt">(optional)</em></span>
+            <input v-model="room.address3" placeholder="Address Line 3" />
+          </label>
+        </template>
+
+        <div class="cgf__field cgf__field--full">
+          <span>Country</span>
+          <div class="rg__selectwrap">
+            <select v-model="room.country" @change="room.state = ''">
+              <option v-for="c in COUNTRIES" :key="c" :value="c">{{ c }}</option>
+            </select>
+            <q-icon name="expand_more" size="20px" class="rg__selecticon" />
+          </div>
+        </div>
+
+        <div v-if="collectsAddress(room.country)" class="rg__addrrow">
+          <label class="cgf__field">
+            <span>City <i class="cgf__req">*</i></span>
+            <input v-model="room.city" placeholder="City" :class="{ 'is-error': reqErr(i, 'city', room.city) }" @blur="touch(i, 'city')" />
+            <small v-if="reqErr(i, 'city', room.city)" class="cgf__err">Required</small>
+          </label>
+          <label class="cgf__field">
+            <span>{{ stateLabel(room.country) }} <i class="cgf__req">*</i></span>
+            <div class="rg__selectwrap">
+              <select v-model="room.state" :class="{ 'is-error': reqErr(i, 'state', room.state) }" @blur="touch(i, 'state')">
+                <option value="" disabled>Select</option>
+                <option v-for="s in stateOptions(room.country)" :key="s" :value="s">{{ s }}</option>
+              </select>
+              <q-icon name="expand_more" size="20px" class="rg__selecticon" />
+            </div>
+            <small v-if="reqErr(i, 'state', room.state)" class="cgf__err">Required</small>
+          </label>
+          <label class="cgf__field">
+            <span>Postal Code <i class="cgf__req">*</i></span>
+            <input v-model="room.postal" placeholder="Postal Code" :class="{ 'is-error': reqErr(i, 'postal', room.postal) }" @blur="touch(i, 'postal')" />
+            <small v-if="reqErr(i, 'postal', room.postal)" class="cgf__err">Required</small>
+          </label>
         </div>
       </div>
 
@@ -188,6 +290,17 @@ watch(valid, (v) => emit('update:valid', v), { immediate: true })
 .rg__selectwrap { position: relative; display: flex; align-items: center; }
 .rg__selectwrap select { appearance: none; -webkit-appearance: none; padding-right: 40px; cursor: pointer; }
 .rg__selecticon { position: absolute; right: 12px; color: var(--ds-color-text-subtle); pointer-events: none; }
+
+/* Address row (DES-94): City / State / Postal, full-width 3-up. */
+.rg__addrrow { grid-column: 1 / -1; display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 560px) { .rg__addrrow { grid-template-columns: 1fr; } }
+
+/* Additional email rows (DES-93): input + remove button. */
+.rg__emailrow { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+.rg__emailrow input { height: 46px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-md); padding: 0 14px; font-family: inherit; font-size: 0.9375rem; color: var(--ds-color-text); outline: none; background: var(--ds-color-surface); width: 100%; }
+.rg__emailrow input:focus { border-color: var(--ds-color-border-focused); }
+.rg__emailrow input::placeholder { color: var(--ds-color-text-subtlest); }
+.rg__emailrow input.is-error { border-color: var(--ds-color-text-danger); }
 
 /* Additional guests */
 .rg__addl { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }

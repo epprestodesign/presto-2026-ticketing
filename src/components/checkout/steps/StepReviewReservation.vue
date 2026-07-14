@@ -21,11 +21,6 @@ const props = defineProps({
     ] },
     { id: 'none', title: 'No protection', desc: 'You could be reimbursed for trip costs (minus the plan price) only if you cancel for a covered reason.' },
   ]) },
-  cancellation: { type: Object, default: () => ({
-    refundableBefore: 'Jun 20, 2026',
-    policy: 'Cancellations or changes made after 6:00 PM (property local time) on Jun 20, 2026 will result in a charge of 100% of the total amount paid for the reservation.',
-    checkIn: 'There is a front desk at this property. Guests will receive an email within 24 hours of booking with check-in instructions.',
-  }) },
 })
 const emit = defineEmits(['confirm'])
 const money = (n, c = '$') => c + Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -56,17 +51,13 @@ const canConfirm = computed(() => protection.value !== null)
       </div>
     </section>
 
-    <!-- Cancellation policy -->
-    <section class="srr__sec" :class="{ 'srr__sec--first': flow === 'group' }">
-      <h4 class="srr__h">Cancellation policy</h4>
-      <div class="srr__refund"><q-icon name="check_circle" size="18px" /> Fully refundable before {{ cancellation.refundableBefore }}</div>
-      <p class="srr__policy">{{ cancellation.policy }}</p>
-      <h5 class="srr__subh">Special check-in instructions</h5>
-      <p class="srr__policy">{{ cancellation.checkIn }}</p>
-    </section>
+    <!-- DES-92: the standalone "Cancellation policy" + "Special check-in
+         instructions" block was removed — it duplicated the Policies section
+         below. (For group blocks, Protect-your-stay is hidden, so Policies is the
+         first section and drops its top border via srr__sec--first.) -->
 
     <!-- Policies + agreement + completion CTA -->
-    <section class="srr__sec">
+    <section class="srr__sec" :class="{ 'srr__sec--first': flow === 'group' }">
       <h4 class="srr__h">Policies</h4>
       <p class="srr__sub">Review and agree to the policies to complete your booking.</p>
       <policies-agreement :flow="flow" :hotels="hotels" @submit="emit('confirm')" />
@@ -100,10 +91,6 @@ const canConfirm = computed(() => protection.value !== null)
 .srr__bul li { display: flex; align-items: flex-start; gap: 7px; font-size: 0.8125rem; color: var(--ds-color-text-subtle); line-height: 1.4; }
 .srr__bul li :deep(.q-icon) { color: var(--ds-color-text-success); flex: none; margin-top: 1px; }
 .srr__plan-desc { display: block; margin-top: 10px; font-size: 0.8125rem; color: var(--ds-color-text-subtle); line-height: 1.45; }
-
-.srr__refund { display: flex; width: 100%; align-items: center; gap: 8px; margin-top: 12px; background: var(--ds-color-background-success); color: var(--ds-palette-green-700); border: 1px solid var(--ds-palette-green-200, #BBF7D0); border-radius: var(--ds-radius-md); padding: 11px 14px; font-weight: 600; font-size: 0.875rem; }
-.srr__policy { color: var(--ds-color-text-subtle); font-size: 0.875rem; line-height: 1.5; margin: 12px 0 0; }
-.srr__subh { font-size: 0.9375rem; font-weight: 700; color: var(--ds-color-text); margin: 18px 0 0; }
 
 .srr__terms { color: var(--ds-color-text-subtle); font-size: 0.8125rem; line-height: 1.5; margin: 24px 0 16px; }
 .srr__confirm { width: 100%; height: 54px; border-radius: var(--ds-radius-pill); background: var(--ds-color-background-brand-bold); color: #fff; font-weight: 700; font-size: 1.0625rem; }

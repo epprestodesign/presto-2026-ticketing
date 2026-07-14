@@ -84,8 +84,15 @@ const addDisabled = computed(() => newTeams.value.some((t) => !t.name.trim() || 
 const addLabel = computed(() => (newTeams.value.length > 1 ? `Add ${newTeams.value.length} Teams` : 'Add Team'))
 
 // --- Dates ---
-// Pre-selected hypothetical range so the field shows real dates (not "Add dates").
-const range = ref({ from: '2026/07/16', to: '2026/07/19' })
+// DES-91: default the range to the current date + 7 days through + 10 days, so
+// the field always shows a live, near-future stay (not a stale hardcoded date).
+const dstr = (offset) => {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() + offset)
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+}
+const range = ref({ from: dstr(7), to: dstr(10) })
 const flex = ref('Exact dates')
 const flexOptions = ['Exact dates', '± 1 day', '± 2 days', '± 3 days', '± 7 days']
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -132,15 +139,17 @@ const roomsNeeded = ref(null)
     <div class="bw__fields">
       <!-- MODE DROPDOWN — farthest-left flow selector; default for tabs-less layout -->
       <div v-if="showModeSelect" class="bw__field bw__field--mode col">
-        <q-select outlined stack-label class="bw__input" label="Booking type" emit-value map-options
+        <q-select outlined stack-label class="bw__input" label="Booking Type" emit-value map-options
           :model-value="mode" :options="modeOptions" popup-content-class="bw-menu"
           @update:model-value="mode = $event">
           <template #prepend><q-icon name="tune" /></template>
         </q-select>
       </div>
 
-      <!-- TEAM -->
-      <div v-if="showTeams" class="bw__field col">
+      <!-- TEAM — DES-91: on the landing widget the booking type starts blank; the
+           team field only appears once a booking type is chosen (it's contextual
+           to the flow). In fixed-flow contexts `mode` is always set, so it shows. -->
+      <div v-if="showTeams && !!mode" class="bw__field col">
         <q-input outlined stack-label readonly class="bw__input cursor-pointer"
           :label="mode === 'group' ? 'Registered Team(s)' : 'Registered Team Name'" :model-value="teamLabel">
           <template #prepend><q-icon name="sports_soccer" /></template>
@@ -182,8 +191,9 @@ const roomsNeeded = ref(null)
       </div>
 
       <!-- DATES -->
-      <!-- DES-88: show Check-in–Check-out in Group Block too (with Rooms Needed). -->
-      <div v-if="showDates || mode === 'reservations' || mode === 'group'" class="bw__field col">
+      <!-- DES-88: show Check-in–Check-out in Group Block too (with Rooms Needed).
+           DES-91: also show when the booking type is still blank (landing default). -->
+      <div v-if="showDates || !mode || mode === 'reservations' || mode === 'group'" class="bw__field col">
         <q-input outlined stack-label readonly class="bw__input cursor-pointer" label="Check-in - Check-out" :model-value="dateLabel">
           <template #prepend><q-icon name="calendar_month" /></template>
         </q-input>
