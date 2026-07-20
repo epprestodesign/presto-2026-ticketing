@@ -5,7 +5,7 @@ the **real design-system components** from this repo's `src/` — no forks, no
 restyling, and **zero changes to the library**. Designed at a fixed **1440px**
 canvas.
 
-**Live:** https://epprestodesign.github.io/presto-2026/prototype/ (deployed
+**Live:** https://epprestodesign.github.io/presto-2026-ticketing/prototype/ (deployed
 alongside Storybook; linked from *Getting Started → Introduction*).
 
 ## Run it

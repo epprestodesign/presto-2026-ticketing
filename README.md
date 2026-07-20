@@ -12,7 +12,7 @@ for a consumer **hotel booking & reservation** experience ("Presto Design System
 ## Live docs
 Storybook is published to GitHub Pages on every push to `main`:
 
-**https://epprestodesign.github.io/presto-2026/**
+**https://epprestodesign.github.io/presto-2026-ticketing/**
 
 ## Interactive prototype
 A clickable, end-to-end **booking journey** built entirely from the real library
@@ -20,7 +20,7 @@ components (zero forks) — all three modes: **Book Reservation**, **Group Block
 and **Multiple Reservations**. Search hotels on a live Google map, filter, pick
 rooms, checkout, and confirm, at 1440px.
 
-**▶ Launch: https://epprestodesign.github.io/presto-2026/prototype/**
+**▶ Launch: https://epprestodesign.github.io/presto-2026-ticketing/prototype/**
 
 It's deployed alongside Storybook (also linked from the Storybook **Getting
 Started → Introduction** page). Source lives in [`prototype/`](prototype/) — a

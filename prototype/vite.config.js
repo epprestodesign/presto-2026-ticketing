@@ -12,8 +12,8 @@ const libSrc = fileURLToPath(new URL('../src', import.meta.url))
 const quasarVariables = fileURLToPath(new URL('../src/css/quasar.variables.scss', import.meta.url))
 
 // When deployed as a Storybook sub-page on GitHub Pages the app is served from
-// `/presto-2026/prototype/`; local dev serves from `/`. Set VITE_BASE at build
-// time (the deploy workflow passes `--base=/presto-2026/prototype/`).
+// `/presto-2026-ticketing/prototype/`; local dev serves from `/`. Set VITE_BASE at build
+// time (the deploy workflow passes `--base=/presto-2026-ticketing/prototype/`).
 export default defineConfig({
   plugins: [
     vue({ template: { transformAssetUrls } }),
