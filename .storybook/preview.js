@@ -96,7 +96,6 @@ const preview = {
             'Page Frame',
           ],
           'Ticket Map', [
-            'Overview',
             // The unified SeatGeek-style ticket browse experience.
             'Browse Tickets',
             // Everything else — the individual building blocks.

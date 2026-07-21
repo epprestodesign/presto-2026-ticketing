@@ -88,15 +88,15 @@ const onMap = (pinId) => {
       </div>
     </aside>
 
-    <!-- RIGHT: interactive map -->
+    <!-- RIGHT: interactive map (full height, zoomed in a couple steps) -->
     <div class="tm__mapwrap">
-      <VenueMap :event="event" :pins="pins" v-model="mapSel" @update:modelValue="onMap" />
+      <VenueMap :pins="pins" fill :initial-scale="1.6" v-model="mapSel" @update:modelValue="onMap" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.tm { display: grid; grid-template-columns: minmax(340px, 440px) 1fr; height: 100vh; font-family: var(--ds-font-family); background: var(--ds-color-surface); }
+.tm { display: grid; grid-template-columns: minmax(340px, 440px) 1fr; grid-template-rows: minmax(0, 1fr); height: 100vh; font-family: var(--ds-font-family); background: var(--ds-color-surface); }
 
 .tm__rail { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--ds-color-border); }
 .tm__filters { display: flex; align-items: center; gap: 8px; padding: 14px 16px; overflow-x: auto; border-bottom: 1px solid var(--ds-color-border); }
@@ -126,8 +126,8 @@ const onMap = (pinId) => {
 .tm__footprice small { font-weight: 500; font-size: 0.75rem; color: var(--ds-color-text-subtle); }
 .tm__cta { height: 46px; padding: 0 22px; border-radius: var(--ds-radius-button); background: var(--ds-color-background-brand-bold); color: #fff; font-weight: 700; flex: none; }
 
-.tm__mapwrap { min-width: 0; overflow: hidden; background: var(--ds-color-surface-sunken); display: flex; align-items: stretch; }
-.tm__mapwrap :deep(.vm) { flex: 1; }
+.tm__mapwrap { min-width: 0; min-height: 0; overflow: hidden; background: var(--ds-color-surface-sunken); }
+.tm__mapwrap :deep(.vmap) { height: 100%; }
 
 @media (max-width: 860px) {
   .tm { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; height: auto; }

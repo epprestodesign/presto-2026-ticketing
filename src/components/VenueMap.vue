@@ -18,30 +18,56 @@ const props = defineProps({
   pins: { type: Array, default: () => [] },     // { id, label, x%, y%, price, colorVar, available, tierName }
   aspect: { type: Number, default: 768 / 1024 }, // Gillette SVG ratio
   modelValue: { type: String, default: null },
+  // Fill the parent's height (the map covers its container) instead of sizing to
+  // the fixed aspect ratio. Used by the full-height Ticket Map.
+  fill: { type: Boolean, default: false },
+  // Initial zoom multiplier applied on load (e.g. 1.8 = zoomed in a couple steps).
+  initialScale: { type: Number, default: 1 },
 })
 const emit = defineEmits(['update:modelValue', 'select'])
 
 const src = computed(() => props.mapSrc || DEFAULT_MAP)
 const viewport = ref(null)
 const vw = ref(800)
+const vh = ref(600)
 const worldH = computed(() => vw.value * props.aspect)
+// The visible viewport height: its own measured height in fill mode, else the
+// map's natural (aspect-based) height.
+const containerH = () => (props.fill ? vh.value : worldH.value)
 const view = reactive({ scale: 1, tx: 0, ty: 0 })
 const MIN = 1, MAX = 6
 const animate = ref(false) // smooth transition for button zoom only (not drag/wheel)
 
-let ro
+let ro, didInit = false
 onMounted(() => {
-  const measure = () => { if (viewport.value) vw.value = viewport.value.clientWidth }
+  const measure = () => {
+    if (!viewport.value) return
+    vw.value = viewport.value.clientWidth
+    vh.value = viewport.value.clientHeight
+    if (!didInit && vw.value > 0 && vh.value > 0) { didInit = true; initView() }
+  }
   measure()
   ro = new ResizeObserver(measure)
   ro.observe(viewport.value)
 })
 onBeforeUnmount(() => ro && ro.disconnect())
 
+// Initial view: honour `initialScale`, and in fill mode also cover the viewport.
+function initView() {
+  const cover = props.fill ? Math.max(1, vh.value / worldH.value) : 1
+  view.scale = Math.min(MAX, Math.max(MIN, (props.initialScale || 1) * cover))
+  centerView()
+}
+function centerView() {
+  view.tx = (vw.value - vw.value * view.scale) / 2
+  view.ty = (containerH() - worldH.value * view.scale) / 2
+  clampPan()
+}
+
 function clampPan() {
   const sw = vw.value * view.scale, sh = worldH.value * view.scale
   view.tx = Math.min(0, Math.max(Math.min(0, vw.value - sw), view.tx))
-  view.ty = Math.min(0, Math.max(Math.min(0, worldH.value - sh), view.ty))
+  view.ty = Math.min(0, Math.max(Math.min(0, containerH() - sh), view.ty))
 }
 function zoomAt(cx, cy, factor) {
   const ns = Math.min(MAX, Math.max(MIN, view.scale * factor))
@@ -60,21 +86,30 @@ function onWheel(e) {
 let animTimer
 function zoomBtn(f) {
   animate.value = true
-  zoomAt(vw.value / 2, worldH.value / 2, f)
+  // Zoom about the true centre of the visible viewport (not the world), so the
+  // +/- buttons keep the focus point steady instead of drifting.
+  zoomAt(vw.value / 2, containerH() / 2, f)
   clearTimeout(animTimer)
-  animTimer = setTimeout(() => { animate.value = false }, 200)
+  animTimer = setTimeout(() => { animate.value = false }, 180)
 }
-function reset() { animate.value = true; view.scale = 1; view.tx = 0; view.ty = 0; clearTimeout(animTimer); animTimer = setTimeout(() => { animate.value = false }, 200) }
+function reset() { animate.value = true; initView(); clearTimeout(animTimer); animTimer = setTimeout(() => { animate.value = false }, 180) }
 
-// Drag-pan with flick momentum.
-let dragging = false, lastX = 0, lastY = 0, vX = 0, vY = 0, lastT = 0, raf = 0
+// Drag-pan with flick momentum. Panning only begins once the pointer moves past
+// a small threshold, so a click (to select a pin) never nudges the map.
+const DRAG_THRESHOLD = 5
+let dragging = false, panning = false, startX = 0, startY = 0, lastX = 0, lastY = 0, vX = 0, vY = 0, lastT = 0, raf = 0
 function onDown(e) {
-  dragging = true; animate.value = false; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); vX = vY = 0
+  dragging = true; panning = false; animate.value = false
+  startX = lastX = e.clientX; startY = lastY = e.clientY; lastT = performance.now(); vX = vY = 0
   cancelAnimationFrame(raf)
   viewport.value.setPointerCapture?.(e.pointerId)
 }
 function onMove(e) {
   if (!dragging) return
+  if (!panning) {
+    if (Math.hypot(e.clientX - startX, e.clientY - startY) < DRAG_THRESHOLD) return
+    panning = true; lastX = e.clientX; lastY = e.clientY; lastT = performance.now()
+  }
   const now = performance.now(), dt = Math.max(1, now - lastT)
   const dx = e.clientX - lastX, dy = e.clientY - lastY
   vX = dx / dt; vY = dy / dt
@@ -85,7 +120,7 @@ function onMove(e) {
 function onUp() {
   if (!dragging) return
   dragging = false
-  if (Math.hypot(vX, vY) > 0.06) {
+  if (panning && Math.hypot(vX, vY) > 0.06) {
     const step = () => {
       vX *= 0.93; vY *= 0.93
       view.tx += vX * 16; view.ty += vY * 16
@@ -108,7 +143,7 @@ function fmt(n, c = 'USD') {
 </script>
 
 <template>
-  <div class="vmap">
+  <div class="vmap" :class="{ 'vmap--fill': fill }">
     <div
       ref="viewport" class="vmap__viewport" :class="{ 'is-dragging': false }"
       @wheel="onWheel" @pointerdown="onDown" @pointermove="onMove" @pointerup="onUp" @pointercancel="onUp"
@@ -118,7 +153,7 @@ function fmt(n, c = 'USD') {
         <button
           v-for="p in pins" :key="p.id"
           class="vmap__pin" :class="{ 'is-selected': p.id === modelValue, 'is-out': !p.available }"
-          :style="{ left: p.x + '%', top: p.y + '%', '--pin': `var(${p.colorVar})`, transform: `translate(-50%, -100%) scale(${1 / view.scale})` }"
+          :style="{ left: p.x + '%', top: p.y + '%', '--pin': 'var(--ds-color-background-brand-bold)', transform: `translate(-50%, -100%) scale(${1 / view.scale})` }"
           :aria-label="`Section ${p.label}, ${p.available ? fmt(p.price, p.currency) : 'unavailable'}`"
           @pointerdown.stop @click.stop="pick(p)"
         >
@@ -134,7 +169,7 @@ function fmt(n, c = 'USD') {
       </div>
     </div>
 
-    <div class="vmap__readout" aria-live="polite">
+    <div v-if="!fill" class="vmap__readout" aria-live="polite">
       <template v-if="selected">
         <span class="vmap__swatch" :style="{ background: `var(${selected.colorVar})` }" />
         <strong>Section {{ selected.label }}</strong>
@@ -144,7 +179,7 @@ function fmt(n, c = 'USD') {
       <span v-else class="vmap__hint">Drag to pan · scroll to zoom · tap a price to preview a seat</span>
     </div>
 
-    <p class="vmap__note">
+    <p v-if="!fill" class="vmap__note">
       Real Gillette Stadium map (Ticketmaster) · <em>hypothetical</em> prototype pricing &amp; inventory.
     </p>
   </div>
@@ -157,6 +192,9 @@ function fmt(n, c = 'USD') {
   border-radius: var(--ds-radius-lg); background: var(--ds-color-surface-sunken);
   touch-action: none; cursor: grab; user-select: none; aspect-ratio: 1024 / 768;
 }
+/* Fill mode: the map covers its parent's full height (no aspect box, no chrome). */
+.vmap--fill { height: 100%; gap: 0; }
+.vmap--fill .vmap__viewport { flex: 1 1 auto; aspect-ratio: auto; min-height: 0; border: 0; border-radius: 0; }
 .vmap__viewport:active { cursor: grabbing; }
 .vmap__world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; backface-visibility: hidden; }
 .vmap__world.is-animating { transition: transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1); }

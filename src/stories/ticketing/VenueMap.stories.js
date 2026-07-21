@@ -36,7 +36,7 @@ export const InteractiveMap = {
       <div style="max-width:820px;margin:0 auto;padding:24px;">
         <h2 style="font-family:var(--ds-font-family);margin:0 0 4px;font-size:22px;color:var(--ds-color-text);">{{ event.name }}</h2>
         <p style="font-family:var(--ds-font-family);margin:0 0 16px;color:var(--ds-color-text-subtle);">{{ event.venue?.name }} · EventPipe is hosting — pick your seats on the map</p>
-        <VenueMap :event="event" :pins="pins" v-model="selectedId" @select="onSelect" />
+        <VenueMap :event="event" :pins="pins" :initial-scale="1.8" v-model="selectedId" @select="onSelect" />
       </div>
     `,
   }),
