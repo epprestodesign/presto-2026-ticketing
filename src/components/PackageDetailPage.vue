@@ -6,12 +6,14 @@
 // signature Experiences, and Policies. Reuses the Hotel Details building blocks
 // (GalleryHero, DetailTabs, PoliciesSection) alongside the ticketing components
 // (TicketTierList, PackageCard).
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import GalleryHero from './details/GalleryHero.vue'
 import DetailTabs from './details/DetailTabs.vue'
 import PoliciesSection from './details/PoliciesSection.vue'
 import TicketTierList from './TicketTierList.vue'
 import PackageCard from './PackageCard.vue'
+import PackageSummary from './PackageSummary.vue'
+import PackageExperiences from './PackageExperiences.vue'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -41,20 +43,6 @@ const onTab = (name) => {
   if (name === 'overview') { root.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return }
   root.value?.querySelector(`#pdp-${name}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
-
-const dateLabel = computed(() => {
-  const raw = props.event?.date
-  if (!raw) return null
-  const d = new Date(raw)
-  if (Number.isNaN(d.getTime())) return String(raw)
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-})
-const venueLabel = computed(() => {
-  const v = props.event?.venue
-  if (!v) return null
-  const city = v.city?.name || v.city || null
-  return [v.name, city].filter(Boolean).join(' · ') || null
-})
 </script>
 
 <template>
@@ -73,14 +61,7 @@ const venueLabel = computed(() => {
     </div>
 
     <!-- Event summary header -->
-    <header class="pdp__summary">
-      <p class="pdp__eyebrow"><q-icon name="star" size="14px" /> {{ host }} · {{ eyebrow }}</p>
-      <h1 class="pdp__name">{{ event.name }}</h1>
-      <div class="pdp__meta">
-        <span v-if="dateLabel"><q-icon name="event" size="18px" /> {{ dateLabel }}</span>
-        <span v-if="venueLabel"><q-icon name="place" size="18px" /> {{ venueLabel }}</span>
-      </div>
-    </header>
+    <package-summary class="pdp__summary" :event="event" :host="host" :eyebrow="eyebrow" />
 
     <!-- Overview / About -->
     <section id="pdp-overview" class="pdp__section">
@@ -108,15 +89,7 @@ const venueLabel = computed(() => {
     <section id="pdp-experiences" class="pdp__section pdp__section--ruled">
       <h2 class="pdp__h">Signature experiences</h2>
       <p class="pdp__sub">The extras that make each package — mix and match with any ticket.</p>
-      <div class="pdp__exps">
-        <div v-for="(x, i) in experiences" :key="i" class="pdp__exp">
-          <q-icon :name="x.icon" size="22px" class="pdp__expicon" />
-          <div>
-            <span class="pdp__explabel">{{ x.label }}</span>
-            <span v-if="x.theme" class="pdp__exptheme">{{ x.theme }}</span>
-          </div>
-        </div>
-      </div>
+      <package-experiences :experiences="experiences" />
     </section>
 
     <!-- Policies -->
