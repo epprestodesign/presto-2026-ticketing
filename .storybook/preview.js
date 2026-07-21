@@ -110,6 +110,10 @@ const preview = {
               'Selection Summary',
             ],
           ],
+          // Event ticket + package offerings, laid out like Hotel Details.
+          'Package Details', [
+            'Offerings',
+          ],
           'Landing Page', [
             'Book Reservation', 'Group Block',
             'Components', ['Teams Booking Widget', 'Core Booking Widget'],
