@@ -57,7 +57,7 @@ const preview = {
         order: [
           'Getting Started', ['Introduction', 'Architecture & Conventions', 'User Journey & Build Spec', 'Story Template'],
           'Foundations', [
-            'Colors', 'Palette', 'Typography', 'Icons', 'Imagery', 'Gameday Imagery',
+            'Colors', 'Palette', 'Typography', 'Icons', 'Imagery', 'Gameday Imagery', 'Hotel Imagery',
             'Spacing', 'Border Radius', 'Elevation', 'Breakpoints', 'Motion',
           ],
           'Components', [
