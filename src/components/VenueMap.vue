@@ -81,7 +81,9 @@ function onWheel(e) {
   e.preventDefault()
   animate.value = false
   const r = viewport.value.getBoundingClientRect()
-  zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.15 : 1 / 1.15)
+  // Gentle, proportional zoom (eased) so scroll/trackpad don't rocket in/out.
+  const factor = Math.min(1.12, Math.max(0.89, Math.exp(-e.deltaY * 0.0011)))
+  zoomAt(e.clientX - r.left, e.clientY - r.top, factor)
 }
 let animTimer
 function zoomBtn(f) {
@@ -162,7 +164,9 @@ function fmt(n, c = 'USD') {
         </button>
       </div>
 
-      <div class="vmap__controls">
+      <!-- @pointerdown.stop so the viewport's drag/pointer-capture doesn't steal
+           the button's click (which made +/- appear dead). -->
+      <div class="vmap__controls" @pointerdown.stop>
         <button type="button" aria-label="Zoom in" @click="zoomBtn(1.35)">+</button>
         <button type="button" aria-label="Zoom out" @click="zoomBtn(1 / 1.35)">−</button>
         <button type="button" aria-label="Reset view" @click="reset"><q-icon name="center_focus_strong" size="16px" /></button>
