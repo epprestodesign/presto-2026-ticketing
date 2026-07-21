@@ -130,7 +130,7 @@ const preview = {
             ],
           ],
           'Checkout Experience', [
-            'Book Reservation', 'Group Block',
+            'Book Reservation', 'Group Block', 'Ticket + Hotel Bundle',
             'Components', [
               'Book Reservation', ['Review Order', 'Contact Info', 'Reservation Guests', 'Payment', 'Review Reservation'],
               'Group Block', ['Review Order', 'Contact Info', 'Review Reservation'],

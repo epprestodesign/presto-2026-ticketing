@@ -8,7 +8,10 @@
 // Ticketmaster's map feed carries the geometry only, not per-seat listings.
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 
-const DEFAULT_MAP = new URL('../assets/venue/gillette-stadium.svg', import.meta.url).href
+// The interactive layer uses a high-res RASTER of the map: browsers re-rasterize
+// SVGs on every zoom step (janky), but GPU-scale raster images smoothly. The
+// vector source (…/gillette-stadium.svg) stays bundled as the source of truth.
+const DEFAULT_MAP = new URL('../assets/venue/gillette-stadium.png', import.meta.url).href
 
 const props = defineProps({
   mapSrc: { type: String, default: null },
@@ -23,7 +26,8 @@ const viewport = ref(null)
 const vw = ref(800)
 const worldH = computed(() => vw.value * props.aspect)
 const view = reactive({ scale: 1, tx: 0, ty: 0 })
-const MIN = 1, MAX = 5
+const MIN = 1, MAX = 6
+const animate = ref(false) // smooth transition for button zoom only (not drag/wheel)
 
 let ro
 onMounted(() => {
@@ -49,16 +53,23 @@ function zoomAt(cx, cy, factor) {
 }
 function onWheel(e) {
   e.preventDefault()
+  animate.value = false
   const r = viewport.value.getBoundingClientRect()
   zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.15 : 1 / 1.15)
 }
-function zoomBtn(f) { zoomAt(vw.value / 2, worldH.value / 2, f) }
-function reset() { view.scale = 1; view.tx = 0; view.ty = 0 }
+let animTimer
+function zoomBtn(f) {
+  animate.value = true
+  zoomAt(vw.value / 2, worldH.value / 2, f)
+  clearTimeout(animTimer)
+  animTimer = setTimeout(() => { animate.value = false }, 200)
+}
+function reset() { animate.value = true; view.scale = 1; view.tx = 0; view.ty = 0; clearTimeout(animTimer); animTimer = setTimeout(() => { animate.value = false }, 200) }
 
 // Drag-pan with flick momentum.
 let dragging = false, lastX = 0, lastY = 0, vX = 0, vY = 0, lastT = 0, raf = 0
 function onDown(e) {
-  dragging = true; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); vX = vY = 0
+  dragging = true; animate.value = false; lastX = e.clientX; lastY = e.clientY; lastT = performance.now(); vX = vY = 0
   cancelAnimationFrame(raf)
   viewport.value.setPointerCapture?.(e.pointerId)
 }
@@ -102,7 +113,7 @@ function fmt(n, c = 'USD') {
       ref="viewport" class="vmap__viewport" :class="{ 'is-dragging': false }"
       @wheel="onWheel" @pointerdown="onDown" @pointermove="onMove" @pointerup="onUp" @pointercancel="onUp"
     >
-      <div class="vmap__world" :style="{ width: vw + 'px', height: worldH + 'px', transform: `translate(${view.tx}px, ${view.ty}px) scale(${view.scale})` }">
+      <div class="vmap__world" :class="{ 'is-animating': animate }" :style="{ width: vw + 'px', height: worldH + 'px', transform: `translate3d(${view.tx}px, ${view.ty}px, 0) scale(${view.scale})` }">
         <img :src="src" class="vmap__img" draggable="false" alt="Gillette Stadium seating map" />
         <button
           v-for="p in pins" :key="p.id"
@@ -147,8 +158,9 @@ function fmt(n, c = 'USD') {
   touch-action: none; cursor: grab; user-select: none; aspect-ratio: 1024 / 768;
 }
 .vmap__viewport:active { cursor: grabbing; }
-.vmap__world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
-.vmap__img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.vmap__world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; backface-visibility: hidden; }
+.vmap__world.is-animating { transition: transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.vmap__img { width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
 
 .vmap__pin {
   position: absolute; transform-origin: 50% 100%;

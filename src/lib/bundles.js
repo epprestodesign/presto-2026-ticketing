@@ -67,6 +67,104 @@ export function generatePackages(event = {}, opts = {}) {
   })
 }
 
+// Themed "Patriots experience" packages for the EventPipe client-appreciation
+// outing — beyond a plain ticket+hotel, each bundles a signature experience.
+// Sponsor names are illustrative/fictional (prototype).
+const EXPERIENCE_PACKAGES = [
+  {
+    id: 'legends-tour', theme: 'Stadium Tour', icon: 'tour', accentVar: '--ds-palette-blue-600',
+    name: 'Legends Stadium Tour', tierId: 'club', hotelId: 'westin', extra: 120,
+    tagline: 'Go behind the scenes before kickoff.',
+    experiences: [
+      { icon: 'stadium', label: 'Guided stadium & locker-room tour' },
+      { icon: 'emoji_events', label: 'Patriots Hall of Fame visit' },
+      { icon: 'photo_camera', label: 'Pregame field photo op' },
+    ],
+  },
+  {
+    id: 'ultimate-tailgate', theme: 'Tailgate', icon: 'outdoor_grill', accentVar: '--ds-palette-amber-600',
+    name: 'Ultimate Tailgate', tierId: 'lower', hotelId: 'courtyard', extra: 95,
+    sponsor: 'Harbor Light Brewing', tagline: 'The full pregame party, hosted for you.',
+    experiences: [
+      { icon: 'celebration', label: 'Sponsored pregame tailgate party' },
+      { icon: 'lunch_dining', label: 'All-you-can-eat New England BBQ' },
+      { icon: 'sports_bar', label: 'Craft beer garden (21+)' },
+    ],
+  },
+  {
+    id: 'family-gameday', theme: 'Family · Kids Friendly', icon: 'family_restroom', accentVar: '--ds-palette-green-600',
+    name: 'Family Gameday', tierId: 'mezz', hotelId: 'hilton-garden', extra: 60, quantity: 4,
+    tagline: 'An easy, kid-friendly day out for the whole crew.',
+    experiences: [
+      { icon: 'child_care', label: 'Junior Patriots activity kit for kids' },
+      { icon: 'face', label: 'Face-painting & mascot meet-and-greet' },
+      { icon: 'local_parking', label: 'Reserved family parking pass' },
+    ],
+  },
+  {
+    id: 'field-vip', theme: 'VIP', icon: 'workspace_premium', accentVar: '--ds-palette-red-600',
+    name: 'Field-Level VIP', tierId: 'club', hotelId: 'westin', extra: 240,
+    tagline: 'The white-glove treatment, start to finish.',
+    experiences: [
+      { icon: 'meeting_room', label: 'Optum Field Lounge all-game access' },
+      { icon: 'sports_football', label: 'Pregame field-level visit' },
+      { icon: 'restaurant', label: 'Premium all-inclusive catering' },
+    ],
+  },
+  {
+    id: 'fan-essentials', theme: 'Value', icon: 'confirmation_number', accentVar: '--ds-palette-slate-500',
+    name: 'Fan Essentials', tierId: 'upper', hotelId: 'hyatt-place', extra: 0,
+    tagline: 'Everything you need for the game — nothing you don’t.',
+    experiences: [
+      { icon: 'directions_bus', label: 'Round-trip shuttle to Gillette' },
+      { icon: 'hotel', label: 'Overnight stay near the venue' },
+    ],
+  },
+]
+
+/**
+ * Build the themed Patriots-experience packages for an event: ticket tier +
+ * hotel + a signature experience, priced as a single discounted SKU.
+ */
+export function generateExperiencePackages(event = {}, opts = {}) {
+  const { nights = 1 } = opts
+  const tiers = deriveTiers(event, 'stadium')
+  const tierById = Object.fromEntries(tiers.map((t) => [t.id, t]))
+  const hotelById = Object.fromEntries(CONTRACTED_HOTELS.map((h) => [h.id, h]))
+  const seed = event.id || event.name || 'exp'
+
+  return EXPERIENCE_PACKAGES.map((p, i) => {
+    const tier = tierById[p.tierId] ?? tiers[0]
+    const hotel = hotelById[p.hotelId] ?? CONTRACTED_HOTELS[0]
+    const quantity = p.quantity ?? 2
+    const ticketTotal = tier.price * quantity
+    const hotelTotal = hotel.nightlyRate * nights
+    const experienceValue = p.extra * quantity
+    const componentsTotal = ticketTotal + hotelTotal + experienceValue
+    const discountPct = 0.08 + hash(`${seed}-${p.id}`) * 0.08
+    const packagePrice = Math.round(componentsTotal * (1 - discountPct))
+    return {
+      id: p.id,
+      name: p.name,
+      theme: p.theme,
+      icon: p.icon,
+      accentVar: p.accentVar,
+      tagline: p.tagline,
+      sponsor: p.sponsor ?? null,
+      experiences: p.experiences,
+      quantity,
+      ticket: { tierId: tier.id, tierName: tier.name, price: tier.price, colorVar: tier.colorVar },
+      hotel: { ...hotel, nights, hotelTotal },
+      nights,
+      componentsTotal,
+      packagePrice,
+      savings: componentsTotal - packagePrice,
+      currency: 'USD',
+      soldOut: hash(`${seed}-exp-sold-${i}`) > 0.88,
+    }
+  })
+}
+
 /** Build a unified cart model from a ticket selection (+ optional hotel). */
 export function buildBundleCart({ event, tier, quantity = 2, hotel = null, nights = 1, feeRate = 0.18, taxRate = 0.09 }) {
   const items = []

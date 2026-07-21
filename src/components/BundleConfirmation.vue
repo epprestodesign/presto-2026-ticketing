@@ -10,10 +10,22 @@ const props = defineProps({
   event: { type: Object, required: true },
   cart: { type: Object, required: true },        // buildBundleCart() result
   email: { type: String, default: 'you@example.com' },
-  hasHotel: { type: Boolean, default: true },
+  // bundle (ticket+hotel, dual-email v1) | package | ticket-only
+  variant: { type: String, default: 'bundle' },
 })
 
-const ICON = { ticket: 'confirmation_number', hotel: 'hotel' }
+const hasHotel = computed(() => props.variant !== 'ticket-only')
+const notice = computed(() => {
+  if (props.variant === 'ticket-only') {
+    return { icon: 'confirmation_number', title: 'Tickets on the way.', body: `Ticketmaster will email your mobile tickets to ${props.email} shortly. This order has no hotel.` }
+  }
+  if (props.variant === 'package') {
+    return { icon: 'redeem', title: `Your package is confirmed.`, body: `Hotel and experience details are in your inbox at ${props.email}. Your tickets will arrive in a separate email.` }
+  }
+  return { icon: 'mark_email_read', title: `Hotel confirmation sent to ${props.email}.`, body: 'Your tickets will be confirmed in a separate email — please check your inbox.' }
+})
+
+const ICON = { ticket: 'confirmation_number', hotel: 'hotel', experience: 'star' }
 function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: props.cart.currency || 'USD', maximumFractionDigits: 0 }).format(n) }
 </script>
 
@@ -38,11 +50,10 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
       <li class="bconf__total"><span>Total charged</span><span>{{ fmt(cart.total) }}</span></li>
     </ul>
 
-    <div v-if="hasHotel" class="bconf__email">
-      <q-icon name="mark_email_read" size="20px" />
+    <div class="bconf__email">
+      <q-icon :name="notice.icon" size="20px" />
       <div>
-        <strong>Hotel confirmation sent to {{ email }}.</strong>
-        Your tickets will be confirmed in a <em>separate email</em> — please check your inbox.
+        <strong>{{ notice.title }}</strong> {{ notice.body }}
       </div>
     </div>
   </div>
