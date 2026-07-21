@@ -64,8 +64,10 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
     <div class="pkg__foot">
       <div class="pkg__pricing">
         <span class="pkg__was">{{ fmt(pkg.componentsTotal) }}</span>
-        <span class="pkg__now">{{ fmt(pkg.packagePrice) }}</span>
-        <span v-if="pkg.quantity > 1" class="pkg__per">for {{ pkg.quantity }}</span>
+        <span class="pkg__nowline">
+          <span class="pkg__now">{{ fmt(pkg.packagePrice) }}</span>
+          <span v-if="pkg.quantity > 1" class="pkg__per">for {{ pkg.quantity }}</span>
+        </span>
       </div>
       <button type="button" class="pkg__cta" :disabled="soldOut" @click="emit('select', pkg)">
         {{ selected ? 'Selected' : soldOut ? 'Unavailable' : 'Select package' }}
@@ -116,9 +118,13 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
 .pkg__icon { color: var(--ds-color-icon-subtle); flex: none; }
 .pkg__exp { color: var(--ds-color-text); }
 
-.pkg__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); padding-top: var(--ds-space-3); border-top: 1px solid var(--ds-color-border); }
-.pkg__pricing { display: flex; align-items: baseline; gap: var(--ds-space-2); }
-.pkg__was { text-decoration: line-through; color: var(--ds-color-text-subtlest); font-size: var(--ds-font-size-sm); }
+/* Footer pinned to the bottom of the card so pricing + CTA align across cards
+   of differing content height (margin-top:auto absorbs the free space above). */
+.pkg__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); margin-top: auto; padding-top: var(--ds-space-3); border-top: 1px solid var(--ds-color-border); }
+/* Stack the struck-through a-la-carte total above the discounted package price. */
+.pkg__pricing { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.pkg__was { text-decoration: line-through; color: var(--ds-color-text-subtlest); font-size: var(--ds-font-size-sm); line-height: 1.2; }
+.pkg__nowline { display: inline-flex; align-items: baseline; gap: 6px; }
 .pkg__now { font-size: var(--ds-font-size-lg); font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }
 .pkg__per { font-size: var(--ds-font-size-sm); color: var(--ds-color-text-subtle); }
 .pkg__cta {
