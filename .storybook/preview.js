@@ -100,6 +100,7 @@ const preview = {
             'Browse Tickets',
             // Everything else — the individual building blocks.
             'Components', [
+              'Browse Tickets', ['Filters Dialog', 'Listing Row', 'Venue Map', 'Price Histogram'],
               'Event & Tickets', ['Event Page', 'Event Hero', 'Ticket Tiers', 'Ticket Category Card'],
               'Seat Map & View', ['Venue Map (Ticketmaster)', 'Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
               'Hotel Add-On', ['Add-On Step', 'Live Search', 'Contracted Hotel Card', 'No Availability'],
