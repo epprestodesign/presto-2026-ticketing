@@ -94,7 +94,8 @@ const preview = {
           ],
           'Ticketing & Bundles', [
             'Overview',
-            'Event & Tickets', ['Event Hero', 'Ticket Tiers', 'Ticket Category Card'],
+            'Full Screens', ['Ticket Only', 'Package Only', 'Ticket + Hotel'],
+            'Event & Tickets', ['Event Page', 'Event Hero', 'Ticket Tiers', 'Ticket Category Card'],
             'Seat Map & View', ['Venue Map (Ticketmaster)', 'Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
             'Hotel Add-On', ['Add-On Step', 'Live Search', 'Contracted Hotel Card', 'No Availability'],
             'Packages', ['Package List', 'Package Card'],
