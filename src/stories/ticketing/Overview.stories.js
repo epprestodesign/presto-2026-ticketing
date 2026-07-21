@@ -16,7 +16,7 @@ export default {
     docs: {
       description: {
         component:
-          'Seat-selection experience for the ticketing + hotel bundle flow. Event and static seat-map data are real Ticketmaster; the interactive bowl, sections, and prices are a clearly-labeled prototype layer. Ticketmaster does not expose seat geometry or per-seat pricing.',
+          'Seat-selection experience for EventPipe’s client-appreciation outing — your ticket + hotel are bundled so you save on both. Event and static seat-map data are real Ticketmaster; the interactive bowl, sections, and prices are a clearly-labeled prototype layer. Ticketmaster does not expose seat geometry or per-seat pricing.',
       },
     },
   },
@@ -38,7 +38,7 @@ export const Experience = {
         <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:28px;align-items:start;margin-top:28px;">
           <div>
             <h2 style="font-family:var(--ds-font-family);margin:0 0 4px;font-size:24px;color:var(--ds-color-text);">{{ event.name }}</h2>
-            <p style="font-family:var(--ds-font-family);margin:0 0 20px;color:var(--ds-color-text-subtle);">Choose your seats — {{ event.venue?.name }}</p>
+            <p style="font-family:var(--ds-font-family);margin:0 0 20px;color:var(--ds-color-text-subtle);">Your seats for the game — {{ event.venue?.name }}. EventPipe is hosting, so pick where you’d like to sit and we’ll take care of the rest.</p>
             <SeatMap :event="event" kind="stadium" center-label="FIELD" v-model="selectedId" @select="onSelect" />
           </div>
           <SeatMapSummary :event="event" :selection="selection" v-model="qty" />

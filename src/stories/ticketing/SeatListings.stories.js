@@ -32,8 +32,8 @@ export const Browser = {
         <!-- Listings rail -->
         <div style="display:flex;flex-direction:column;border-right:1px solid var(--ds-color-border);min-height:0;">
           <div style="padding:20px 20px 12px;">
-            <div style="font-weight:700;color:var(--ds-color-text);">Authenticated Tickets</div>
-            <div style="font-size:13px;color:var(--ds-color-text-subtle);margin-bottom:12px;">{{ listings.length }} listings · {{ event.venue?.name }}</div>
+            <div style="font-weight:700;color:var(--ds-color-text);">Your seats, hosted by EventPipe</div>
+            <div style="font-size:13px;color:var(--ds-color-text-subtle);margin-bottom:12px;">{{ listings.length }} seats held for our guests · {{ event.venue?.name }}</div>
             <PriceHistogram :bins="dist.bins" :min="dist.min" :max="dist.max" />
           </div>
           <div style="overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;min-height:0;">

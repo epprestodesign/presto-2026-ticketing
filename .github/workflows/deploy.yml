@@ -60,6 +60,21 @@ jobs:
       - name: Nest prototype under Storybook
         run: cp -r prototype/dist storybook-static/prototype
 
+      # Build the ticket + hotel BUNDLE prototype (a second Vite app reusing the
+      # real library components) and nest it at /presto-2026-ticketing/bundle/.
+      - name: Build bundle prototype (ticket + hotel)
+        working-directory: bundle
+        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/bundle/
+        env:
+          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
+
+      - name: Nest bundle prototype under Storybook
+        run: cp -r bundle/dist storybook-static/bundle
+
+      # The experience directory / hub landing page → /presto-2026-ticketing/hub/.
+      - name: Nest hub directory page
+        run: mkdir -p storybook-static/hub && cp hub/index.html storybook-static/hub/index.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: storybook-static

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Presto — Experience Directory</title>
+  <style>
+    :root {
+      --navy: #01113e; --canvas: #f9f9fa; --surface: #fff; --border: #e3e4e8;
+      --text: #1a1c22; --subtle: #5a5f6b; --brand: #01113e; --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: 'PT Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--canvas); color: var(--text); line-height: 1.55;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+    header.top { background: var(--navy); color: #fff; padding: 14px 0; }
+    header.top .wrap { display: flex; align-items: baseline; gap: 10px; }
+    .logo { font-weight: 800; font-size: 18px; }
+    .logo small { font-weight: 400; opacity: .8; font-size: 13px; margin-left: 6px; }
+    .hero { padding: 56px 0 24px; }
+    .hero h1 { font-size: 34px; margin: 0 0 10px; letter-spacing: -0.01em; }
+    .hero p { font-size: 17px; color: var(--subtle); max-width: 64ch; margin: 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px 0 8px; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit;
+      transition: box-shadow .15s, border-color .15s, transform .15s;
+    }
+    .card:hover { border-color: #c7c9d1; box-shadow: 0 10px 28px rgba(0,0,0,.08); transform: translateY(-2px); }
+    .card__banner { height: 8px; }
+    .card--hotel .card__banner { background: linear-gradient(90deg, #1f6feb, #4f9cff); }
+    .card--bundle .card__banner { background: linear-gradient(90deg, #01113e, #7a1420); }
+    .card__body { padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .card__kicker { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--subtle); }
+    .card__title { font-size: 21px; font-weight: 800; margin: 0; }
+    .card__desc { color: var(--subtle); margin: 0; flex: 1; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { font-size: 12px; background: #eef0f4; color: #3a3f4b; padding: 3px 9px; border-radius: 999px; }
+    .card__go { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--brand); margin-top: 4px; }
+    .diff { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin: 24px 0 12px; }
+    .diff h2 { margin: 0 0 14px; font-size: 18px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--subtle); font-weight: 700; }
+    td:first-child { color: var(--subtle); width: 30%; }
+    .extra { display: flex; gap: 16px; flex-wrap: wrap; padding: 10px 0 60px; }
+    .extra a { color: var(--brand); font-weight: 700; text-decoration: none; }
+    .extra a:hover { text-decoration: underline; }
+    footer { color: var(--subtle); font-size: 13px; padding: 0 0 48px; }
+  </style>
+</head>
+<body>
+  <header class="top"><div class="wrap"><span class="logo">Presto <small>by EventPipe</small></span></div></header>
+
+  <div class="wrap">
+    <section class="hero">
+      <h1>Prototype experiences</h1>
+      <p>Two clickable prototypes built from the same Presto design system. One is the core hotel-booking journey; the other bundles event tickets <em>with</em> a hotel for a client-appreciation outing. Open either below.</p>
+    </section>
+
+    <div class="grid">
+      <a class="card card--hotel" href="/presto-2026-ticketing/prototype/">
+        <div class="card__banner"></div>
+        <div class="card__body">
+          <span class="card__kicker">Experience 1</span>
+          <h3 class="card__title">Hotel Booking</h3>
+          <p class="card__desc">The core booking journey — search, browse on a live map, pick rooms, and check out. Three flows: Book Reservation, Group Block, and Multiple Reservations.</p>
+          <div class="chips"><span class="chip">Hotels</span><span class="chip">Live map</span><span class="chip">Checkout</span></div>
+          <span class="card__go">Open prototype →</span>
+        </div>
+      </a>
+
+      <a class="card card--bundle" href="/presto-2026-ticketing/bundle/">
+        <div class="card__banner"></div>
+        <div class="card__body">
+          <span class="card__kicker">Experience 2</span>
+          <h3 class="card__title">Ticket + Hotel Bundle</h3>
+          <p class="card__desc">An EventPipe client-appreciation outing to the Patriots game: pick seats on the real Gillette map, add a nearby hotel, and check out — tickets and hotel bundled into one order.</p>
+          <div class="chips"><span class="chip">Tickets</span><span class="chip">Seat map</span><span class="chip">Bundle</span></div>
+          <span class="card__go">Open prototype →</span>
+        </div>
+      </a>
+    </div>
+
+    <section class="diff">
+      <h2>How the two differ</h2>
+      <table>
+        <tr><th></th><th>Hotel Booking</th><th>Ticket + Hotel Bundle</th></tr>
+        <tr><td>Starts with</td><td>Searching for a hotel</td><td>An event you're invited to</td></tr>
+        <tr><td>Core object</td><td>Rooms &amp; nights</td><td>Seats + a hotel, sold together</td></tr>
+        <tr><td>Data source</td><td>Hotel inventory (mock/Expedia-style)</td><td>Real Ticketmaster event + venue map; hotels bundled</td></tr>
+        <tr><td>Checkout</td><td>Hotel reservation</td><td>One charge for tickets + hotel (EventPipe as merchant of record)</td></tr>
+        <tr><td>Best for</td><td>Standard stays &amp; group blocks</td><td>Gameday / experiential bundling &amp; client appreciation</td></tr>
+      </table>
+    </section>
+
+    <div class="extra">
+      <a href="/presto-2026-ticketing/">→ Design system (Storybook)</a>
+      <a href="/presto-2026-ticketing/bundle/">→ Bundle prototype</a>
+      <a href="/presto-2026-ticketing/prototype/">→ Hotel prototype</a>
+    </div>
+
+    <footer>Presto Design System · prototypes for presentation. Pricing, inventory, and seat data are illustrative.</footer>
+  </div>
+</body>
+</html>

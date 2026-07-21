@@ -11,7 +11,15 @@ const top = generateListings(event, { count: 12 })[0]
 export default {
   title: 'Ticketing & Bundles/Seat Map & View/View From Seat',
   component: ViewFromSeat,
-  parameters: { layout: 'centered' },
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component:
+          'See the view before the game — a look at where you’ll be sitting for EventPipe’s client-appreciation outing. Stock (Unsplash) photos stand in for real seat views; attribution is rendered per Unsplash guidelines, and pricing is hypothetical prototype data.',
+      },
+    },
+  },
 }
 
 export const Default = {

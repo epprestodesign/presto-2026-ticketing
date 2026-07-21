@@ -18,7 +18,7 @@ export default {
     docs: {
       description: {
         component:
-          'A Google-Maps-style interactive map on the **real Gillette Stadium vector map** from Ticketmaster (bundled locally — Ticketmaster’s live map endpoint is anti-bot protected, so we self-host the SVG). Drag to pan (with flick momentum), scroll/buttons to zoom, and tap a price pin to preview a seat. Prices & inventory are hypothetical prototype data — the Ticketmaster feed provides the geometry only.',
+          'Pick your seats for EventPipe’s client-appreciation outing at Gillette Stadium — a Google-Maps-style interactive map on the **real Gillette Stadium vector map** from Ticketmaster (bundled locally — Ticketmaster’s live map endpoint is anti-bot protected, so we self-host the SVG). Drag to pan (with flick momentum), scroll/buttons to zoom, and tap a price pin to preview a seat. Prices & inventory are hypothetical prototype data — the Ticketmaster feed provides the geometry only.',
       },
     },
   },
@@ -35,7 +35,7 @@ export const InteractiveMap = {
     template: `
       <div style="max-width:820px;margin:0 auto;padding:24px;">
         <h2 style="font-family:var(--ds-font-family);margin:0 0 4px;font-size:22px;color:var(--ds-color-text);">{{ event.name }}</h2>
-        <p style="font-family:var(--ds-font-family);margin:0 0 16px;color:var(--ds-color-text-subtle);">{{ event.venue?.name }} · pick your seats on the map</p>
+        <p style="font-family:var(--ds-font-family);margin:0 0 16px;color:var(--ds-color-text-subtle);">{{ event.venue?.name }} · EventPipe is hosting — pick your seats on the map</p>
         <VenueMap :event="event" :pins="pins" v-model="selectedId" @select="onSelect" />
       </div>
     `,

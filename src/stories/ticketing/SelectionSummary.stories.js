@@ -8,7 +8,15 @@ const event = fixtureEvents.find((e) => /stadium|field/i.test(e.venue?.name || '
 export default {
   title: 'Ticketing & Bundles/Selection Summary',
   component: SeatMapSummary,
-  parameters: { layout: 'centered' },
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component:
+          'Your running summary for the outing — the seats you’ve picked for EventPipe’s client-appreciation game, ready to roll into the bundled ticket + hotel checkout. Pricing shown is hypothetical prototype data.',
+      },
+    },
+  },
 }
 
 export const Default = {
