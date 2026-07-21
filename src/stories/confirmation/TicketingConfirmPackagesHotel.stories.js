@@ -1,17 +1,21 @@
 // CONFIRMATION / Packages + Hotel — the order-confirmed screen for a package
 // purchase that includes a hotel stay (ticket + experience + hotel SKU), on the
-// STANDARD confirmation template (ConfirmationPage, mode="ticketing"). One of the
-// four ticketing confirmation flows (2×2). Prototype data.
+// STANDARD confirmation template (ConfirmationPage, mode="ticketing"). Bundles the
+// package info AND the full hotel reservation details + policies. One of the four
+// ticketing confirmation flows. Prototype data.
 import ConfirmationPage from '../../components/confirmation/ConfirmationPage.vue'
-import { packagesHotelCart } from '../ticketing/_ticketing-flow-carts.js'
+import { packagesHotelCart, pkgHotel } from '../ticketing/_ticketing-flow-carts.js'
 import { confData } from './_ticketing-confirm-data.js'
+
+// The package's included stay → confData renders the full reservation block + hotel policies.
+const HOTEL = { name: pkgHotel.hotel.name, roomType: pkgHotel.hotel.roomType, rate: pkgHotel.hotel.nightlyRate, nights: pkgHotel.nights || 1 }
 
 export default {
   title: 'Confirmation/Packages + Hotel',
   component: ConfirmationPage,
   parameters: {
     layout: 'fullscreen',
-    docs: { description: { component: 'Order-confirmed screen for a **package with a hotel stay** — a ticket + experience + hotel SKU — on the standard confirmation template. Prototype pricing/inventory.' } },
+    docs: { description: { component: 'Order-confirmed screen for a **package with a hotel stay** — a ticket + experience + hotel SKU — on the standard confirmation template, bundling the package info with the full hotel reservation details + policies. Prototype pricing/inventory.' } },
   },
 }
 
@@ -25,6 +29,7 @@ export const Confirmed = {
   name: 'Page',
   render: () => story(confData(packagesHotelCart, {
     orderNumber: 'EP-6T2N8V',
+    hotel: HOTEL,
     bannerTitle: 'Success! Your package is confirmed.',
     statusNote: {
       title: 'Your stay and experience are set',
@@ -37,6 +42,7 @@ export const ExperiencePending = {
   name: 'Experience pending',
   render: () => story(confData(packagesHotelCart, {
     orderNumber: 'EP-6T2N8V',
+    hotel: HOTEL,
     tone: 'warning',
     bannerTitle: 'Package confirmed — experience details to follow.',
     statusNote: {

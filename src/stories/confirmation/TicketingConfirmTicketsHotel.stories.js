@@ -1,17 +1,21 @@
 // CONFIRMATION / Tickets + Hotel — the order-confirmed screen for a build-your-own
 // ticket + hotel bundle, on the STANDARD confirmation template (ConfirmationPage,
-// mode="ticketing"). Confirmed via the v1 dual-email model (hotel now, tickets in a
-// separate email). One of the four ticketing confirmation flows (2×2). Prototype data.
+// mode="ticketing"). Bundles the ticket info AND the full hotel reservation
+// details + policies (like the Book Reservation confirmation). Confirmed via the
+// v1 dual-email model. One of the four ticketing confirmation flows. Prototype data.
 import ConfirmationPage from '../../components/confirmation/ConfirmationPage.vue'
-import { ticketsHotelCart } from '../ticketing/_ticketing-flow-carts.js'
+import { ticketsHotelCart, hotel } from '../ticketing/_ticketing-flow-carts.js'
 import { confData } from './_ticketing-confirm-data.js'
+
+// Hotel descriptor → confData renders the full reservation block + hotel policies.
+const HOTEL = { name: hotel.name, roomType: hotel.roomType, rate: hotel.nightlyRate, nights: 1 }
 
 export default {
   title: 'Confirmation/Tickets + Hotel',
   component: ConfirmationPage,
   parameters: {
     layout: 'fullscreen',
-    docs: { description: { component: 'Order-confirmed screen for a **ticket + hotel** bundle on the standard confirmation template — tickets and a nearby hotel in one order, confirmed via the dual-email v1 model. Prototype pricing/inventory.' } },
+    docs: { description: { component: 'Order-confirmed screen for a **ticket + hotel** bundle on the standard confirmation template — tickets, the value-prop guarantees, AND the full hotel reservation details + policies (like the Book Reservation confirmation). Confirmed via the dual-email v1 model. Prototype pricing/inventory.' } },
   },
 }
 
@@ -25,6 +29,7 @@ export const Confirmed = {
   name: 'Page',
   render: () => story(confData(ticketsHotelCart, {
     orderNumber: 'EP-7Q4M2X',
+    hotel: HOTEL,
     bannerTitle: 'Success! Your hotel + tickets are confirmed.',
     statusNote: {
       title: 'Two confirmations, two emails',
@@ -37,6 +42,7 @@ export const SeatsUpgraded = {
   name: 'Seats upgraded',
   render: () => story(confData(ticketsHotelCart, {
     orderNumber: 'EP-7Q4M2X',
+    hotel: HOTEL,
     tone: 'warning',
     bannerTitle: 'Order confirmed — with a seating change.',
     statusNote: {
@@ -65,6 +71,7 @@ export const Refunded = {
   name: 'Refunded',
   render: () => story(confData(ticketsHotelCart, {
     orderNumber: 'EP-7Q4M2X',
+    hotel: HOTEL,
     tone: 'danger',
     bannerTitle: 'This order was cancelled and refunded.',
     bannerSub: 'A refund confirmation is on its way.',
