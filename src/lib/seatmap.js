@@ -9,18 +9,22 @@
 
 // Tier presets, ordered premium → value (inner ring → outer ring). Colors are
 // pulled from the design-system palette tokens so the map reads as one system.
+// Stadium preset models an NFL bowl (tuned to Gillette Stadium's section
+// families): a 100-level lower bowl, a Club ring (C-sections), a 200-level
+// mezzanine, and a 300-level upper deck. `prefix` drives real-looking section
+// numbers (101…, C1…, 201…, 301…).
 export const TIER_PRESETS = {
   stadium: [
-    { id: 'field',  name: 'Field Level',  colorVar: '--ds-palette-red-500',   base: 385 },
-    { id: 'club',   name: 'Club Level',   colorVar: '--ds-palette-amber-500', base: 245 },
-    { id: 'lower',  name: 'Lower Bowl',   colorVar: '--ds-palette-blue-500',  base: 165 },
-    { id: 'upper',  name: 'Upper Deck',   colorVar: '--ds-palette-green-600', base: 89  },
+    { id: 'lower', name: 'Lower Level', prefix: '1', desc: 'Sideline & end zone, closest to the field', colorVar: '--ds-palette-red-500',   base: 289 },
+    { id: 'club',  name: 'Club Level',  prefix: 'C', desc: 'Premium mid-level with indoor lounge access', colorVar: '--ds-palette-amber-500', base: 375 },
+    { id: 'mezz',  name: 'Mezzanine',   prefix: '2', desc: 'Elevated corners & sideline',                 colorVar: '--ds-palette-blue-500',  base: 165 },
+    { id: 'upper', name: 'Upper Level', prefix: '3', desc: 'Highest level — the budget-friendly view',    colorVar: '--ds-palette-green-600', base: 89  },
   ],
   arena: [
-    { id: 'floor',  name: 'Floor / GA',   colorVar: '--ds-palette-red-500',   base: 320 },
-    { id: 'lower',  name: 'Lower Bowl',   colorVar: '--ds-palette-amber-500', base: 190 },
-    { id: 'club',   name: 'Club',         colorVar: '--ds-palette-blue-500',  base: 140 },
-    { id: 'upper',  name: 'Upper Level',  colorVar: '--ds-palette-green-600', base: 75  },
+    { id: 'floor', name: 'Floor / GA',  prefix: 'F', desc: 'On the floor, closest to the stage',  colorVar: '--ds-palette-red-500',   base: 320 },
+    { id: 'lower', name: 'Lower Bowl',  prefix: '1', desc: 'Lower seated bowl around the floor',   colorVar: '--ds-palette-amber-500', base: 190 },
+    { id: 'club',  name: 'Club',        prefix: 'C', desc: 'Mid-level club with amenities',        colorVar: '--ds-palette-blue-500',  base: 140 },
+    { id: 'upper', name: 'Upper Level', prefix: '2', desc: 'Upper bowl — the budget-friendly view', colorVar: '--ds-palette-green-600', base: 75  },
   ],
 }
 
@@ -43,20 +47,27 @@ export function deriveTiers(event = {}, kind = 'stadium') {
   // Real pricing path (rare in Discovery for US events, but honored if present).
   if (event.priceTiers?.length || event.priceRanges?.length) {
     const ranges = event.priceTiers?.length ? event.priceTiers : event.priceRanges
-    return ranges.map((r, i) => ({
-      id: r.id || `tier-${i}`,
-      name: r.type ? cap(r.type) : (preset[i]?.name ?? `Tier ${i + 1}`),
-      colorVar: preset[i % preset.length].colorVar,
-      price: Math.round(r.min ?? r.max ?? preset[i % preset.length].base),
-      currency: r.currency || 'USD',
-      synthetic: false,
-    }))
+    return ranges.map((r, i) => {
+      const p = preset[i % preset.length]
+      return {
+        id: r.id || `tier-${i}`,
+        name: r.type ? cap(r.type) : (preset[i]?.name ?? `Tier ${i + 1}`),
+        prefix: p.prefix,
+        desc: p.desc,
+        colorVar: p.colorVar,
+        price: Math.round(r.min ?? r.max ?? p.base),
+        currency: r.currency || 'USD',
+        synthetic: false,
+      }
+    })
   }
 
   // Synthetic path — jitter each preset base ±12% by seed so events differ.
-  return preset.map((t, i) => ({
+  return preset.map((t) => ({
     id: t.id,
     name: t.name,
+    prefix: t.prefix,
+    desc: t.desc,
     colorVar: t.colorVar,
     price: Math.round(t.base * (0.88 + hash(event.id + t.id) * 0.24)),
     currency: 'USD',
@@ -66,56 +77,69 @@ export function deriveTiers(event = {}, kind = 'stadium') {
 
 function cap(s) { return String(s).charAt(0).toUpperCase() + String(s).slice(1) }
 
+// Default bowl layout (shared with SeatMap.vue so the field lines up with the
+// seating rings). A superellipse gives the rounded-rectangle "stadium" silhouette
+// — not a circle — with the field wider than it is tall, like an NFL bowl.
+export const BOWL = {
+  cx: 380, cy: 250,
+  fieldA: 150, fieldB: 92,   // field half-width / half-height
+  ringGap: 15, ringThickness: 33,
+  n: 2.8,                     // superellipse exponent (2 = ellipse, ∞ = rectangle)
+  sectionGapDeg: 1.4,
+}
+
+// Point on a superellipse of half-extents (a, b) at polar angle `deg`, centered
+// at (cx, cy). n controls "squareness": ~2.8 reads as a rounded-rect stadium.
+function superPoint(cx, cy, a, b, deg, n) {
+  const t = (deg * Math.PI) / 180
+  const ct = Math.cos(t), st = Math.sin(t)
+  const denom = Math.pow(Math.abs(ct / a), n) + Math.pow(Math.abs(st / b), n)
+  const r = Math.pow(denom, -1 / n)
+  return [cx + r * ct, cy + r * st]
+}
+
 /**
- * Parametric stadium/arena bowl. Returns one entry per section: an SVG path
- * (annular sector on an ellipse), a centroid for labels, and its tier. One ring
- * per tier — inner ring = premium tier. A deterministic sprinkling of sections
- * is marked unavailable so the map feels live.
+ * Stadium bowl sections. One ring per tier around a central (wider-than-tall)
+ * field; each section is a trapezoid following the rounded-rectangle silhouette,
+ * with a realistic section number (101…, C1…, 201…, 301…). A deterministic
+ * sprinkle is marked unavailable so the map feels live.
  *
  * @param {Array} tiers  output of deriveTiers()
- * @param {object} opts
+ * @param {object} opts  overrides for BOWL layout + `seed`
  */
 export function buildBowlSections(tiers = [], opts = {}) {
-  const {
-    cx = 300, cy = 210,
-    rxBase = 70, ryBase = 48,   // inner (center) ellipse radii
-    ring = 42,                   // radial thickness added per ring (x); y scaled
-    sectionGapDeg = 2.2,
-    seed = 'bowl',
-  } = opts
-
-  const rings = tiers.length
-  const yScale = ryBase / rxBase
+  const { cx, cy, fieldA, fieldB, ringGap, ringThickness, n, sectionGapDeg } = { ...BOWL, ...opts }
+  const seed = opts.seed || 'bowl'
   const sections = []
 
   tiers.forEach((tier, r) => {
-    // More sections as you move outward (bigger rings hold more).
-    const count = 8 + r * 4
-    const innerRx = rxBase + r * ring
-    const outerRx = rxBase + (r + 1) * ring - 6
+    const count = 22 + r * 4 // more sections in the bigger outer rings
+    const innerDelta = ringGap + r * ringThickness
+    const outerDelta = ringGap + (r + 1) * ringThickness - 5
+    const ia = fieldA + innerDelta, ib = fieldB + innerDelta
+    const oa = fieldA + outerDelta, ob = fieldB + outerDelta
     const step = 360 / count
 
     for (let s = 0; s < count; s++) {
       const a0 = s * step + sectionGapDeg / 2
       const a1 = (s + 1) * step - sectionGapDeg / 2
-      const path = annularSector(cx, cy, innerRx, outerRx, innerRx * yScale, outerRx * yScale, a0, a1)
+      const path = superSector(cx, cy, ia, ib, oa, ob, a0, a1, n)
       const mid = (a0 + a1) / 2
-      const midRx = (innerRx + outerRx) / 2
-      const rad = (mid * Math.PI) / 180
-      // Deterministic ~14% unavailable.
-      const unavailable = hash(`${seed}-${tier.id}-${s}`) > 0.86
+      const [labelX, labelY] = superPoint(cx, cy, (ia + oa) / 2, (ib + ob) / 2, mid, n)
+      const unavailable = hash(`${seed}-${tier.id}-${s}`) > 0.9
+      const label = tier.prefix
+        ? (/^\d$/.test(tier.prefix) ? `${tier.prefix}${String(s + 1).padStart(2, '0')}` : `${tier.prefix}${s + 1}`)
+        : `${tier.id.toUpperCase()}${s + 1}`
       sections.push({
         id: `${tier.id}-${s + 1}`,
-        label: `${tier.id.toUpperCase()}${s + 1}`,
+        label,
         tierId: tier.id,
         tierName: tier.name,
         colorVar: tier.colorVar,
         price: tier.price,
         currency: tier.currency,
         available: !unavailable,
-        path,
-        labelX: cx + Math.cos(rad) * midRx,
-        labelY: cy + Math.sin(rad) * midRx * yScale,
+        path, labelX, labelY, angle: mid,
       })
     }
   })
@@ -123,23 +147,19 @@ export function buildBowlSections(tiers = [], opts = {}) {
   return sections
 }
 
-// Annular sector as a closed polygon (sampled arcs — robust across renderers).
-function annularSector(cx, cy, innerRx, outerRx, innerRy, outerRy, a0deg, a1deg) {
-  const steps = 8
+// A section as a trapezoid between the inner and outer superellipse arcs.
+function superSector(cx, cy, ia, ib, oa, ob, a0, a1, n) {
+  const steps = 6
   const pts = []
-  const at = (rx, ry, deg) => {
-    const rad = (deg * Math.PI) / 180
-    return `${(cx + Math.cos(rad) * rx).toFixed(1)},${(cy + Math.sin(rad) * ry).toFixed(1)}`
-  }
-  // outer arc a0 → a1
   for (let i = 0; i <= steps; i++) {
-    const d = a0deg + ((a1deg - a0deg) * i) / steps
-    pts.push(at(outerRx, outerRy, d))
+    const d = a0 + ((a1 - a0) * i) / steps
+    const [x, y] = superPoint(cx, cy, oa, ob, d, n)
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`)
   }
-  // inner arc a1 → a0
   for (let i = steps; i >= 0; i--) {
-    const d = a0deg + ((a1deg - a0deg) * i) / steps
-    pts.push(at(innerRx, innerRy, d))
+    const d = a0 + ((a1 - a0) * i) / steps
+    const [x, y] = superPoint(cx, cy, ia, ib, d, n)
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`)
   }
   return `M${pts.join(' L')} Z`
 }

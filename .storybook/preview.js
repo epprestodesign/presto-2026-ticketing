@@ -94,7 +94,7 @@ const preview = {
           ],
           'Ticketing & Bundles', [
             'Overview',
-            'Seat Map & View', ['Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
+            'Seat Map & View', ['Venue Map (Ticketmaster)', 'Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
             'Hotel Add-On', ['Add-On Step', 'Contracted Hotel Card'],
             'Packages', ['Package List', 'Package Card'],
             'Bundle Cart & Checkout', ['Bundle Cart'],

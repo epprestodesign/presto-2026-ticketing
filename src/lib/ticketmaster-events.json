@@ -1,5 +1,161 @@
 [
   {
+    "id": "vv1k7Z_FkaG7VzkK",
+    "name": "New England Patriots v Buffalo Bills",
+    "url": "https://www.ticketmaster.com/new-england-patriots-v-buffalo-bills-foxborough-massachusetts-12-06-2026/event/0100648189D38193",
+    "dates": {
+      "start": {
+        "localDate": "2026-12-06",
+        "localTime": "16:25:00",
+        "dateTime": "2026-12-06T21:25:00Z",
+        "dateTBD": false,
+        "dateTBA": false,
+        "timeTBA": false,
+        "noSpecificTime": false
+      },
+      "timezone": "America/New_York",
+      "status": {
+        "code": "onsale"
+      },
+      "spanMultipleDays": false
+    },
+    "images": [
+      {
+        "ratio": "16_9",
+        "url": "https://s1.ticketm.net/dam/a/95c/0173c6d8-736f-487e-8146-794d0313095c_SOURCE",
+        "width": 2048,
+        "height": 1152,
+        "fallback": false
+      }
+    ],
+    "seatmap": {
+      "staticUrl": "https://mapsapi.tmol.io/maps/geometry/3/event/0100648189D38193/staticImage?type=png&systemId=HOST"
+    },
+    "priceRanges": [],
+    "classifications": [
+      {
+        "primary": true,
+        "segment": {
+          "id": "KZFzniwnSyZfZ7v7nE",
+          "name": "Sports"
+        },
+        "genre": {
+          "id": "KnvZfZ7vAdE",
+          "name": "Football"
+        },
+        "subGenre": {
+          "id": "KZazBEonSMnZfZ7vFE1",
+          "name": "NFL"
+        },
+        "type": {
+          "id": "KZAyXgnZfZ7v7l1",
+          "name": "Group"
+        },
+        "subType": {
+          "id": "KZFzBErXgnZfZ7vA7d",
+          "name": "Team"
+        },
+        "family": false
+      }
+    ],
+    "_embedded": {
+      "venues": [
+        {
+          "name": "Gillette Stadium",
+          "city": {
+            "name": "Foxborough"
+          },
+          "state": {
+            "name": "Massachusetts",
+            "stateCode": "MA"
+          },
+          "country": {
+            "name": "United States Of America",
+            "countryCode": "US"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "vv16vZk3vxkZACFC58",
+    "name": "Preseason Game 1: New England Patriots v Indianapolis Colts",
+    "url": "https://www.ticketmaster.com/preseason-game-1-new-england-patriots-foxborough-massachusetts-08-13-2026/event/01006481886D7DAF",
+    "dates": {
+      "start": {
+        "localDate": "2026-08-13",
+        "localTime": "19:30:00",
+        "dateTime": "2026-08-13T23:30:00Z",
+        "dateTBD": false,
+        "dateTBA": false,
+        "timeTBA": false,
+        "noSpecificTime": false
+      },
+      "timezone": "America/New_York",
+      "status": {
+        "code": "onsale"
+      },
+      "spanMultipleDays": false
+    },
+    "images": [
+      {
+        "ratio": "16_9",
+        "url": "https://s1.ticketm.net/dam/a/95c/0173c6d8-736f-487e-8146-794d0313095c_SOURCE",
+        "width": 2048,
+        "height": 1152,
+        "fallback": false
+      }
+    ],
+    "seatmap": {
+      "staticUrl": "https://mapsapi.tmol.io/maps/geometry/3/event/01006481886D7DAF/staticImage?type=png&systemId=HOST"
+    },
+    "priceRanges": [],
+    "classifications": [
+      {
+        "primary": true,
+        "segment": {
+          "id": "KZFzniwnSyZfZ7v7nE",
+          "name": "Sports"
+        },
+        "genre": {
+          "id": "KnvZfZ7vAdE",
+          "name": "Football"
+        },
+        "subGenre": {
+          "id": "KZazBEonSMnZfZ7vFE1",
+          "name": "NFL"
+        },
+        "type": {
+          "id": "KZAyXgnZfZ7v7l1",
+          "name": "Group"
+        },
+        "subType": {
+          "id": "KZFzBErXgnZfZ7vA7d",
+          "name": "Team"
+        },
+        "family": false
+      }
+    ],
+    "_embedded": {
+      "venues": [
+        {
+          "name": "Gillette Stadium",
+          "city": {
+            "name": "Foxborough"
+          },
+          "state": {
+            "name": "Massachusetts",
+            "stateCode": "MA"
+          },
+          "country": {
+            "name": "United States Of America",
+            "countryCode": "US"
+          }
+        }
+      ]
+    }
+  },
+  {
     "id": "1AvjZ_aGkU6vXnK",
     "name": "Eagles Live at Sphere",
     "url": "https://www.ticketmaster.com/eagles-live-at-sphere-las-vegas-nevada-09-18-2026/event/1700649D8707EA93",
@@ -68,240 +224,6 @@
           "state": {
             "name": "Nevada",
             "stateCode": "NV"
-          },
-          "country": {
-            "name": "United States Of America",
-            "countryCode": "US"
-          }
-        }
-      ]
-    }
-  },
-  {
-    "id": "1Av0Z_kGkMQvjZ5",
-    "name": "Arizona Cardinals v Philadelphia Eagles",
-    "url": "https://www.ticketmaster.com/arizona-cardinals-v-philadelphia-eagles-glendale-arizona-12-06-2026/event/1900646DDA05C00B",
-    "dates": {
-      "start": {
-        "localDate": "2026-12-06",
-        "localTime": "14:05:00",
-        "dateTime": "2026-12-06T21:05:00Z",
-        "dateTBD": false,
-        "dateTBA": false,
-        "timeTBA": false,
-        "noSpecificTime": false
-      },
-      "timezone": "America/Phoenix",
-      "status": {
-        "code": "offsale"
-      },
-      "spanMultipleDays": false
-    },
-    "images": [
-      {
-        "ratio": "16_9",
-        "url": "https://s1.ticketm.net/dam/a/6d2/cdcd57a4-1e15-4b06-b1bc-6196b4a016d2_SOURCE",
-        "width": 2048,
-        "height": 1152,
-        "fallback": false
-      }
-    ],
-    "seatmap": {
-      "staticUrl": "https://mapsapi.tmol.io/maps/geometry/3/event/1900646DDA05C00B/staticImage?type=png&systemId=HOST"
-    },
-    "priceRanges": [],
-    "classifications": [
-      {
-        "primary": true,
-        "segment": {
-          "id": "KZFzniwnSyZfZ7v7nE",
-          "name": "Sports"
-        },
-        "genre": {
-          "id": "KnvZfZ7vAdE",
-          "name": "Football"
-        },
-        "subGenre": {
-          "id": "KZazBEonSMnZfZ7vFE1",
-          "name": "NFL"
-        },
-        "type": {
-          "id": "KZAyXgnZfZ7v7l1",
-          "name": "Group"
-        },
-        "subType": {
-          "id": "KZFzBErXgnZfZ7vA7d",
-          "name": "Team"
-        },
-        "family": false
-      }
-    ],
-    "_embedded": {
-      "venues": [
-        {
-          "name": "State Farm Stadium",
-          "city": {
-            "name": "Glendale"
-          },
-          "state": {
-            "name": "Arizona",
-            "stateCode": "AZ"
-          },
-          "country": {
-            "name": "United States Of America",
-            "countryCode": "US"
-          }
-        }
-      ]
-    }
-  },
-  {
-    "id": "vv17FZ_kGkUpFBjj",
-    "name": "Philadelphia Eagles vs. Pittsburgh Steelers",
-    "url": "https://www.ticketmaster.com/philadelphia-eagles-vs-pittsburgh-steelers-philadelphia-pennsylvania-11-22-2026/event/0200646D9623A71C",
-    "dates": {
-      "start": {
-        "localDate": "2026-11-22",
-        "localTime": "16:25:00",
-        "dateTime": "2026-11-22T21:25:00Z",
-        "dateTBD": false,
-        "dateTBA": false,
-        "timeTBA": false,
-        "noSpecificTime": false
-      },
-      "timezone": "America/New_York",
-      "status": {
-        "code": "onsale"
-      },
-      "spanMultipleDays": false
-    },
-    "images": [
-      {
-        "ratio": "16_9",
-        "url": "https://s1.ticketm.net/dam/a/602/6f9b50d7-e1ea-4a7e-a144-6b0a7577f602_SOURCE",
-        "width": 2048,
-        "height": 1152,
-        "fallback": false
-      }
-    ],
-    "seatmap": {
-      "staticUrl": "https://mapsapi.tmol.io/maps/geometry/3/event/0200646D9623A71C/staticImage?type=png&systemId=HOST"
-    },
-    "priceRanges": [],
-    "classifications": [
-      {
-        "primary": true,
-        "segment": {
-          "id": "KZFzniwnSyZfZ7v7nE",
-          "name": "Sports"
-        },
-        "genre": {
-          "id": "KnvZfZ7vAdE",
-          "name": "Football"
-        },
-        "subGenre": {
-          "id": "KZazBEonSMnZfZ7vFE1",
-          "name": "NFL"
-        },
-        "type": {
-          "id": "KZAyXgnZfZ7v7l1",
-          "name": "Group"
-        },
-        "subType": {
-          "id": "KZFzBErXgnZfZ7vA7d",
-          "name": "Team"
-        },
-        "family": false
-      }
-    ],
-    "_embedded": {
-      "venues": [
-        {
-          "name": "Lincoln Financial Field",
-          "city": {
-            "name": "Philadelphia"
-          },
-          "state": {
-            "name": "Pennsylvania",
-            "stateCode": "PA"
-          },
-          "country": {
-            "name": "United States Of America",
-            "countryCode": "US"
-          }
-        }
-      ]
-    }
-  },
-  {
-    "id": "G5vYZ_k28cVfS",
-    "name": "San Francisco 49ers vs. Philadelphia Eagles",
-    "url": "https://www.ticketmaster.com/san-francisco-49ers-vs-philadelphia-eagles-santa-clara-california-01-03-2027/event/1C006463D0B74533",
-    "dates": {
-      "start": {
-        "localDate": "2027-01-03",
-        "localTime": "17:20:00",
-        "dateTime": "2027-01-04T01:20:00Z",
-        "dateTBD": false,
-        "dateTBA": false,
-        "timeTBA": false,
-        "noSpecificTime": false
-      },
-      "timezone": "America/Los_Angeles",
-      "status": {
-        "code": "onsale"
-      },
-      "spanMultipleDays": false
-    },
-    "images": [
-      {
-        "ratio": "16_9",
-        "url": "https://s1.ticketm.net/dam/a/b7d/d7460515-712c-4e09-b404-69c1b86e7b7d_TABLET_LANDSCAPE_LARGE_16_9.jpg",
-        "width": 2048,
-        "height": 1152,
-        "fallback": false
-      }
-    ],
-    "seatmap": {
-      "staticUrl": "https://mapsapi.tmol.io/maps/geometry/3/event/1C006463D0B74533/staticImage?type=png&systemId=HOST"
-    },
-    "priceRanges": [],
-    "classifications": [
-      {
-        "primary": true,
-        "segment": {
-          "id": "KZFzniwnSyZfZ7v7nE",
-          "name": "Sports"
-        },
-        "genre": {
-          "id": "KnvZfZ7vAdE",
-          "name": "Football"
-        },
-        "subGenre": {
-          "id": "KZazBEonSMnZfZ7vFE1",
-          "name": "NFL"
-        },
-        "type": {
-          "id": "KZAyXgnZfZ7v7l1",
-          "name": "Group"
-        },
-        "subType": {
-          "id": "KZFzBErXgnZfZ7vA7d",
-          "name": "Team"
-        },
-        "family": false
-      }
-    ],
-    "_embedded": {
-      "venues": [
-        {
-          "name": "Levi's® Stadium",
-          "city": {
-            "name": "Santa Clara"
-          },
-          "state": {
-            "name": "California",
-            "stateCode": "CA"
           },
           "country": {
             "name": "United States Of America",
