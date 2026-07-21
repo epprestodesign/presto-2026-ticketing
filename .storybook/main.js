@@ -13,6 +13,9 @@ const config = {
     '../src/**/*.stories.@(js|jsx|ts|tsx)',
   ],
   addons: ['@storybook/addon-themes', '@storybook/addon-docs'],
+  // Serve ./public verbatim (mounted at site root) so the imagery gallery under
+  // public/library/ deploys to a stable Pages URL: /presto-2026-ticketing/library/.
+  staticDirs: ['../public'],
   framework: {
     name: '@storybook/vue3-vite',
     options: {},

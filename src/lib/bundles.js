@@ -168,6 +168,61 @@ export function generateExperiencePackages(event = {}, opts = {}) {
 }
 
 /**
+ * Scalable package board for the Storybook stress test. Synthesizes `count`
+ * deterministic package SKUs by cycling the curated experience templates across
+ * every ticket tier + contracted hotel — so a designer can dial the package
+ * list from a handful up to a large grid and watch the cards/layout hold up.
+ * The first {EXPERIENCE_PACKAGES.length} entries match the hand-authored
+ * "Patriots Experiences" set; beyond that, variants recombine tier + hotel +
+ * party size. Deterministic per event + index.
+ */
+export function generatePackageGrid(event = {}, opts = {}) {
+  const { count = 12, nights = 1 } = opts
+  const tiers = deriveTiers(event, 'stadium')
+  const tierById = Object.fromEntries(tiers.map((t) => [t.id, t]))
+  const hotelById = Object.fromEntries(CONTRACTED_HOTELS.map((h) => [h.id, h]))
+  const seed = event.id || event.name || 'grid'
+  const out = []
+
+  for (let i = 0; i < count; i++) {
+    const tmpl = EXPERIENCE_PACKAGES[i % EXPERIENCE_PACKAGES.length]
+    const cyc = Math.floor(i / EXPERIENCE_PACKAGES.length)
+    // First pass mirrors the curated packages exactly; later passes recombine.
+    const tier = cyc === 0 ? (tierById[tmpl.tierId] ?? tiers[0]) : tiers[Math.floor(hash(`${seed}-gt${i}`) * tiers.length)]
+    const hotel = cyc === 0 ? (hotelById[tmpl.hotelId] ?? CONTRACTED_HOTELS[0]) : CONTRACTED_HOTELS[Math.floor(hash(`${seed}-gh${i}`) * CONTRACTED_HOTELS.length)]
+    const quantity = tmpl.quantity ?? (cyc === 0 ? 2 : 2 + Math.floor(hash(`${seed}-gq${i}`) * 3))
+    const ticketTotal = tier.price * quantity
+    const hotelTotal = hotel.nightlyRate * nights
+    const experienceValue = tmpl.extra * quantity
+    const componentsTotal = ticketTotal + hotelTotal + experienceValue
+    const discountPct = 0.08 + hash(`${seed}-gd${i}`) * 0.08
+    const packagePrice = Math.round(componentsTotal * (1 - discountPct))
+    out.push({
+      id: `grid-${i}-${tmpl.id}`,
+      name: cyc === 0 ? tmpl.name : `${tmpl.name} · ${tier.name}`,
+      theme: tmpl.theme,
+      icon: tmpl.icon,
+      accentVar: tmpl.accentVar,
+      image: imageForTheme(tmpl.theme)?.src ?? null,
+      tagline: tmpl.tagline,
+      sponsor: tmpl.sponsor ?? null,
+      experiences: tmpl.experiences,
+      quantity,
+      ticket: { tierId: tier.id, tierName: tier.name, price: tier.price, colorVar: tier.colorVar },
+      hotel: { ...hotel, nights, hotelTotal },
+      nights,
+      componentsTotal,
+      packagePrice,
+      savings: componentsTotal - packagePrice,
+      currency: 'USD',
+      soldOut: hash(`${seed}-gsold-${i}`) > 0.85,
+    })
+  }
+
+  return out
+}
+
+/**
  * Return a copy of an experience package with its hotel removed and repriced to
  * ticket + experience only — powering the "Packages Only" flow (the 2×2 pair of
  * "Packages + Hotel"). Keeps the same discount proportion the bundled SKU used.

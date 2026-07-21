@@ -29,6 +29,10 @@ const props = defineProps({
   //   'error'   — results failed to load
   //   'loading' — skeleton placeholders
   state: { type: String, default: 'full' },
+  // Optional stress-test size: when set, the matching results section is padded
+  // with deterministically-synthesized hotels up to `count` (default null keeps
+  // the curated sample). Lets the filters/results list be exercised at scale.
+  count: { type: Number, default: null },
 })
 
 const isGroup = computed(() => props.flow === 'group')
@@ -123,7 +127,39 @@ const groupSections = [
   },
 ]
 
-const sections = computed(() => (isGroup.value ? groupSections : reserveSections))
+// Deterministic hotel synthesizer for the stress-test `count` — pads the
+// matching section with believable metro listings (stable per index).
+const hhash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) } return (h >>> 0) / 4294967295 }
+const BRAND_POOL = ['Marriott', 'Hilton Garden Inn', 'Homewood Suites', 'Fairfield Inn', 'SpringHill Suites', 'Comfort Inn', 'Cambria Hotel', 'Element', 'Moxy', 'TownePlace Suites', 'Wingate', 'Drury Inn', 'Staybridge Suites', 'Best Western Plus', 'Radisson', 'Wyndham', 'Sonesta', 'Candlewood Suites', 'Extended Stay', 'Tru by Hilton']
+const AREA_POOL = ['Downtown', 'Midtown', 'Convention Center', 'Riverfront', 'Airport', 'Stadium District', 'Uptown', 'Old Town', 'West End', 'Harborside']
+const STAR_STEPS = [2, 2.5, 3, 3.5, 4, 4.5]
+function synthHotel(i, group) {
+  const r = (k) => hhash(`hotel-${i}-${k}`)
+  const stars = STAR_STEPS[Math.floor(r('s') * STAR_STEPS.length)]
+  const nightly = 99 + Math.round(r('p') * 220)
+  const dist = (0.3 + r('d') * 4).toFixed(1)
+  const seed = 20 + i
+  return {
+    name: `${BRAND_POOL[i % BRAND_POOL.length]} ${AREA_POOL[Math.floor(r('a') * AREA_POOL.length)]}`,
+    stars,
+    distance: `${dist} mi from Main Arena`,
+    fromNightly: nightly,
+    total: nightly * 4,
+    startingPrice: nightly + 40,
+    availability: group ? 'matches' : 'available',
+    roomsAvailable: 3 + Math.floor(r('r') * 12),
+    seed,
+  }
+}
+
+const sections = computed(() => {
+  const base = isGroup.value ? groupSections : reserveSections
+  if (!props.count) return base
+  const first = base[0]
+  const hotels = [...first.hotels]
+  for (let i = 0; hotels.length < props.count; i++) hotels.push(synthHotel(i, isGroup.value))
+  return [{ ...first, hotels: hotels.slice(0, props.count) }, ...base.slice(1)]
+})
 
 // Both flows render the Group Block card (horizontal) WITH the expandable
 // Availability panel. Reserve-flow availability keys map onto the group card's

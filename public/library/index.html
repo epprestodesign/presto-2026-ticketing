@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Presto DS — Imagery Library</title>
+  <style>
+    :root { --navy:#0a1f44; --ink:#1a2230; --sub:#5a6472; --line:#e6e8ec; --bg:#f7f8fa; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+    header { background:var(--navy); color:#fff; padding:40px 24px; }
+    header .wrap, main { max-width:1120px; margin:0 auto; }
+    header h1 { margin:0 0 6px; font-size:26px; }
+    header p { margin:0; opacity:.85; font-size:15px; line-height:1.5; }
+    header code { background:rgba(255,255,255,.14); padding:2px 7px; border-radius:5px; font-size:13px; }
+    main { padding:24px; }
+    section { margin:28px 0 12px; }
+    h2 { font-size:19px; margin:0 0 2px; display:flex; align-items:center; gap:10px; }
+    h2 span { font-size:13px; font-weight:600; color:#fff; background:var(--navy); border-radius:999px; padding:2px 10px; }
+    .sub { margin:0 0 16px; color:var(--sub); font-size:14px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:18px; }
+    .card { margin:0; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+    .card img { display:block; width:100%; aspect-ratio:3/2; object-fit:cover; background:#eee; }
+    figcaption { padding:10px 12px 12px; }
+    .alt { margin:0 0 4px; font-size:13px; line-height:1.35; }
+    .meta { margin:0 0 8px; font-size:12px; color:var(--sub); }
+    .meta a { color:var(--sub); }
+    .url { display:block; font-size:10.5px; color:#8a929e; word-break:break-all; }
+    a { color:inherit; }
+    footer { max-width:1120px; margin:12px auto 40px; padding:0 24px; color:var(--sub); font-size:13px; line-height:1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Presto DS — Imagery Library</h1>
+      <p>Stadium points-of-view + hotel photography for the EventPipe ticketing prototype.
+      Canonical host: <code>https://epprestodesign.github.io/presto-ds-imagery</code> — fetched at runtime via <code>VITE_IMAGERY_URL</code>.
+      This page mirrors the newest additions and is served from the project's own GitHub Pages under <code>/library/</code>.</p>
+    </div>
+  </header>
+  <main>
+
+    <section>
+      <h2>Seat Views <span>12</span></h2>
+      <p class="sub">American-football stadium points of view — powers the Ticket Map view-from-seat hero.</p>
+      <div class="grid">
+      <figure class="card">
+        <a href="./seat-views/01.jpg" target="_blank" rel="noopener"><img src="./seat-views/01.jpg" alt="The sun is setting over a stadium with palm trees" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">The sun is setting over a stadium with palm trees</p>
+          <p class="meta"><a href="https://unsplash.com/@cam_cameras?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Cam Carpenter</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-1.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/02.jpg" target="_blank" rel="noopener"><img src="./seat-views/02.jpg" alt="A crowded football stadium at night under bright lights" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A crowded football stadium at night under bright lights</p>
+          <p class="meta"><a href="https://unsplash.com/@sgreer?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Scott Greer</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-2.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/03.jpg" target="_blank" rel="noopener"><img src="./seat-views/03.jpg" alt="Spectators watch a football game in a modern stadium" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">Spectators watch a football game in a modern stadium</p>
+          <p class="meta"><a href="https://unsplash.com/@j_35mm?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Johnathan Kaufman</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-3.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/04.jpg" target="_blank" rel="noopener"><img src="./seat-views/04.jpg" alt="A crowded stadium filled with spectators watching an event" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A crowded stadium filled with spectators watching an event</p>
+          <p class="meta"><a href="https://unsplash.com/@habobo?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Huang Lin</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-4.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/05.jpg" target="_blank" rel="noopener"><img src="./seat-views/05.jpg" alt="Stadium seating with spectators and shadows" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">Stadium seating with spectators and shadows</p>
+          <p class="meta"><a href="https://unsplash.com/@ashwintanjore?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Ashwin Tanjore</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-5.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/06.jpg" target="_blank" rel="noopener"><img src="./seat-views/06.jpg" alt="Crowded stadium watching a game under clear sky" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">Crowded stadium watching a game under clear sky</p>
+          <p class="meta"><a href="https://unsplash.com/@justalifein?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Ruben Mavarez</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-6.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/07.jpg" target="_blank" rel="noopener"><img src="./seat-views/07.jpg" alt="Mascot on the field with spectators in the stands" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">Mascot on the field with spectators in the stands</p>
+          <p class="meta"><a href="https://unsplash.com/@tanyabarrow?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Tanya Barrow</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-7.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/08.jpg" target="_blank" rel="noopener"><img src="./seat-views/08.jpg" alt="A large crowd fills a modern stadium during an event" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A large crowd fills a modern stadium during an event</p>
+          <p class="meta"><a href="https://unsplash.com/@lx1?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Lx1</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-8.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/09.jpg" target="_blank" rel="noopener"><img src="./seat-views/09.jpg" alt="Stadium with red seats and green field" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">Stadium with red seats and green field</p>
+          <p class="meta"><a href="https://unsplash.com/@tanyabarrow?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Tanya Barrow</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-9.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/10.jpg" target="_blank" rel="noopener"><img src="./seat-views/10.jpg" alt="A large crowd of people in a stadium" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A large crowd of people in a stadium</p>
+          <p class="meta"><a href="https://unsplash.com/@ikemura?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Jonathan Ikemura</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-10.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/11.jpg" target="_blank" rel="noopener"><img src="./seat-views/11.jpg" alt="View of a stadium filled with spectators" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">View of a stadium filled with spectators</p>
+          <p class="meta"><a href="https://unsplash.com/@ashwintanjore?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Ashwin Tanjore</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-11.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./seat-views/12.jpg" target="_blank" rel="noopener"><img src="./seat-views/12.jpg" alt="Crowd and red stadium seating" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">Crowd and red stadium seating</p>
+          <p class="meta"><a href="https://unsplash.com/@_karsten?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Karsten Winegeart</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/seat-views/seat-views-12.jpg</code>
+        </figcaption>
+      </figure></div>
+    </section>
+
+    <section>
+      <h2>Hotels <span>7</span></h2>
+      <p class="sub">Rooms &amp; suites for the hotel listings / detail galleries.</p>
+      <div class="grid">
+      <figure class="card">
+        <a href="./hotels/01.jpg" target="_blank" rel="noopener"><img src="./hotels/01.jpg" alt="A room with a large bed and a tv on the wall" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A room with a large bed and a tv on the wall</p>
+          <p class="meta"><a href="https://unsplash.com/@frugalflyer?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Frugal Flyer</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/rooms/rooms-13.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./hotels/02.jpg" target="_blank" rel="noopener"><img src="./hotels/02.jpg" alt="Bedside lamp illuminates a wooden stump table" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">Bedside lamp illuminates a wooden stump table</p>
+          <p class="meta"><a href="https://unsplash.com/@ubeyonroad?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">ubeyonroad</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/rooms/rooms-14.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./hotels/03.jpg" target="_blank" rel="noopener"><img src="./hotels/03.jpg" alt="A neatly made bed with white pillows and lamps" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A neatly made bed with white pillows and lamps</p>
+          <p class="meta"><a href="https://unsplash.com/@antonioaaaraujo?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">Antonio Araujo</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/rooms/rooms-15.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./hotels/04.jpg" target="_blank" rel="noopener"><img src="./hotels/04.jpg" alt="A desk with a lamp, vase, and artwork" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A desk with a lamp, vase, and artwork</p>
+          <p class="meta"><a href="https://unsplash.com/@ubeyonroad?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">ubeyonroad</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/rooms/rooms-16.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./hotels/05.jpg" target="_blank" rel="noopener"><img src="./hotels/05.jpg" alt="A neatly made bed with white linens and pillows" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A neatly made bed with white linens and pillows</p>
+          <p class="meta"><a href="https://unsplash.com/@ubeyonroad?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">ubeyonroad</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/rooms/rooms-17.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./hotels/06.jpg" target="_blank" rel="noopener"><img src="./hotels/06.jpg" alt="A neatly made bed with white linens in a bedroom" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">A neatly made bed with white linens in a bedroom</p>
+          <p class="meta"><a href="https://unsplash.com/@ubeyonroad?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">ubeyonroad</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/rooms/rooms-18.jpg</code>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <a href="./hotels/07.jpg" target="_blank" rel="noopener"><img src="./hotels/07.jpg" alt="Modern living room with green sofa and brick wall" loading="lazy" /></a>
+        <figcaption>
+          <p class="alt">Modern living room with green sofa and brick wall</p>
+          <p class="meta"><a href="https://unsplash.com/@ubeyonroad?utm_source=presto_ds&utm_medium=referral" target="_blank" rel="noopener">ubeyonroad</a> · Unsplash</p>
+          <code class="url" title="Hosted URL">https://epprestodesign.github.io/presto-ds-imagery/suites/suites-13.jpg</code>
+        </figcaption>
+      </figure></div>
+    </section>
+  </main>
+  <footer>
+    All photography from <a href="https://unsplash.com">Unsplash</a> under the Unsplash License; per-image credit shown above and in <a href="./manifest.json">manifest.json</a>.
+    Programmatic index: <a href="./manifest.js">manifest.js</a>.
+  </footer>
+</body>
+</html>
