@@ -36,6 +36,7 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
       <h2 class="bconf__title">You're all set!</h2>
       <p class="bconf__sub">{{ event.name }}<template v-if="event.venue?.name"> · {{ event.venue.name }}</template></p>
       <div class="bconf__order">Order <strong>{{ orderNumber }}</strong></div>
+      <div v-if="cart.dealScore" class="bconf__deal"><span class="bconf__dealscore">{{ cart.dealScore }}</span>{{ cart.dealLabel || 'Great Deal' }}</div>
     </div>
 
     <ul class="bconf__items">
@@ -49,6 +50,21 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
       </li>
       <li class="bconf__total"><span>Total charged</span><span>{{ fmt(cart.total) }}</span></li>
     </ul>
+
+    <!-- Value props — the ticket guarantees, shown as a labelled block in the
+         same convention as the Book Reservation / Group Block confirmation cards. -->
+    <div v-if="cart.ticketDetails?.length" class="bconf__vp">
+      <h3 class="bconf__vp-h">What's included</h3>
+      <div class="bconf__vp-card">
+        <div v-for="(d, i) in cart.ticketDetails" :key="i" class="bconf__vprow">
+          <q-icon :name="d.icon" size="22px" class="bconf__vpicon" />
+          <div class="bconf__vpinfo">
+            <span class="bconf__vptitle">{{ d.title }}</span>
+            <span v-if="d.text" class="bconf__vptext">{{ d.text }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="bconf__email">
       <q-icon :name="notice.icon" size="20px" />
@@ -73,6 +89,18 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
 .bconf__title { margin: 0; font-size: var(--ds-font-size-lg); font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }
 .bconf__sub { margin: 0; color: var(--ds-color-text-subtle); font-size: var(--ds-font-size-sm); }
 .bconf__order { margin-top: 4px; font-size: var(--ds-font-size-sm); color: var(--ds-color-text); }
+.bconf__deal { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; color: var(--ds-palette-green-700); font-weight: var(--ds-font-weight-bold); font-size: var(--ds-font-size-sm); }
+.bconf__dealscore { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: var(--ds-radius-sm); background: var(--ds-palette-green-700); color: #fff; font-size: 0.8125rem; font-weight: var(--ds-font-weight-bold); }
+
+/* Value props block — matches the confirmation section-label + card convention. */
+.bconf__vp { display: flex; flex-direction: column; gap: var(--ds-space-3); }
+.bconf__vp-h { margin: 0; font-size: var(--ds-font-size-md); font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }
+.bconf__vp-card { border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md); padding: var(--ds-space-4); display: flex; flex-direction: column; gap: var(--ds-space-4); }
+.bconf__vprow { display: flex; align-items: flex-start; gap: var(--ds-space-3); }
+.bconf__vpicon { color: var(--ds-color-text); flex: none; margin-top: 1px; }
+.bconf__vpinfo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.bconf__vptitle { font-weight: var(--ds-font-weight-bold); font-size: var(--ds-font-size-sm); color: var(--ds-color-text); }
+.bconf__vptext { font-size: var(--ds-font-size-sm); color: var(--ds-color-text-subtle); line-height: 1.45; }
 
 .bconf__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ds-space-3); }
 .bconf__items li { display: flex; align-items: center; gap: var(--ds-space-3); color: var(--ds-color-text); }
