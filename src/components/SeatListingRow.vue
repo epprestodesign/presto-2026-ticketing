@@ -1,8 +1,9 @@
 <script setup>
-// SeatListingRow — one offer in the SeatGeek-style listings rail: a view-from-
-// seat thumbnail, section/row, quantity, and price incl. fees. Emits `select`
-// on click.
+// SeatListingRow — one offer in the SeatGeek-style listings rail: a seat-location
+// map thumbnail, section/row, quantity, and price incl. fees. Emits `select` on
+// click.
 import { computed } from 'vue'
+import seatThumb from '../assets/thumbnails/seat.png'
 
 const props = defineProps({
   listing: { type: Object, required: true }, // a generateListings() item
@@ -18,7 +19,7 @@ function fmt(n) {
 
 <template>
   <button type="button" class="slrow" :class="{ 'is-selected': selected }" @click="emit('select', l)">
-    <img :src="l.photo.thumb" :alt="l.photo.alt || `View from section ${l.section}`" class="slrow__thumb" loading="lazy" />
+    <img :src="seatThumb" alt="Seat location on the venue map" class="slrow__thumb" loading="lazy" />
 
     <div class="slrow__body">
       <div class="slrow__top">
@@ -46,7 +47,7 @@ function fmt(n) {
 .slrow:hover { border-color: var(--ds-color-border-bold); box-shadow: var(--ds-shadow-2, 0 4px 12px rgba(0,0,0,.08)); }
 .slrow.is-selected { border-color: var(--ds-color-border-brand); box-shadow: 0 0 0 1px var(--ds-color-border-brand); }
 
-.slrow__thumb { width: 88px; height: 66px; object-fit: cover; border-radius: var(--ds-radius-sm); flex: none; background: var(--ds-color-surface-sunken); }
+.slrow__thumb { width: 88px; height: 66px; object-fit: contain; border-radius: var(--ds-radius-sm); flex: none; background: var(--ds-color-surface-sunken); }
 .slrow__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .slrow__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--ds-space-2); }
 .slrow__section { font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }

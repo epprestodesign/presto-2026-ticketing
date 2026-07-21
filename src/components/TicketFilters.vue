@@ -18,32 +18,44 @@ const emit = defineEmits(['close', 'apply', 'clear'])
 
 const dist = priceDistribution(props.listings)
 
-const SECTION_AREAS = ['50-yard line', 'End zone', 'Home sideline', 'Away sideline']
-const LEVELS = ['Lower Level', 'Club Level', 'Mezzanine', 'Upper Level']
+// The actual sections the tickets fall into, grouped under their seating-level
+// header (Lower / Club / Mezzanine / Upper) so a guest can pick real sections.
+const LEVEL_ORDER = ['Lower Level', 'Club Level', 'Mezzanine', 'Upper Level', 'Floor / GA']
+const sectionGroups = computed(() => {
+  const byTier = new Map()
+  for (const l of props.listings) {
+    const key = l.tierName || 'Other'
+    if (!byTier.has(key)) byTier.set(key, new Set())
+    byTier.get(key).add(l.section)
+  }
+  return [...byTier.entries()]
+    .map(([tier, set]) => ({ tier, sections: [...set].sort((a, b) => a - b) }))
+    .sort((a, b) => (LEVEL_ORDER.indexOf(a.tier) + 1 || 99) - (LEVEL_ORDER.indexOf(b.tier) + 1 || 99))
+})
 
 const quantity = ref(2)
 const price = ref({ min: dist.min, max: dist.max })
-const areas = ref([])
-const levels = ref([])
+const sections = ref([])
 
 const money = (n) => '$' + Math.round(n ?? 0).toLocaleString('en-US')
 const qtyOptions = computed(() => Array.from({ length: props.maxQuantity }, (_, i) => i + 1))
 
-// Prototype match count — price range is the concrete filter; the rest are
-// showcased selectors. Keeps the CTA count honest as the range moves.
+// Live match count reflects the price range + any chosen sections.
 const matchCount = computed(() =>
-  props.listings.filter((l) => l.priceWithFees >= price.value.min && l.priceWithFees <= price.value.max).length,
+  props.listings.filter((l) =>
+    l.priceWithFees >= price.value.min && l.priceWithFees <= price.value.max &&
+    (!sections.value.length || sections.value.includes(l.section)),
+  ).length,
 )
 
 const clearAll = () => {
   quantity.value = 2
   price.value = { min: dist.min, max: dist.max }
-  areas.value = []; levels.value = []
+  sections.value = []
   emit('clear')
 }
 const apply = () => emit('apply', {
-  quantity: quantity.value, price: { ...price.value },
-  areas: areas.value, levels: levels.value,
+  quantity: quantity.value, price: { ...price.value }, sections: sections.value,
 })
 </script>
 
@@ -75,19 +87,15 @@ const apply = () => emit('apply', {
         <div class="tf__rangevals"><span>{{ money(price.min) }}</span><span>{{ money(price.max) }}{{ price.max >= dist.max ? '+' : '' }}</span></div>
       </section>
 
-      <!-- Section areas -->
+      <!-- Sections — the real sections available, under their level header -->
       <section class="tf__sec">
         <h3 class="tf__h">Sections</h3>
-        <div class="tf__checks">
-          <q-checkbox v-for="a in SECTION_AREAS" :key="a" v-model="areas" :val="a" :label="a" dense color="primary" />
-        </div>
-      </section>
-
-      <!-- Seating levels -->
-      <section class="tf__sec">
-        <h3 class="tf__h">Seating level</h3>
-        <div class="tf__checks">
-          <q-checkbox v-for="l in LEVELS" :key="l" v-model="levels" :val="l" :label="l" dense color="primary" />
+        <p class="tf__sub">The sections these tickets fall into, grouped by seating level.</p>
+        <div v-for="g in sectionGroups" :key="g.tier" class="tf__group">
+          <div class="tf__grouphead">{{ g.tier }}</div>
+          <div class="tf__checks tf__checks--sections">
+            <q-checkbox v-for="s in g.sections" :key="s" v-model="sections" :val="s" :label="`Sec ${s}`" dense color="primary" />
+          </div>
         </div>
       </section>
     </div>
@@ -123,6 +131,9 @@ const apply = () => emit('apply', {
 .tf__rangevals { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); }
 
 .tf__checks { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+.tf__checks--sections { grid-template-columns: repeat(3, 1fr); }
+.tf__group + .tf__group { margin-top: 12px; }
+.tf__grouphead { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ds-color-text-subtle); margin: 8px 0 4px; }
 
 .tf__toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9375rem; color: var(--ds-color-text); cursor: pointer; }
 .tf__toggle .q-icon { color: var(--ds-color-text-brand); }
