@@ -1,34 +1,33 @@
-// MEDIA & VISUALS / Hero Banner / Default — the generic banner asset used across
-// page contexts. The image is bundled from /background-img so it renders in local
-// dev and the deployed (subpath) build alike. Kept as the documentation baseline;
-// the sibling "Patriots" folder shows the same banner with a themed backdrop.
-// The overlay shows the EventPipe wordmark, the event name, and the date range.
-import defaultBg from '../../../background-img/defaultBackgroundImage.png'
+// MEDIA & VISUALS / Hero Banner / Patriots — the themed edge case: the same
+// Landing Page + Hotel Listings banners as the Default folder, but with the
+// selected Patriots backdrop (the bundled New England Patriots event image the
+// ticketing Event Hero renders). The Default folder keeps the generic imagery
+// for documentation; this folder shows how the banner carries a live event theme.
 import epLogoWhite from '../../assets/eventpipe logos/eventpipe-logo-fff.svg'
+import patriotsLogo from '../../assets/gameday/patriots-logo.jpg'
 
 // Sample event content (name + formatted date range).
 const EVENT_NAME = 'New England Patriots v Buffalo Bills'
 const EVENT_DATES = 'Sat, Dec 6, 2026'
 
 export default {
-  title: 'Components/Media & Visuals/Hero Banner/Default',
+  title: 'Components/Media & Visuals/Hero Banner/Patriots',
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',
     docs: { description: { component: `
 ## Overview
-The **default** hero banner — the generic imagery kept as the documentation
-baseline. Used across page contexts, sized per story:
+The **Patriots** theme — the same hero banner as **Hero Banner / Default**, with
+the selected event backdrop swapped in (the bundled New England Patriots event
+image, matching the ticketing **Event Hero**). Same sizes and overlay:
 
 | Story | Dimensions | Used on |
 | --- | --- | --- |
 | **Landing Page** | 1592×400 | Marketing / landing |
 | **Hotel Listings** | 1440×200 | Search / listings results |
 
-The banner is a **background image** (\`background-img/defaultBackgroundImage.png\`)
-behind a centered overlay showing the **EventPipe wordmark**, the **event name**,
-and the **event date range**. For a themed treatment of the same banner, see
-**Hero Banner / Patriots**.
+The EventPipe wordmark, event name, and date range sit over the themed backdrop.
+The generic default imagery lives in **Hero Banner / Default** for documentation.
 ` } } },
 }
 
@@ -40,11 +39,11 @@ const bg = (url, extra = {}) => ({
   display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', ...extra,
 })
 
-/** Landing page hero (1592×400) — event name + date range. */
+/** Landing page hero (1592×400) — Patriots backdrop + event name + date. */
 export const LandingPage = {
   name: 'Landing Page',
   render: () => ({
-    setup: () => ({ style: { ...bg(defaultBg), minHeight: '400px' }, EVENT_NAME, EVENT_DATES, epLogoWhite }),
+    setup: () => ({ style: { ...bg(patriotsLogo), minHeight: '400px' }, EVENT_NAME, EVENT_DATES, epLogoWhite }),
     template: `
       <section :style="style">
         <div style="padding:0 24px; max-width:760px">
@@ -56,11 +55,11 @@ export const LandingPage = {
   }),
 }
 
-/** Hotel listings banner (1440×200) — event name + date range. */
+/** Hotel listings banner (1440×200) — Patriots backdrop + event name + date. */
 export const HotelListings = {
   name: 'Hotel Listings',
   render: () => ({
-    setup: () => ({ style: { ...bg(defaultBg), width: '100%', aspectRatio: '1440 / 200' }, EVENT_NAME, EVENT_DATES, epLogoWhite }),
+    setup: () => ({ style: { ...bg(patriotsLogo), width: '100%', aspectRatio: '1440 / 200' }, EVENT_NAME, EVENT_DATES, epLogoWhite }),
     template: `
       <section :style="style">
         <div style="padding:0 24px; max-width:760px">

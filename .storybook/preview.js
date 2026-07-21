@@ -77,7 +77,9 @@ const preview = {
               'List', 'List Item', 'Accordion', 'Tabs', 'Table',
             ],
             'Media & Visuals', [
-              'Avatar', 'Icon', 'Image List', 'Display Ad', 'Hero Banner', 'Rating',
+              'Avatar', 'Icon', 'Image List', 'Display Ad',
+              'Hero Banner', ['Default', 'Patriots'],
+              'Rating',
             ],
             'Typography & Content', [
               'Typography', 'Chip', 'Amenity', 'Tooltip',
