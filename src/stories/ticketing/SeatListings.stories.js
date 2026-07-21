@@ -14,7 +14,7 @@ import { gillettePins } from '../../lib/gilletteMap.js'
 const event = fixtureEvents.find((e) => /stadium|field/i.test(e.venue?.name || '')) || fixtureEvents[1] || fixtureEvents[0]
 
 export default {
-  title: 'Ticketing & Bundles/Seat Map & View/Seat Listings',
+  title: 'Ticketing & Bundles/Components/Seat Map & View/Seat Listings',
   parameters: { layout: 'fullscreen' },
 }
 

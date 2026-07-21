@@ -25,7 +25,7 @@ const selection = {
 const STEPS = ['Tickets', 'Seats', 'Cart', 'Confirmed']
 
 export default {
-  title: 'Ticketing & Bundles/Full Screens/Ticket Only',
+  title: 'Ticketing & Bundles/Tickets Only',
   parameters: {
     layout: 'fullscreen',
     docs: { description: { component: 'Full screens for a **ticket-only** purchase — no hotel. Ticketmaster fulfills the tickets; EventPipe sends no hotel confirmation. Prototype pricing/inventory.' } },

@@ -1,32 +1,34 @@
-// TICKETING & BUNDLES / Full Screens / Package Only — the complete screens for a
-// PACKAGE purchase: pick a pre-built Patriots experience (ticket + hotel + a
-// signature experience as one SKU) → cart → confirmation. Prototype data.
+// TICKETING & BUNDLES / Packages Only — the complete screens for a PACKAGE
+// purchase WITHOUT a hotel: pick a pre-built Patriots experience (ticket + a
+// signature experience as one SKU) → cart → confirmation. The 2×2 pair of
+// "Packages + Hotel". Prototype data.
 import { ref } from 'vue'
 import PackageCard from '../../components/PackageCard.vue'
 import BundleCart from '../../components/BundleCart.vue'
 import BundleConfirmation from '../../components/BundleConfirmation.vue'
 import JourneyStepper from '../../components/JourneyStepper.vue'
 import { fixtureEvents } from '../../lib/ticketmaster.js'
-import { generateExperiencePackages } from '../../lib/bundles.js'
+import { generateExperiencePackages, stripHotel } from '../../lib/bundles.js'
 
 const event = fixtureEvents.find((e) => /gillette|stadium/i.test(e.venue?.name || '')) || fixtureEvents[0]
-const packages = generateExperiencePackages(event, { nights: 1 })
+// Ticket + experience only — no hotel (see "Packages + Hotel" for the bundled stay).
+const packages = generateExperiencePackages(event, { nights: 1 }).map(stripHotel)
 const pkg = packages[0] // Legends Stadium Tour
 
 // A package is a single SKU (scope PK-03): one cart line at the package price.
 const fees = Math.round(pkg.packagePrice * 0.10)
 const taxes = Math.round(pkg.packagePrice * 0.09)
 const pkgCart = {
-  items: [{ type: 'experience', label: pkg.name, sublabel: `${pkg.ticket.tierName} + ${pkg.hotel.name} · ${pkg.theme}`, amount: pkg.packagePrice }],
+  items: [{ type: 'experience', label: pkg.name, sublabel: `${pkg.ticket.tierName} ticket · ${pkg.theme}`, amount: pkg.packagePrice }],
   subtotal: pkg.packagePrice, fees, taxes, total: pkg.packagePrice + fees + taxes, currency: 'USD',
 }
 const STEPS = ['Package', 'Cart', 'Confirmed']
 
 export default {
-  title: 'Ticketing & Bundles/Full Screens/Package Only',
+  title: 'Ticketing & Bundles/Packages Only',
   parameters: {
     layout: 'fullscreen',
-    docs: { description: { component: 'Full screens for a **package** purchase — a pre-built ticket + hotel + experience SKU added as one cart item (scope 3.4). Prototype pricing/inventory.' } },
+    docs: { description: { component: 'Full screens for a **package without a hotel** — a pre-built ticket + experience SKU added as one cart item (scope 3.4). The 2×2 pair of **Packages + Hotel**. Prototype pricing/inventory.' } },
   },
 }
 
@@ -44,7 +46,7 @@ export const PackagesScreen = {
     template: shell(`${stepper(0)}
       <div style="max-width:680px;margin:0 auto;padding:20px 24px 48px;">
         <h2 style="margin:0 0 4px;font-size:22px;color:var(--ds-color-text);">Choose your Patriots experience</h2>
-        <p style="margin:0 0 20px;color:var(--ds-color-text-subtle);">EventPipe is treating you to {{ event.name }} — pick the package that fits your crew.</p>
+        <p style="margin:0 0 20px;color:var(--ds-color-text-subtle);">EventPipe is treating you to {{ event.name }} — pick the experience that fits your crew. Add a hotel later, or keep it just the game.</p>
         <div style="display:flex;flex-direction:column;gap:18px;">
           <PackageCard v-for="p in packages" :key="p.id" :pkg="p" :selected="p.id === selectedId" @select="pick" />
         </div>

@@ -6,7 +6,7 @@ import { fixtureEvents } from '../../lib/ticketmaster.js'
 const event = fixtureEvents.find((e) => /stadium|field/i.test(e.venue?.name || '')) || fixtureEvents[1] || fixtureEvents[0]
 
 export default {
-  title: 'Ticketing & Bundles/Selection Summary',
+  title: 'Ticketing & Bundles/Components/Selection Summary',
   component: SeatMapSummary,
   parameters: {
     layout: 'centered',

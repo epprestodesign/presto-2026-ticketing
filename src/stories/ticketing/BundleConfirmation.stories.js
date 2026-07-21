@@ -22,7 +22,7 @@ const packageCart = {
 }
 
 export default {
-  title: 'Ticketing & Bundles/Confirmation/Bundle Confirmation',
+  title: 'Ticketing & Bundles/Components/Confirmation/Bundle Confirmation',
   component: BundleConfirmation,
   parameters: { layout: 'centered' },
 }

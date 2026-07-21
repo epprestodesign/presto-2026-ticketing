@@ -12,7 +12,7 @@ const bundled = buildBundleCart({ event, tier, quantity: 2, hotel: CONTRACTED_HO
 const ticketsOnly = buildBundleCart({ event, tier, quantity: 2 })
 
 export default {
-  title: 'Ticketing & Bundles/Bundle Cart & Checkout/Bundle Cart',
+  title: 'Ticketing & Bundles/Components/Bundle Cart & Checkout/Bundle Cart',
   component: BundleCart,
   parameters: { layout: 'centered' },
 }

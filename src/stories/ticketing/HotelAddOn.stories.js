@@ -10,7 +10,7 @@ import { fixtureEvents } from '../../lib/ticketmaster.js'
 const event = fixtureEvents.find((e) => /stadium|field/i.test(e.venue?.name || '')) || fixtureEvents[1] || fixtureEvents[0]
 
 export default {
-  title: 'Ticketing & Bundles/Hotel Add-On/Add-On Step',
+  title: 'Ticketing & Bundles/Components/Hotel Add-On/Add-On Step',
   component: HotelAddOnStep,
   parameters: { layout: 'fullscreen' },
 }

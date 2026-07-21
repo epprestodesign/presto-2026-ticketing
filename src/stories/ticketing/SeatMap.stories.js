@@ -7,7 +7,7 @@ const stadiumEvent = fixtureEvents.find((e) => /stadium|field/i.test(e.venue?.na
 const arenaEvent = fixtureEvents.find((e) => /sphere|arena|garden/i.test(e.venue?.name || '')) || fixtureEvents[0]
 
 export default {
-  title: 'Ticketing & Bundles/Seat Map & View/Seat Map',
+  title: 'Ticketing & Bundles/Components/Seat Map & View/Seat Map',
   component: SeatMap,
   parameters: { layout: 'fullscreen' },
   args: { kind: 'stadium', centerLabel: 'FIELD' },

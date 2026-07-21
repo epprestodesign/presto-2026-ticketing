@@ -27,7 +27,7 @@ const selection = {
 const STEPS = ['Tickets', 'Seats', 'Hotel', 'Cart', 'Confirmed']
 
 export default {
-  title: 'Ticketing & Bundles/Full Screens/Ticket + Hotel',
+  title: 'Ticketing & Bundles/Tickets + Hotel',
   parameters: {
     layout: 'fullscreen',
     docs: { description: { component: 'Full screens for a **build-your-own ticket + hotel** bundle — tickets and a nearby hotel in one order (scope 3.3 + 3.5), confirmed via the v1 dual-email model. Prototype pricing/inventory.' } },

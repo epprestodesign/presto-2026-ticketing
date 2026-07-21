@@ -51,7 +51,7 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
         <span class="pkg__swatch" :style="{ background: `var(${pkg.ticket.colorVar})` }" />
         <span><strong>{{ pkg.ticket.tierName }}</strong> ticket<template v-if="pkg.quantity > 1"> × {{ pkg.quantity }}</template></span>
       </li>
-      <li>
+      <li v-if="pkg.hotel">
         <q-icon name="hotel" size="16px" class="pkg__icon" />
         <span><strong>{{ pkg.hotel.name }}</strong> · {{ pkg.hotel.roomType }} · {{ pkg.nights }} night{{ pkg.nights === 1 ? '' : 's' }}</span>
       </li>

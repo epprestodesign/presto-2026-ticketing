@@ -6,7 +6,7 @@ import { fixtureEvents } from '../../lib/ticketmaster.js'
 const arenaEvent = fixtureEvents.find((e) => /sphere|arena|garden/i.test(e.venue?.name || '')) || fixtureEvents[0]
 
 export default {
-  title: 'Ticketing & Bundles/Seat Map & View/Static Seat Map',
+  title: 'Ticketing & Bundles/Components/Seat Map & View/Static Seat Map',
   component: SeatMapStatic,
   parameters: { layout: 'centered' },
 }

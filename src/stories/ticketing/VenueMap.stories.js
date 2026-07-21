@@ -11,7 +11,7 @@ const event = fixtureEvents.find((e) => /gillette/i.test(e.venue?.name || '')) |
 const pins = gillettePins(event)
 
 export default {
-  title: 'Ticketing & Bundles/Seat Map & View/Venue Map (Ticketmaster)',
+  title: 'Ticketing & Bundles/Components/Seat Map & View/Venue Map (Ticketmaster)',
   component: VenueMap,
   parameters: {
     layout: 'fullscreen',

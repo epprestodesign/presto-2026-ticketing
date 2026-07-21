@@ -9,7 +9,7 @@ const event = fixtureEvents.find((e) => /stadium|field/i.test(e.venue?.name || '
 const top = generateListings(event, { count: 12 })[0]
 
 export default {
-  title: 'Ticketing & Bundles/Seat Map & View/View From Seat',
+  title: 'Ticketing & Bundles/Components/Seat Map & View/View From Seat',
   component: ViewFromSeat,
   parameters: {
     layout: 'centered',

@@ -167,6 +167,19 @@ export function generateExperiencePackages(event = {}, opts = {}) {
   })
 }
 
+/**
+ * Return a copy of an experience package with its hotel removed and repriced to
+ * ticket + experience only — powering the "Packages Only" flow (the 2×2 pair of
+ * "Packages + Hotel"). Keeps the same discount proportion the bundled SKU used.
+ */
+export function stripHotel(pkg) {
+  const hotelTotal = pkg.hotel?.hotelTotal ?? 0
+  const componentsTotal = pkg.componentsTotal - hotelTotal
+  const ratio = pkg.componentsTotal ? pkg.packagePrice / pkg.componentsTotal : 1
+  const packagePrice = Math.round(componentsTotal * ratio)
+  return { ...pkg, hotel: null, nights: 0, componentsTotal, packagePrice, savings: componentsTotal - packagePrice }
+}
+
 /** Build a unified cart model from a ticket selection (+ optional hotel). */
 export function buildBundleCart({ event, tier, quantity = 2, hotel = null, nights = 1, feeRate = 0.18, taxRate = 0.09 }) {
   const items = []

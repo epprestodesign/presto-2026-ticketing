@@ -4,7 +4,7 @@
 import NoHotelAvailability from '../../components/NoHotelAvailability.vue'
 
 export default {
-  title: 'Ticketing & Bundles/Hotel Add-On/No Availability',
+  title: 'Ticketing & Bundles/Components/Hotel Add-On/No Availability',
   component: NoHotelAvailability,
   parameters: { layout: 'centered' },
 }

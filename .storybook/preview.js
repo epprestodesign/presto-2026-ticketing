@@ -96,14 +96,18 @@ const preview = {
           ],
           'Ticketing & Bundles', [
             'Overview',
-            'Full Screens', ['Ticket Only', 'Package Only', 'Ticket + Hotel'],
-            'Event & Tickets', ['Event Page', 'Event Hero', 'Ticket Tiers', 'Ticket Category Card'],
-            'Seat Map & View', ['Venue Map (Ticketmaster)', 'Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
-            'Hotel Add-On', ['Add-On Step', 'Live Search', 'Contracted Hotel Card', 'No Availability'],
-            'Packages', ['Package List', 'Package Card'],
-            'Bundle Cart & Checkout', ['Bundle Cart'],
-            'Confirmation', ['Bundle Confirmation'],
-            'Selection Summary',
+            // Full-screen purchase flows (2×2: tickets/packages × with/without hotel).
+            'Tickets Only', 'Tickets + Hotel', 'Packages Only', 'Packages + Hotel',
+            // Everything else — the individual building blocks.
+            'Components', [
+              'Event & Tickets', ['Event Page', 'Event Hero', 'Ticket Tiers', 'Ticket Category Card'],
+              'Seat Map & View', ['Venue Map (Ticketmaster)', 'Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
+              'Hotel Add-On', ['Add-On Step', 'Live Search', 'Contracted Hotel Card', 'No Availability'],
+              'Packages', ['Package List', 'Package Card'],
+              'Bundle Cart & Checkout', ['Bundle Cart'],
+              'Confirmation', ['Bundle Confirmation'],
+              'Selection Summary',
+            ],
           ],
           'Landing Page', [
             'Book Reservation', 'Group Block',

@@ -11,7 +11,7 @@ const experiencePackages = generateExperiencePackages(event, { nights: 1 })
 const plainPackages = generatePackages(event, { nights: 1 })
 
 export default {
-  title: 'Ticketing & Bundles/Packages/Package List',
+  title: 'Ticketing & Bundles/Components/Packages/Package List',
   parameters: { layout: 'fullscreen' },
 }
 
