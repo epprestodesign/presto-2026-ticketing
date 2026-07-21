@@ -70,7 +70,7 @@ const preview = {
               'Slider', 'Range', 'Rating', 'Quantity Stepper', 'Phone Field', 'Transfer List',
             ],
             'Feedback & Status', [
-              'Alert', 'Banner', 'Badge', 'Snackbar', 'Toast', 'Progress', 'Skeleton',
+              'Alert', 'Banner', 'Badge', 'Deal Score', 'Availability Badge', 'Snackbar', 'Toast', 'Progress', 'Skeleton',
             ],
             'Layout & Structure', [
               'Box', 'Card', 'Container', 'Grid', 'Stack', 'Divider', 'Section Header',
@@ -82,9 +82,20 @@ const preview = {
             'Typography & Content', [
               'Typography', 'Chip', 'Amenity', 'Tooltip',
             ],
+            'Navigation', [
+              'Journey Stepper',
+            ],
+            'Data Viz', [
+              'Price Histogram',
+            ],
           ],
           'App Shell', [
             'Global Nav & Cart', 'Page Frame',
+          ],
+          'Ticketing & Bundles', [
+            'Overview',
+            'Seat Map & View', ['Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
+            'Selection Summary',
           ],
           'Landing Page', [
             'Book Reservation', 'Group Block',
