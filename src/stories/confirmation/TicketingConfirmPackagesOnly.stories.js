@@ -1,25 +1,30 @@
 // CONFIRMATION / Packages Only — the order-confirmed screen for a package purchase
-// without a hotel (ticket + experience SKU). One of the four ticketing confirmation
+// without a hotel (ticket + experience SKU), on the STANDARD confirmation template
+// (ConfirmationPage, mode="ticketing"). One of the four ticketing confirmation
 // flows (2×2). Prototype data.
-import BundleConfirmation from '../../components/BundleConfirmation.vue'
-import { event, packagesOnlyCart } from '../ticketing/_ticketing-flow-carts.js'
+import ConfirmationPage from '../../components/confirmation/ConfirmationPage.vue'
+import { packagesOnlyCart } from '../ticketing/_ticketing-flow-carts.js'
+import { confData } from './_ticketing-confirm-data.js'
 
 export default {
   title: 'Confirmation/Packages Only',
-  component: BundleConfirmation,
+  component: ConfirmationPage,
   parameters: {
     layout: 'fullscreen',
-    docs: { description: { component: 'Order-confirmed screen for a **package without a hotel** — a ticket + experience SKU. Prototype pricing/inventory.' } },
+    docs: { description: { component: 'Order-confirmed screen for a **package without a hotel** — a ticket + experience SKU — on the standard confirmation template. Prototype pricing/inventory.' } },
   },
 }
 
-const wrap = (inner) => `<div style="display:flex;justify-content:center;padding:24px;background:var(--ds-color-surface-canvas);min-height:100vh;">${inner}</div>`
+const story = (data) => ({
+  components: { ConfirmationPage },
+  setup: () => ({ data }),
+  template: '<ConfirmationPage mode="ticketing" :data="data" />',
+})
 
 export const Confirmed = {
-  name: 'Confirmation',
-  render: () => ({
-    components: { BundleConfirmation },
-    setup: () => ({ event, cart: packagesOnlyCart }),
-    template: wrap(`<BundleConfirmation order-number="EP-9F3K1P" :event="event" :cart="cart" email="hello@girardjustin.com" variant="package" />`),
-  }),
+  name: 'Page',
+  render: () => story(confData(packagesOnlyCart, {
+    orderNumber: 'EP-9F3K1P',
+    bannerTitle: 'Success! Your package is confirmed.',
+  })),
 }

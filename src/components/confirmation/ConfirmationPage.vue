@@ -15,37 +15,68 @@ import { computed, onMounted, ref } from 'vue'
 import { loadImagery } from '../../lib/imagery'
 
 const props = defineProps({
-  mode: { type: String, default: 'reserve' }, // reserve | hold | reservations
+  mode: { type: String, default: 'reserve' }, // reserve | hold | reservations | ticketing
   data: { type: Object, default: () => ({}) },
 })
 
 const isHold = computed(() => props.mode === 'hold')
+// Ticketing mode (post-checkout order confirmation for the 2×2 ticketing flows)
+// reuses the same banner / summary-card / policies structure. Every new branch
+// below is gated on isTicketing so hold/reserve/reservations are untouched.
+const isTicketing = computed(() => props.mode === 'ticketing')
 const d = computed(() => props.data || {})
+
+// --- Tone (ticketing) --------------------------------------------------------
+// Default 'success' keeps every other mode visually identical (check_circle +
+// success accent). Warning → schedule/amber, danger → error/red.
+const tone = computed(() => d.value.tone || 'success')
+const bannerIcon = computed(() =>
+  ({ success: 'check_circle', warning: 'schedule', danger: 'error' })[tone.value] || 'check_circle')
 
 // --- Banner / labels ---------------------------------------------------------
 const bannerTitle = computed(() =>
   d.value.bannerTitle ||
-  (isHold.value
-    ? 'Success! Your Group Block is being held.'
-    : props.mode === 'reservations'
-      ? 'Success! Your reservations are confirmed.'
-      : 'Success! Your reservation is confirmed.')
+  (isTicketing.value
+    ? 'Success! Your order is confirmed.'
+    : isHold.value
+      ? 'Success! Your Group Block is being held.'
+      : props.mode === 'reservations'
+        ? 'Success! Your reservations are confirmed.'
+        : 'Success! Your reservation is confirmed.')
 )
+const bannerSub = computed(() => d.value.bannerSub || 'A confirmation email is on its way.')
 const bannerCta = computed(() =>
-  d.value.bannerCta || (isHold.value ? 'Hold Another Group Block' : 'Book Another Reservation')
+  d.value.bannerCta ||
+  (isTicketing.value ? 'View my orders' : isHold.value ? 'Hold Another Group Block' : 'Book Another Reservation')
 )
 const summaryLabel = computed(() =>
-  isHold.value ? 'Group Block Summary' : props.mode === 'reservations' ? 'Reservations Summary' : 'Reservation Summary'
+  isTicketing.value
+    ? (d.value.summaryLabel || 'Order Summary')
+    : isHold.value ? 'Group Block Summary' : props.mode === 'reservations' ? 'Reservations Summary' : 'Reservation Summary'
 )
-const idLabel = computed(() => (isHold.value ? 'Group ID' : 'Confirmation #'))
-const bookingId = computed(() => d.value.groupId || d.value.confirmationId || d.value.itinerary || '')
+const idLabel = computed(() =>
+  isTicketing.value ? (d.value.idLabel || 'Order') : isHold.value ? 'Group ID' : 'Confirmation #')
+const bookingId = computed(() =>
+  isTicketing.value
+    ? (d.value.orderNumber || '')
+    : (d.value.groupId || d.value.confirmationId || d.value.itinerary || ''))
 const contactName = computed(() => d.value.contactName || '')
 const releaseDate = computed(() => (isHold.value ? d.value.releaseDate : ''))
 
 // Meta grid rows (label → value). Group blocks surface the organization + group
-// contact; single/multiple reservations surface the booking guest.
+// contact; single/multiple reservations surface the booking guest; ticketing
+// surfaces the event + guest.
 const metaRows = computed(() => {
   const rows = []
+  if (isTicketing.value) {
+    const ev = d.value.event || {}
+    if (ev.name) rows.push({ label: 'Event', value: ev.name })
+    if (ev.date) rows.push({ label: 'Date', value: ev.date })
+    if (ev.venue) rows.push({ label: 'Venue', value: ev.venue })
+    if (d.value.guest) rows.push({ label: 'Guest', value: d.value.guest })
+    if (d.value.email) rows.push({ label: 'Email', value: d.value.email })
+    return rows
+  }
   if (d.value.reservedOn) rows.push({ label: 'Reserved On', value: d.value.reservedOn })
   if (isHold.value) {
     if (d.value.organizationName) rows.push({ label: 'Organization Name', value: d.value.organizationName })
@@ -56,6 +87,13 @@ const metaRows = computed(() => {
   if (d.value.email) rows.push({ label: 'Email', value: d.value.email })
   return rows
 })
+
+// --- Ticketing order components / value props / status note ------------------
+const blocks = computed(() => (isTicketing.value ? d.value.blocks || [] : []))
+const totalCharged = computed(() => d.value.totalCharged)
+const valueProps = computed(() => (isTicketing.value ? d.value.valueProps || [] : []))
+const valuePropsLabel = computed(() => d.value.valuePropsLabel || "What's included")
+const statusNote = computed(() => (isTicketing.value ? d.value.statusNote || null : null))
 
 // --- Hotels ------------------------------------------------------------------
 // Every mode normalizes to a list of hotel blocks:
@@ -74,7 +112,15 @@ const thumb = (h) => {
   return arr[(h.seed ?? 0) % arr.length]?.url || null
 }
 
-const policies = computed(() => d.value.policies || [])
+// Policies accepts the per-hotel shape [{ hotel, items:[{title,body}] }] used by
+// hold/reserve, OR a flat [{title,body}] list (ticketing) which is normalized
+// into a single group under one heading.
+const policies = computed(() => {
+  const p = d.value.policies || []
+  if (!p.length) return []
+  if (p[0] && Array.isArray(p[0].items)) return p
+  return [{ hotel: d.value.policiesHeading || 'Ticketing & event', items: p }]
+})
 
 const money = (n) => '$' + Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const print = () => { if (typeof window !== 'undefined') window.print() }
@@ -84,13 +130,22 @@ const print = () => { if (typeof window !== 'undefined') window.print() }
   <div class="conf">
     <div class="conf__inner">
       <!-- SUCCESS BANNER -->
-      <section class="conf__banner">
-        <span class="conf__banner-check"><q-icon name="check_circle" size="34px" /></span>
+      <section class="conf__banner" :class="`conf__banner--${tone}`">
+        <span class="conf__banner-check"><q-icon :name="bannerIcon" size="34px" /></span>
         <div class="conf__banner-text">
           <p class="conf__banner-title">{{ bannerTitle }}</p>
-          <p class="conf__banner-sub">A confirmation email is on its way.</p>
+          <p class="conf__banner-sub">{{ bannerSub }}</p>
         </div>
         <button type="button" class="conf__banner-cta">{{ bannerCta }}</button>
+      </section>
+
+      <!-- STATUS NOTE (ticketing edge/dual-email messaging) -->
+      <section v-if="statusNote" class="conf__statusnote" :class="`conf__statusnote--${tone}`">
+        <q-icon :name="bannerIcon" size="20px" class="conf__statusnote-icon" />
+        <div class="conf__statusnote-text">
+          <p class="conf__statusnote-title">{{ statusNote.title }}</p>
+          <p class="conf__statusnote-body">{{ statusNote.body }}</p>
+        </div>
       </section>
 
       <!-- SUMMARY -->
@@ -156,7 +211,39 @@ const print = () => { if (typeof window !== 'undefined') window.print() }
             </ul>
           </div>
         </div>
+
+        <!-- ticketing order components + total charged -->
+        <template v-if="isTicketing && blocks.length">
+          <hr class="conf__rule" />
+          <div v-for="(b, bi) in blocks" :key="bi" class="conf__ordercomp">
+            <span class="conf__comptile"><q-icon :name="b.icon" size="24px" /></span>
+            <div class="conf__compmeta">
+              <div class="conf__compname">{{ b.name }}</div>
+              <div v-if="b.meta" class="conf__compsub">{{ b.meta }}</div>
+            </div>
+            <div class="conf__compamount">{{ money(b.amount) }}</div>
+          </div>
+          <hr class="conf__rule" />
+          <div class="conf__total">
+            <span class="conf__total-label">Total charged</span>
+            <span class="conf__total-amount">{{ money(totalCharged) }}</span>
+          </div>
+        </template>
       </section>
+
+      <!-- WHAT'S INCLUDED (ticketing value props) -->
+      <template v-if="isTicketing && valueProps.length">
+        <h2 class="conf__sectionlabel">{{ valuePropsLabel }}</h2>
+        <section class="conf__card conf__valueprops">
+          <div v-for="(vp, vi) in valueProps" :key="vi" class="conf__vp">
+            <span class="conf__vp-icon"><q-icon :name="vp.icon" size="22px" /></span>
+            <div class="conf__vp-text">
+              <h4 class="conf__vp-title">{{ vp.title }}</h4>
+              <p v-if="vp.text" class="conf__vp-body">{{ vp.text }}</p>
+            </div>
+          </div>
+        </section>
+      </template>
 
       <!-- POLICIES -->
       <section v-if="policies.length" class="conf__card conf__policies">
@@ -238,6 +325,45 @@ const print = () => { if (typeof window !== 'undefined') window.print() }
 .conf__policyitem { margin-bottom: 14px; }
 .conf__policytitle { margin: 0; font-size: 0.9375rem; font-weight: 700; color: var(--ds-color-text); }
 .conf__policybody { margin: 4px 0 0; color: var(--ds-color-text-subtle); font-size: 0.875rem; line-height: 1.5; }
+
+/* banner tones (ticketing) — default/success keeps the existing look */
+.conf__banner--warning .conf__banner-check,
+.conf__banner--warning .conf__banner-title { color: var(--ds-color-text-warning, #b45309); }
+.conf__banner--danger .conf__banner-check,
+.conf__banner--danger .conf__banner-title { color: var(--ds-color-text-danger, #b91c1c); }
+
+/* status note callout (ticketing), tinted by tone */
+.conf__statusnote { display: flex; align-items: flex-start; gap: 12px; border: 1px solid; border-radius: var(--ds-radius-lg); padding: 14px 18px; margin: -8px 0 24px; }
+.conf__statusnote-icon { flex: none; margin-top: 1px; }
+.conf__statusnote-title { margin: 0; font-weight: 700; font-size: 0.9375rem; }
+.conf__statusnote-body { margin: 2px 0 0; font-size: 0.875rem; line-height: 1.5; }
+.conf__statusnote--success { background: var(--ds-color-background-info-subtle, #eff6ff); border-color: var(--ds-color-border-info, #bfdbfe); color: var(--ds-color-text-info, #1d4ed8); }
+.conf__statusnote--warning { background: var(--ds-color-background-warning-subtle, #fffbeb); border-color: var(--ds-color-border-warning, #fde68a); color: var(--ds-color-text-warning, #b45309); }
+.conf__statusnote--danger { background: var(--ds-color-background-danger-subtle, #fef2f2); border-color: var(--ds-color-border-danger, #fecaca); color: var(--ds-color-text-danger, #b91c1c); }
+.conf__statusnote-title { color: inherit; }
+.conf__statusnote-body { color: inherit; opacity: 0.92; }
+
+/* ticketing order-component row (reuses the hotel-head visual rhythm) */
+.conf__ordercomp { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+.conf__ordercomp:first-of-type { margin-top: 0; }
+.conf__comptile { width: 56px; height: 56px; flex: none; border-radius: var(--ds-radius-md); display: flex; align-items: center; justify-content: center; background: var(--ds-palette-slate-100); color: var(--ds-color-link); }
+.conf__compmeta { flex: 1; min-width: 0; }
+.conf__compname { font-size: 1.0625rem; font-weight: 700; color: var(--ds-color-text); }
+.conf__compsub { margin-top: 2px; color: var(--ds-color-text-subtle); font-size: 0.875rem; }
+.conf__compamount { flex: none; font-weight: 700; font-size: 1.0625rem; color: var(--ds-color-text); }
+
+/* total charged row */
+.conf__total { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.conf__total-label { font-size: 1.0625rem; font-weight: 800; color: var(--ds-color-text); }
+.conf__total-amount { font-size: 1.25rem; font-weight: 800; color: var(--ds-color-text-success); }
+
+/* value props (What's included) */
+.conf__valueprops { display: flex; flex-direction: column; gap: 18px; }
+.conf__vp { display: flex; align-items: flex-start; gap: 14px; }
+.conf__vp-icon { width: 40px; height: 40px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--ds-palette-slate-100); color: var(--ds-color-link); }
+.conf__vp-text { min-width: 0; }
+.conf__vp-title { margin: 0; font-size: 0.9375rem; font-weight: 700; color: var(--ds-color-text); }
+.conf__vp-body { margin: 3px 0 0; color: var(--ds-color-text-subtle); font-size: 0.875rem; line-height: 1.5; }
 
 @media (max-width: 620px) {
   .conf__sumhead-right { align-items: flex-start; text-align: left; }

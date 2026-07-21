@@ -1,25 +1,47 @@
 // CONFIRMATION / Packages + Hotel — the order-confirmed screen for a package
-// purchase that includes a hotel stay (ticket + experience + hotel SKU). One of
-// the four ticketing confirmation flows (2×2). Prototype data.
-import BundleConfirmation from '../../components/BundleConfirmation.vue'
-import { event, packagesHotelCart } from '../ticketing/_ticketing-flow-carts.js'
+// purchase that includes a hotel stay (ticket + experience + hotel SKU), on the
+// STANDARD confirmation template (ConfirmationPage, mode="ticketing"). One of the
+// four ticketing confirmation flows (2×2). Prototype data.
+import ConfirmationPage from '../../components/confirmation/ConfirmationPage.vue'
+import { packagesHotelCart } from '../ticketing/_ticketing-flow-carts.js'
+import { confData } from './_ticketing-confirm-data.js'
 
 export default {
   title: 'Confirmation/Packages + Hotel',
-  component: BundleConfirmation,
+  component: ConfirmationPage,
   parameters: {
     layout: 'fullscreen',
-    docs: { description: { component: 'Order-confirmed screen for a **package with a hotel stay** — a ticket + experience + hotel SKU. Prototype pricing/inventory.' } },
+    docs: { description: { component: 'Order-confirmed screen for a **package with a hotel stay** — a ticket + experience + hotel SKU — on the standard confirmation template. Prototype pricing/inventory.' } },
   },
 }
 
-const wrap = (inner) => `<div style="display:flex;justify-content:center;padding:24px;background:var(--ds-color-surface-canvas);min-height:100vh;">${inner}</div>`
+const story = (data) => ({
+  components: { ConfirmationPage },
+  setup: () => ({ data }),
+  template: '<ConfirmationPage mode="ticketing" :data="data" />',
+})
 
 export const Confirmed = {
-  name: 'Confirmation',
-  render: () => ({
-    components: { BundleConfirmation },
-    setup: () => ({ event, cart: packagesHotelCart }),
-    template: wrap(`<BundleConfirmation order-number="EP-6T2N8V" :event="event" :cart="cart" email="hello@girardjustin.com" variant="package" />`),
-  }),
+  name: 'Page',
+  render: () => story(confData(packagesHotelCart, {
+    orderNumber: 'EP-6T2N8V',
+    bannerTitle: 'Success! Your package is confirmed.',
+    statusNote: {
+      title: 'Your stay and experience are set',
+      body: 'Your hotel stay is confirmed now. Event tickets are issued by the venue and arrive in a separate email — everything is part of this one order.',
+    },
+  })),
+}
+
+export const ExperiencePending = {
+  name: 'Experience pending',
+  render: () => story(confData(packagesHotelCart, {
+    orderNumber: 'EP-6T2N8V',
+    tone: 'warning',
+    bannerTitle: 'Package confirmed — experience details to follow.',
+    statusNote: {
+      title: 'Experience details coming soon',
+      body: 'Your tickets and hotel are confirmed. The experience add-on (times, meeting point, and what to bring) is being scheduled with the venue — we’ll email you the details a few days before the event.',
+    },
+  })),
 }

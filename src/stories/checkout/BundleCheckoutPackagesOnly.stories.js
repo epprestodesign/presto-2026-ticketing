@@ -1,30 +1,27 @@
 // CHECKOUT EXPERIENCE / Packages Only — checkout for a package without a hotel
-// (ticket + experience SKU): stepped accordion + sticky Order Summary in a
-// minimal-nav frame, seats held on a timer. One of the four ticketing checkout
-// flows (2×2). Prototype data.
-import BundleCheckoutPage from '../../components/checkout/BundleCheckoutPage.vue'
+// (ticket + experience SKU), now on the STANDARD checkout template
+// (CheckoutPage mode="ticketing"): a left stepped accordion beside a sticky
+// Order Summary rail in a minimal-nav frame, seats held on a timer. One of the
+// four ticketing checkout flows (2×2). Prototype data.
+import CheckoutPage from '../../components/checkout/CheckoutPage.vue'
 import PageFrame from '../../components/PageFrame.vue'
 import HoldTimerPill from '../../components/HoldTimerPill.vue'
-import { event, pkgOnly, packagesOnlyCart } from '../ticketing/_ticketing-flow-carts.js'
+import { pkgOnly, packagesOnlyCart } from '../ticketing/_ticketing-flow-carts.js'
+import { makeSummary } from './_ticketing-checkout-data.js'
 
-const summary = {
-  image: event.image,
-  title: event.name,
-  subtitle: event.venue?.name,
-  rows: [
-    { label: 'Package', value: pkgOnly.name },
-    { label: 'Seats', value: `${pkgOnly.ticket.tierName} · Sec CL10` },
-    { label: 'Experience', value: pkgOnly.theme },
-  ],
-  note: 'Your seats are held while the timer runs.',
-}
+const summary = makeSummary(packagesOnlyCart, [
+  { label: 'Package', value: pkgOnly.name },
+  { label: 'Seats', value: `${pkgOnly.ticket.tierName} · Sec CL10` },
+  { label: 'Experience', value: pkgOnly.theme },
+], { rrow1: pkgOnly.name })
 
 export default {
   title: 'Checkout Experience/Packages Only',
-  component: BundleCheckoutPage,
+  component: CheckoutPage,
   parameters: {
     layout: 'fullscreen',
-    docs: { description: { component: 'Checkout for a **package without a hotel** — a ticket + experience SKU charged as one line. Prototype pricing/inventory.' } },
+    docs: { description: { component:
+      'Checkout for a **package without a hotel** — a ticket + experience SKU charged as one line — on the standard checkout template (stepped accordion + sticky Order Summary, seats held on a timer). Prototype pricing/inventory.' } },
   },
 }
 
@@ -33,10 +30,10 @@ const frame = (inner) => `<page-frame cart-mode="hold" brand="Secure Checkout" m
 export const Checkout = {
   name: 'Checkout',
   render: () => ({
-    components: { BundleCheckoutPage, PageFrame, HoldTimerPill },
-    setup: () => ({ event, cart: packagesOnlyCart, summary, savings: pkgOnly.savings }),
+    components: { CheckoutPage, PageFrame, HoldTimerPill },
+    setup: () => ({ cart: packagesOnlyCart, summary }),
     template: frame(`
-      <div style="padding:28px 20px;"><bundle-checkout-page :event="event" :cart="cart" :summary="summary" :savings="savings" @confirm="() => {}" /></div>
+      <checkout-page mode="ticketing" :cart="cart" :summary="summary" />
       <hold-timer-pill :seconds="352" running label="Seats held" sub="Finish before the timer ends" />`),
   }),
 }

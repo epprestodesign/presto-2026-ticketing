@@ -1,32 +1,28 @@
-// CHECKOUT EXPERIENCE / Tickets + Hotel — the unified bundle checkout, following
-// the Group Block convention (stepped accordion + sticky Order Summary in a
-// minimal-nav PageFrame, seats held on a timer). One charge covers all
-// components. Variants cover the scope 3.5 edge cases: payment-failure hold grace
-// (C-08), a section selling out mid-checkout, and an expired hold. Prototype data.
-import BundleCheckoutPage from '../../components/checkout/BundleCheckoutPage.vue'
+// CHECKOUT EXPERIENCE / Tickets + Hotel — the unified ticket + hotel bundle
+// checkout, now on the STANDARD checkout template (CheckoutPage mode="ticketing"):
+// a left stepped accordion beside a sticky Order Summary rail in a minimal-nav
+// frame, seats held on a timer. One charge covers all components. Variants cover
+// the edge cases: payment-failure hold grace, a section selling out mid-checkout,
+// and an expired hold. Prototype data.
+import CheckoutPage from '../../components/checkout/CheckoutPage.vue'
 import PageFrame from '../../components/PageFrame.vue'
 import HoldTimerPill from '../../components/HoldTimerPill.vue'
-import { event, tier, ticketsHotelCart } from '../ticketing/_ticketing-flow-carts.js'
+import { ticketsHotelCart } from '../ticketing/_ticketing-flow-carts.js'
+import { makeSummary } from './_ticketing-checkout-data.js'
 
-const summary = {
-  image: event.image,
-  title: event.name,
-  subtitle: event.venue?.name,
-  rows: [
-    { label: 'Seats', value: 'Club · Sec CL10' },
-    { label: 'Tickets', value: `2 × ${tier.name}` },
-    { label: 'Hotel', value: 'The Westin · 1 night' },
-  ],
-  note: 'Your seats are held while the timer runs.',
-}
+const summary = makeSummary(ticketsHotelCart, [
+  { label: 'Seats', value: 'Club · Sec CL10' },
+  { label: 'Tickets', value: '2 × Club' },
+  { label: 'Hotel', value: 'The Westin · 1 night' },
+], { rrow1: '2 × Club · The Westin · 1 night' })
 
 export default {
   title: 'Checkout Experience/Tickets + Hotel',
-  component: BundleCheckoutPage,
+  component: CheckoutPage,
   parameters: {
     layout: 'fullscreen',
     docs: { description: { component:
-      'The unified **ticket + hotel bundle** checkout — same convention as Group Block (stepped accordion + sticky Order Summary, minimal-nav frame, held on a timer), with one charge covering all components. Variants show the scope 3.5 edge cases.' } },
+      'The unified **ticket + hotel bundle** checkout on the standard checkout template (stepped accordion + sticky Order Summary, minimal-nav frame, seats held on a timer), with one charge covering all components. Variants show the edge cases.' } },
   },
 }
 
@@ -35,39 +31,43 @@ const frame = (inner) => `<page-frame cart-mode="hold" brand="Secure Checkout" m
 export const Checkout = {
   name: 'Checkout',
   render: () => ({
-    components: { BundleCheckoutPage, PageFrame, HoldTimerPill },
-    setup: () => ({ event, cart: ticketsHotelCart, summary, savings: 58 }),
+    components: { CheckoutPage, PageFrame, HoldTimerPill },
+    setup: () => ({ cart: ticketsHotelCart, summary }),
     template: frame(`
-      <div style="padding:28px 20px;">
-        <bundle-checkout-page :event="event" :cart="cart" :summary="summary" :savings="savings" @confirm="() => {}" />
-      </div>
+      <checkout-page mode="ticketing" :cart="cart" :summary="summary" />
       <hold-timer-pill :seconds="352" running label="Seats held" sub="Finish before the timer ends" />`),
   }),
 }
 
 export const PaymentFailed = {
-  name: 'Payment failed · hold grace (C-08)',
+  name: 'Payment failed · hold grace',
   render: () => ({
-    components: { BundleCheckoutPage, PageFrame },
-    setup: () => ({ event, cart: ticketsHotelCart, summary }),
-    template: frame(`<div style="padding:28px 20px;"><bundle-checkout-page :event="event" :cart="cart" :summary="summary" :start-step="3" edge="payment-failed" hold-label="4:52" /></div>`),
+    components: { CheckoutPage, PageFrame, HoldTimerPill },
+    setup: () => ({ cart: ticketsHotelCart, summary }),
+    template: frame(`
+      <checkout-page mode="ticketing" :cart="cart" :summary="summary" edge="payment-failed" :start-step="3" />
+      <hold-timer-pill :seconds="292" running label="Seats held" sub="Grace period — update your card" />`),
   }),
 }
 
 export const SoldOutMidCheckout = {
   name: 'Section sold out mid-checkout',
   render: () => ({
-    components: { BundleCheckoutPage, PageFrame },
-    setup: () => ({ event, cart: ticketsHotelCart, summary }),
-    template: frame(`<div style="padding:28px 20px;"><bundle-checkout-page :event="event" :cart="cart" :summary="summary" edge="sold-out" /></div>`),
+    components: { CheckoutPage, PageFrame, HoldTimerPill },
+    setup: () => ({ cart: ticketsHotelCart, summary }),
+    template: frame(`
+      <checkout-page mode="ticketing" :cart="cart" :summary="summary" edge="sold-out" />
+      <hold-timer-pill :seconds="352" running label="Seats held" sub="Finish before the timer ends" />`),
   }),
 }
 
 export const HoldExpired = {
   name: 'Hold expired',
   render: () => ({
-    components: { BundleCheckoutPage, PageFrame },
-    setup: () => ({ event, cart: ticketsHotelCart, summary }),
-    template: frame(`<div style="padding:28px 20px;"><bundle-checkout-page :event="event" :cart="cart" :summary="summary" edge="hold-expired" /></div>`),
+    components: { CheckoutPage, PageFrame, HoldTimerPill },
+    setup: () => ({ cart: ticketsHotelCart, summary }),
+    template: frame(`
+      <checkout-page mode="ticketing" :cart="cart" :summary="summary" edge="hold-expired" />
+      <hold-timer-pill :seconds="0" label="Hold expired" sub="Re-select your seats to continue" />`),
   }),
 }

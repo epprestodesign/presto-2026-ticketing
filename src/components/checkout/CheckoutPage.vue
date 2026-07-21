@@ -14,12 +14,17 @@ import StepPayment from './steps/StepPayment.vue'
 import StepReviewReservation from './steps/StepReviewReservation.vue'
 
 const props = defineProps({
-  mode: { type: String, default: 'group' },
+  mode: { type: String, default: 'group' }, // group | reservation | reservations | ticketing
   cart: { type: Object, default: () => ({}) },
   summary: { type: Object, default: () => ({}) },
   currency: { type: String, default: '$' },
   // Group flow: render the teams block widget in the contact step.
   showTeams: { type: Boolean, default: true },
+  // Ticketing flow: an edge-case banner atop the steps column
+  // (null | 'payment-failed' | 'sold-out' | 'hold-expired').
+  edge: { type: String, default: null },
+  // Open a later step on load (e.g. payment-failed reopens Payment).
+  startStep: { type: Number, default: 1 },
 })
 
 // "Time left to book" countdown for the rail — rooms are held temporarily.
@@ -31,8 +36,11 @@ onBeforeUnmount(() => clearInterval(heldTimer))
 const $q = useQuasar()
 const isGroup = computed(() => props.mode === 'group')
 const isMulti = computed(() => props.mode === 'reservations') // multiple room reservations
+// Ticketing: a charged, flat itemized cart (tickets / hotel / experience /
+// package lines). CartReview already renders this via its 'ticketing' mode.
+const isTicketing = computed(() => props.mode === 'ticketing')
 // The cart fly-out modes; reuse the same CartReview body here.
-const cartMode = computed(() => (isGroup.value ? 'hold' : isMulti.value ? 'reservations' : 'reserve'))
+const cartMode = computed(() => (isTicketing.value ? 'ticketing' : isGroup.value ? 'hold' : isMulti.value ? 'reservations' : 'reserve'))
 // One shared, editable copy so the Review-order step and the rail's Price
 // details stay in sync as quantities change.
 const liveCart = reactive(JSON.parse(JSON.stringify(props.cart || {})))
@@ -50,6 +58,12 @@ const contactReservations = computed(() => (liveCart.hotels || []).map((h) => ({
   rooms: (h.rooms || []).map((r) => ({ adults: r.adults ?? 2, children: r.children ?? 0 })),
 })))
 
+// Ticketing collects a single buyer's contact (no team blocks, no per-room
+// occupancy) — reuse the 'reservation' contact form with one 1-adult room.
+const contactMode = computed(() => (isTicketing.value ? 'reservation' : props.mode))
+const contactShowTeams = computed(() => (isTicketing.value ? false : props.showTeams))
+const contactRoomsResolved = computed(() => (isTicketing.value ? [{ adults: 1, children: 0 }] : contactRooms.value))
+
 // Policies step: group/multi → per-hotel accordion; single reservation → one
 // generic card. Group flow → "Hold Group Block Now"; else "Book Now".
 const policyFlow = computed(() => (isGroup.value ? 'group' : 'reserve'))
@@ -61,6 +75,14 @@ const policyHotels = computed(() => {
 // Group blocks are held, not charged — no payment step. Reservation flows keep
 // payment but drop the "Review order" step (the rail already shows the order).
 const steps = computed(() => {
+  // Ticketing is charged (unlike held group blocks): review → contact →
+  // payment → final review, all four steps.
+  if (isTicketing.value) return [
+    { key: 'review', label: 'Review order' },
+    { key: 'contact', label: 'Enter contact information' },
+    { key: 'payment', label: 'Add a payment method' },
+    { key: 'final', label: 'Review your order' },
+  ]
   const contact = { key: 'contact', label: isGroup.value ? 'Enter contact & group information' : 'Enter contact information' }
   const final = { key: 'final', label: 'Review your reservation' }
   return isGroup.value
@@ -68,8 +90,17 @@ const steps = computed(() => {
     : [contact, { key: 'payment', label: 'Add a payment method' }, final]
 })
 
-const current = ref(1)
-const furthest = ref(1)
+// Ticketing edge-case banner (payment-failed hold grace, a section selling out
+// mid-checkout, an expired hold). Gated to ticketing so other modes are unaffected.
+const EDGE = {
+  'payment-failed': { icon: 'error', cls: 'is-danger', text: "Payment didn't go through — your seats are still held on a short grace period. Update your card and try again before the timer ends." },
+  'sold-out': { icon: 'remove_shopping_cart', cls: 'is-warning', text: 'A section in your order just sold out and was removed. Your total has been updated below.' },
+  'hold-expired': { icon: 'timer_off', cls: 'is-danger', text: 'Your hold expired. Re-select your seats on the map to continue.' },
+}
+const edgeInfo = computed(() => (isTicketing.value && props.edge ? EDGE[props.edge] : null))
+
+const current = ref(props.startStep)
+const furthest = ref(props.startStep)
 const stepState = (n) => (n === current.value ? 'open' : n <= furthest.value ? 'done' : 'upcoming')
 const goEdit = (n) => { if (n <= furthest.value) current.value = n }
 const next = () => { furthest.value = Math.max(furthest.value, current.value + 1); current.value = Math.min(current.value + 1, steps.value.length) }
@@ -109,6 +140,11 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
     <div class="ck__grid">
       <!-- LEFT: stepped accordion -->
       <div class="ck__steps">
+        <!-- Ticketing edge-case banner -->
+        <div v-if="edgeInfo" class="ck__edge" :class="edgeInfo.cls">
+          <q-icon :name="edgeInfo.icon" size="20px" /> <span>{{ edgeInfo.text }}</span>
+        </div>
+
         <section v-for="(s, i) in steps" :key="s.key" class="ck__step" :class="`is-${stepState(i + 1)}`">
           <header class="ck__stephead" @click="stepState(i + 1) === 'done' && goEdit(i + 1)">
             <span class="ck__num"><q-icon v-if="stepState(i + 1) === 'done'" name="check" size="16px" /><template v-else>{{ i + 1 }}</template></span>
@@ -126,7 +162,7 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
           <!-- open content — each step is its own component -->
           <div v-if="stepState(i + 1) === 'open'" class="ck__body">
             <step-review-order v-if="s.key === 'review'" :mode="cartMode" :cart="liveCart" :currency="currency" bind @next="next" />
-            <step-contact-info v-else-if="s.key === 'contact'" :mode="mode" :show-teams="showTeams" :rooms="contactRooms" :reservations="isMulti ? contactReservations : null" v-model="contact" @next="next" />
+            <step-contact-info v-else-if="s.key === 'contact'" :mode="contactMode" :show-teams="contactShowTeams" :rooms="contactRoomsResolved" :reservations="isMulti ? contactReservations : null" v-model="contact" @next="next" />
             <step-payment v-else-if="s.key === 'payment'" v-model="payment" @next="next" />
             <step-review-reservation v-else :contact-summary="contactSummary" :payment-label="paymentLabel" :total="summary.total" :currency="currency" :flow="policyFlow" :hotels="policyHotels" @confirm="confirm" />
           </div>
@@ -148,7 +184,7 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
         </div>
 
         <!-- Reservation actions — edit the held reservation or start over -->
-        <div v-if="!isGroup" class="ck__railactions">
+        <div v-if="!isGroup && !isTicketing" class="ck__railactions">
           <button type="button" class="ck__railbtn"><q-icon name="edit" size="18px" /> Edit reservation</button>
           <button type="button" class="ck__railbtn ck__railbtn--ghost"><q-icon name="restart_alt" size="18px" /> Start over</button>
         </div>
@@ -180,6 +216,12 @@ const confirm = () => $q.notify({ message: 'Reservation confirmed — a confirma
 .ck__railbtn--ghost:hover { background: var(--ds-palette-slate-100); }
 .ck__rail { position: sticky; top: 20px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); overflow: hidden; box-shadow: var(--ds-shadow-1); background: var(--ds-color-surface); }
 .ck__railwrap { position: sticky; top: 20px; }
+
+/* Ticketing edge-case banner atop the steps column. */
+.ck__edge { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: var(--ds-radius-md); margin-bottom: 16px; font-size: 0.9375rem; line-height: 1.4; }
+.ck__edge.is-danger { background: var(--ds-color-background-danger); color: var(--ds-color-text-danger); }
+.ck__edge.is-warning { background: var(--ds-color-background-warning); color: var(--ds-color-text-warning); }
+.ck__edge :deep(.q-icon) { flex: none; }
 
 .ck__step { background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); padding: 18px 20px; margin-bottom: 16px; }
 .ck__step.is-upcoming { opacity: 0.5; }
