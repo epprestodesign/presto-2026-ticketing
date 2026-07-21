@@ -6,9 +6,10 @@ import { ref, computed } from 'vue'
 import SeatListingRow from '../../components/SeatListingRow.vue'
 import PriceHistogram from '../../components/PriceHistogram.vue'
 import ViewFromSeat from '../../components/ViewFromSeat.vue'
-import SeatMap from '../../components/SeatMap.vue'
+import VenueMap from '../../components/VenueMap.vue'
 import { fixtureEvents } from '../../lib/ticketmaster.js'
 import { generateListings, priceDistribution } from '../../lib/seatListings.js'
+import { gillettePins } from '../../lib/gilletteMap.js'
 
 const event = fixtureEvents.find((e) => /stadium|field/i.test(e.venue?.name || '')) || fixtureEvents[1] || fixtureEvents[0]
 
@@ -19,13 +20,14 @@ export default {
 
 export const Browser = {
   render: () => ({
-    components: { SeatListingRow, PriceHistogram, ViewFromSeat, SeatMap },
+    components: { SeatListingRow, PriceHistogram, ViewFromSeat, VenueMap },
     setup() {
       const listings = generateListings(event, { count: 16 })
       const dist = priceDistribution(listings)
+      const pins = gillettePins(event)
       const selectedId = ref(listings[0].id)
       const selected = computed(() => listings.find((l) => l.id === selectedId.value) || listings[0])
-      return { event, listings, dist, selectedId, selected, pick: (l) => (selectedId.value = l.id) }
+      return { event, listings, dist, pins, selectedId, selected, pick: (l) => (selectedId.value = l.id) }
     },
     template: `
       <div style="display:grid;grid-template-columns:minmax(320px,420px) 1fr;gap:0;height:100vh;font-family:var(--ds-font-family);">
@@ -47,8 +49,8 @@ export const Browser = {
             <ViewFromSeat :photo="selected.photo" :section="selected.section" :row="selected.row"
                           :deal-score="selected.dealScore" :price="selected.priceWithFees" />
           </div>
-          <div style="max-width:560px;">
-            <SeatMap :event="event" kind="stadium" center-label="FIELD" />
+          <div style="max-width:620px;">
+            <VenueMap :event="event" :pins="pins" />
           </div>
         </div>
       </div>
