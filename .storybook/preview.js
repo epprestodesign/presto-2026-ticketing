@@ -139,7 +139,8 @@ const preview = {
             ],
           ],
           'Checkout Experience', [
-            'Book Reservation', 'Group Block', 'Ticket + Hotel Bundle',
+            'Book Reservation', 'Group Block',
+            'Tickets Only', 'Tickets + Hotel', 'Packages Only', 'Packages + Hotel',
             'Components', [
               'Book Reservation', ['Review Order', 'Contact Info', 'Reservation Guests', 'Payment', 'Review Reservation'],
               'Group Block', ['Review Order', 'Contact Info', 'Review Reservation'],
@@ -148,6 +149,7 @@ const preview = {
           ],
           'Confirmation', [
             'Book Reservation', 'Group Block',
+            'Tickets Only', 'Tickets + Hotel', 'Packages Only', 'Packages + Hotel',
           ],
           '*',
           'Manage Booking', [
