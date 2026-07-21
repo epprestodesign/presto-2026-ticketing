@@ -8,7 +8,7 @@ const event = fixtureEvents.find((e) => /stadium|field/i.test(e.venue?.name || '
 const packages = generatePackages(event, { nights: 1 })
 
 export default {
-  title: 'Ticketing & Bundles/Components/Packages/Package Card',
+  title: 'Ticket Map/Components/Packages/Package Card',
   component: PackageCard,
   parameters: { layout: 'centered' },
 }

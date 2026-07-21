@@ -11,7 +11,7 @@ import { fixtureEvents } from '../../lib/ticketmaster.js'
 const event = fixtureEvents.find((e) => /gillette|stadium/i.test(e.venue?.name || '')) || fixtureEvents[0]
 
 export default {
-  title: 'Ticketing & Bundles/Components/Event & Tickets/Event Page',
+  title: 'Ticket Map/Components/Event & Tickets/Event Page',
   parameters: {
     layout: 'fullscreen',
     docs: {

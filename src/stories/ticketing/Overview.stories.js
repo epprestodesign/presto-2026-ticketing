@@ -12,7 +12,7 @@ const event = fixtureEvents.find((e) => /gillette|stadium/i.test(e.venue?.name |
 const pins = gillettePins(event)
 
 export default {
-  title: 'Ticketing & Bundles/Overview',
+  title: 'Ticket Map/Overview',
   parameters: {
     layout: 'fullscreen',
     docs: {

@@ -10,7 +10,7 @@ const event = fixtureEvents.find((e) => /gillette|stadium/i.test(e.venue?.name |
 const sample = deriveTiers(event)[1]
 
 export default {
-  title: 'Ticketing & Bundles/Components/Event & Tickets/Ticket Category Card',
+  title: 'Ticket Map/Components/Event & Tickets/Ticket Category Card',
   component: TicketCategoryCard,
   parameters: { layout: 'centered' },
 }

@@ -5,7 +5,7 @@ import ContractedHotelCard from '../../components/ContractedHotelCard.vue'
 import { CONTRACTED_HOTELS } from '../../lib/bundles.js'
 
 export default {
-  title: 'Ticketing & Bundles/Components/Hotel Add-On/Contracted Hotel Card',
+  title: 'Ticket Map/Components/Hotel Add-On/Contracted Hotel Card',
   component: ContractedHotelCard,
   parameters: { layout: 'centered' },
 }

@@ -21,7 +21,7 @@ const addOns = [
 ]
 
 export default {
-  title: 'Ticketing & Bundles/Components/Packages/Package Dialog',
+  title: 'Ticket Map/Components/Packages/Package Dialog',
   component: PackageBookingDialog,
   parameters: {
     layout: 'fullscreen',

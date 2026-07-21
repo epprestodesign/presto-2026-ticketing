@@ -8,7 +8,7 @@ import { fixtureEvents } from '../../lib/ticketmaster.js'
 const event = fixtureEvents.find((e) => /gillette|stadium/i.test(e.venue?.name || '')) || fixtureEvents[0]
 
 export default {
-  title: 'Ticketing & Bundles/Components/Event & Tickets/Ticket Tiers',
+  title: 'Ticket Map/Components/Event & Tickets/Ticket Tiers',
   component: TicketTierList,
   parameters: { layout: 'fullscreen' },
 }

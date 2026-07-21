@@ -4,7 +4,7 @@
 import LiveHotelSearch from '../../components/LiveHotelSearch.vue'
 
 export default {
-  title: 'Ticketing & Bundles/Components/Hotel Add-On/Live Search',
+  title: 'Ticket Map/Components/Hotel Add-On/Live Search',
   component: LiveHotelSearch,
   parameters: { layout: 'fullscreen' },
 }

@@ -95,10 +95,10 @@ const preview = {
             'Global Nav & Cart', ['Book Reservation', 'Group Block', 'Ticketing'],
             'Page Frame',
           ],
-          'Ticketing & Bundles', [
+          'Ticket Map', [
             'Overview',
-            // Full-screen purchase flows (2×2: tickets/packages × with/without hotel).
-            'Tickets Only', 'Tickets + Hotel', 'Packages Only', 'Packages + Hotel',
+            // The unified SeatGeek-style ticket browse experience.
+            'Browse Tickets',
             // Everything else — the individual building blocks.
             'Components', [
               'Event & Tickets', ['Event Page', 'Event Hero', 'Ticket Tiers', 'Ticket Category Card'],
