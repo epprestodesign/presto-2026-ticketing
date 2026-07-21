@@ -53,7 +53,7 @@ const sectionGroups = computed(() => {
     byTier.get(key).add(l.section)
   }
   return [...byTier.entries()]
-    .map(([tier, set]) => ({ tier, sections: [...set].sort((a, b) => a - b) }))
+    .map(([tier, set]) => ({ tier, sections: [...set].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })) }))
     .sort((a, b) => (LEVEL_ORDER.indexOf(a.tier) + 1 || 99) - (LEVEL_ORDER.indexOf(b.tier) + 1 || 99))
 })
 
@@ -62,7 +62,7 @@ const filtered = computed(() => {
   if (sectionsSel.value.length) out = out.filter((l) => sectionsSel.value.includes(l.section))
   if (sortBy.value === 'price-asc') out = out.slice().sort((a, b) => a.priceWithFees - b.priceWithFees)
   else if (sortBy.value === 'price-desc') out = out.slice().sort((a, b) => b.priceWithFees - a.priceWithFees)
-  else if (sortBy.value === 'section') out = out.slice().sort((a, b) => String(a.section).localeCompare(String(b.section)))
+  else if (sortBy.value === 'section') out = out.slice().sort((a, b) => String(a.section).localeCompare(String(b.section), undefined, { numeric: true }))
   return out
 })
 
@@ -95,10 +95,13 @@ const detailQty = ref(2)
 const pick = (l) => { selectedId.value = l.id; detailQty.value = qty.value }
 const back = () => { selectedId.value = null }
 
-// Map v-model — clicking a pin selects the listing whose section matches.
+// Map v-model — pins carry their listing id, so a pin click selects that exact
+// offer. (Falls back to section match for legacy pin sets.)
 const mapSel = ref(null)
 const onMap = (pinId) => {
   mapSel.value = pinId
+  const direct = props.listings.find((l) => l.id === pinId)
+  if (direct) return pick(direct)
   const pin = props.pins.find((p) => p.id === pinId)
   if (!pin) return
   const hit = props.listings.find((l) => String(l.section) === String(pin.label).replace(/[^0-9]/g, '')) || props.listings[0]
@@ -114,10 +117,13 @@ const onMap = (pinId) => {
       <template v-if="selected">
         <div class="tm__detail">
           <div class="tm__photo">
-            <img v-if="selected.photo" :src="selected.photo" :alt="`View from Section ${selected.section}`" />
+            <img v-if="selected.photo" :src="selected.photo.url || selected.photo" :alt="selected.photo.alt || `View from Section ${selected.section}`" />
             <div v-else class="tm__photo--empty"><q-icon name="stadium" size="40px" /></div>
             <button class="tm__backbtn" aria-label="Back to listings" @click="back"><q-icon name="chevron_left" size="24px" /></button>
             <span class="tm__360"><q-icon name="threed_rotation" size="16px" /> Look around 360°</span>
+            <a v-if="selected.photo && selected.photo.photographer" class="tm__credit" :href="selected.photo.photoUrl" target="_blank" rel="noopener">
+              Photo · {{ selected.photo.photographer }} / Unsplash
+            </a>
           </div>
 
           <h3 class="tm__dtitle">Section {{ selected.section }}, Row {{ selected.row }}</h3>
@@ -285,6 +291,8 @@ const onMap = (pinId) => {
 .tm__backbtn { position: absolute; top: 12px; left: 12px; width: 38px; height: 38px; border: 0; border-radius: 50%; background: rgba(255,255,255,0.92); color: var(--ds-color-text); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
 .tm__backbtn:hover { background: #fff; }
 .tm__360 { position: absolute; left: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.8125rem; font-weight: 600; padding: 5px 11px; border-radius: var(--ds-radius-pill); }
+.tm__credit { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: #fff; background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: var(--ds-radius-pill); text-decoration: none; }
+.tm__credit:hover { background: rgba(0,0,0,0.7); }
 .tm__dtitle { margin: 18px 0 2px; font-size: 1.375rem; font-weight: 700; color: var(--ds-color-text); }
 .tm__dprice { font-size: 1.0625rem; font-weight: 700; color: var(--ds-color-text); }
 .tm__dprice small { font-weight: 500; font-size: 0.875rem; color: var(--ds-color-text-subtle); }

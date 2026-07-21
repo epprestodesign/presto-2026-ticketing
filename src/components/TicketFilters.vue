@@ -29,7 +29,7 @@ const sectionGroups = computed(() => {
     byTier.get(key).add(l.section)
   }
   return [...byTier.entries()]
-    .map(([tier, set]) => ({ tier, sections: [...set].sort((a, b) => a - b) }))
+    .map(([tier, set]) => ({ tier, sections: [...set].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })) }))
     .sort((a, b) => (LEVEL_ORDER.indexOf(a.tier) + 1 || 99) - (LEVEL_ORDER.indexOf(b.tier) + 1 || 99))
 })
 

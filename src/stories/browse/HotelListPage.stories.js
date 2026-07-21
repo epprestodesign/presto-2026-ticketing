@@ -22,13 +22,24 @@ Two widget states:
 - **Core Booking Widget** — no team field.
 
 The **booking-type** selector is hidden on this page (the flow is already fixed).
+
+Use the **\`count\`** control to pad the matching results with synthesized hotels
+and stress-test the filters/results list at scale (default keeps the curated sample).
 ` } } },
+  argTypes: {
+    count: {
+      name: 'Results (count)',
+      description: 'Pad the matching results section up to N hotels to stress-test the filters + results list.',
+      control: { type: 'range', min: 3, max: 60, step: 1 },
+    },
+  },
+  args: { count: 9 },
 }
 
-const page = (showTeams) => () => ({
+const page = (showTeams) => (args) => ({
   components: { PageFrame, HotelListPage },
-  setup: () => ({ showTeams }),
-  template: `<page-frame cart-mode="reserve"><hotel-list-page flow="reserve" :show-teams="showTeams" /></page-frame>`,
+  setup: () => ({ showTeams, args }),
+  template: `<page-frame cart-mode="reserve"><hotel-list-page flow="reserve" :show-teams="showTeams" :count="args.count" /></page-frame>`,
 })
 
 /** Book Reservation list page — Teams Booking Widget. */
