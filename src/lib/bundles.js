@@ -5,6 +5,7 @@
 // venue; packages are deterministic ticket+hotel SKUs. Hotel imagery reuses the
 // design-system's bundled hotel photos so everything stays self-contained.
 import { deriveTiers } from './seatmap.js'
+import { imageForTheme } from './gamedayImagery.js'
 
 const img = (file) => new URL(`../assets/hotel/${file}`, import.meta.url).href
 
@@ -149,6 +150,7 @@ export function generateExperiencePackages(event = {}, opts = {}) {
       theme: p.theme,
       icon: p.icon,
       accentVar: p.accentVar,
+      image: imageForTheme(p.theme)?.src ?? null,
       tagline: p.tagline,
       sponsor: p.sponsor ?? null,
       experiences: p.experiences,

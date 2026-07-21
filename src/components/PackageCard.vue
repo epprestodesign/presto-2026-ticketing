@@ -20,8 +20,18 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
 
 <template>
   <div class="pkg" :class="{ 'is-selected': selected, 'is-sold': soldOut }">
-    <!-- Theme banner (experience packages) -->
-    <div v-if="pkg.theme" class="pkg__theme" :style="{ '--accent': `var(${pkg.accentVar || '--ds-palette-navy-700'})` }">
+    <!-- Imagery hero (experience packages with a themed photo) -->
+    <div v-if="pkg.image" class="pkg__hero" :style="{ '--accent': `var(${pkg.accentVar || '--ds-palette-navy-700'})` }">
+      <img :src="pkg.image" :alt="pkg.name" loading="lazy" />
+      <div class="pkg__heroover">
+        <span class="pkg__themechip"><q-icon :name="pkg.icon || 'star'" size="15px" />{{ pkg.theme }}</span>
+        <BundleSavingsBadge v-if="!soldOut" :amount="pkg.savings" size="sm" />
+        <span v-else class="pkg__soldtag pkg__soldtag--onhero">Sold out</span>
+      </div>
+    </div>
+
+    <!-- Theme banner (experience packages without a photo) -->
+    <div v-else-if="pkg.theme" class="pkg__theme" :style="{ '--accent': `var(${pkg.accentVar || '--ds-palette-navy-700'})` }">
       <q-icon :name="pkg.icon || 'star'" size="18px" />
       <span>{{ pkg.theme }}</span>
       <BundleSavingsBadge v-if="!soldOut" :amount="pkg.savings" size="sm" class="pkg__themesavings" />
@@ -73,6 +83,18 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
 }
 .pkg.is-selected { border-color: var(--ds-color-border-brand); box-shadow: 0 0 0 1px var(--ds-color-border-brand); }
 .pkg.is-sold { opacity: 0.65; }
+
+.pkg__hero { position: relative; margin: calc(-1 * var(--ds-space-4)) calc(-1 * var(--ds-space-4)) 2px; height: 148px; overflow: hidden; }
+.pkg__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pkg__heroover {
+  position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  padding: 12px; background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 42%, rgba(0,0,0,0.18) 100%);
+}
+.pkg__themechip {
+  display: inline-flex; align-items: center; gap: 5px; background: var(--accent); color: #fff;
+  font-weight: var(--ds-font-weight-bold); font-size: var(--ds-font-size-sm); padding: 4px 11px; border-radius: var(--ds-radius-pill);
+}
+.pkg__soldtag--onhero { background: rgba(0,0,0,0.6); color: #fff; padding: 3px 9px; border-radius: var(--ds-radius-sm); }
 
 .pkg__theme {
   display: flex; align-items: center; gap: var(--ds-space-2); margin: calc(-1 * var(--ds-space-4)) calc(-1 * var(--ds-space-4)) 0;
