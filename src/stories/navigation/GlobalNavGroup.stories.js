@@ -23,6 +23,6 @@ export const Cart = {
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: holdCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="hold" :cart="cart" :open-cart="true" />`,
+    template: `<global-nav brand="EventPipe" cart-mode="hold" :cart="cart" :open-cart="true" />`,
   }),
 }

@@ -7,7 +7,7 @@ import { ref, computed } from 'vue'
 import CartFlyout from './CartFlyout.vue'
 
 const props = defineProps({
-  brand: { type: String, default: 'Soccer League' },
+  brand: { type: String, default: 'EventPipe' },
   contactLabel: { type: String, default: 'Contact Us' },
   // Contact details shown in the Contact Us dropdown.
   contactInfo: { type: Object, default: () => ({

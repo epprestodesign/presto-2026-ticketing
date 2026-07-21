@@ -5,7 +5,7 @@
 //   attending, event information, closing) → Display Ads → Footer.
 // `mode` switches the widget + cart between Book Reservations ('reservations')
 // and Group Block ('group'). All copy is prop-driven; defaults describe a
-// sample youth soccer tournament (age divisions U9–U19).
+// sample EventPipe client-appreciation gameday (Patriots v Bills, Gillette Stadium).
 import defaultBg from '../../background-img/defaultBackgroundImage.png'
 import GlobalNav from './GlobalNav.vue'
 import BookingWidget from './BookingWidget.vue'
@@ -16,25 +16,25 @@ import epLogoWhite from '../assets/eventpipe logos/eventpipe-logo-fff.svg'
 const props = defineProps({
   mode: { type: String, default: 'reservations' }, // 'reservations' | 'group'
   brand: { type: String, default: 'Presto' },
-  eventName: { type: String, default: 'Virginia International Youth Soccer Cup 2026' },
-  eventDates: { type: String, default: 'Sat, 7/18/2026 - Sun, 7/19/2026' },
+  eventName: { type: String, default: 'New England Patriots v Buffalo Bills' },
+  eventDates: { type: String, default: 'Sat, Dec 6, 2026' },
 
   // Event description content (the centered copy block).
   intro: {
     type: Array,
     default: () => [
-      'Join clubs from across the country for one of the premier youth soccer tournaments in the region. The Virginia International Youth Soccer Cup brings together players, coaches, club teams, families, and passionate fans for an exciting weekend of competitive matches across age divisions U9 through U19.',
-      "Hosted at the Fredericksburg Sportsplex in Fredericksburg, Virginia, this tournament features two full days of matches across Boys and Girls brackets from U9 to U19. Whether you're stepping onto the pitch, coaching your squad, or cheering from the sidelines, Presto makes it easy to plan your trip and stay close to the action.",
+      "EventPipe is treating the companies on its client list to an unforgettable day at Gillette Stadium. As the New England Patriots host the Buffalo Bills for a marquee AFC East matchup, we're bringing corporate groups, client guests, families, and passionate fans together for a premium client-appreciation gameday in Foxborough.",
+      "Hosted at Gillette Stadium in Foxborough, Massachusetts, this client-appreciation outing pairs an unforgettable game with a stay that keeps your group close to the action. Whether you're hosting VIP clients, rewarding your team, or bringing the family, Presto makes it easy to plan the trip and take care of everyone.",
     ],
   },
   benefits: {
     type: Array,
     default: () => [
-      'Official event hotel options near the fields',
-      'Exclusive group and team rates when available',
-      'Flexible accommodations for players, coaches, and families',
+      'Official event hotel options near Gillette Stadium',
+      'Exclusive group and hospitality rates when available',
+      'Flexible accommodations for clients, employees, and families',
       'Easy online booking with instant confirmation',
-      'Stay together with your club or team',
+      'Stay together with your company or group',
       'Convenient access to restaurants, shopping, and local attractions',
     ],
   },
@@ -42,29 +42,29 @@ const props = defineProps({
   attending: {
     type: Array,
     default: () => [
-      { title: 'Players', text: 'Compete against top youth soccer clubs from across the region in U9–U19 divisions while enjoying a seamless travel experience close to the fields.' },
-      { title: 'Coaches & Clubs', text: 'Keep your entire roster together with convenient hotel options that simplify tournament logistics throughout the weekend.' },
-      { title: 'Friends & Family', text: 'Support your player while enjoying everything Fredericksburg has to offer, from local dining and historic attractions to family-friendly entertainment between matches.' },
-      { title: 'Fans & Spectators', text: 'Experience competitive youth soccer featuring rising talent from a wide range of age divisions and clubs.' },
+      { title: 'Corporate Groups', text: 'Host clients and employees for a premium day at Gillette Stadium with hotel options that keep your whole group together and the logistics effortless.' },
+      { title: 'Client Guests', text: "Enjoy a first-class client-appreciation experience — from a comfortable stay near the stadium to kickoff — all taken care of by EventPipe and your host company." },
+      { title: 'Families', text: 'Make a weekend of it in Foxborough, with family-friendly dining, shopping, and entertainment surrounding an unforgettable Patriots gameday.' },
+      { title: 'Fans', text: "Experience the electric atmosphere of Patriots v Bills at Gillette Stadium, one of the NFL's premier AFC East rivalries." },
     ],
   },
   eventInfoTitle: { type: String, default: 'Event Information' },
   eventInfo: {
     type: Object,
     default: () => ({
-      dates: 'July 18–19, 2026',
+      dates: 'December 6, 2026',
       lines: [
-        'Venue: Fredericksburg Sportsplex – Fields 1–8',
-        '2371 Carl D. Silver Parkway',
-        'Fredericksburg, Virginia 22401',
+        'Venue: Gillette Stadium',
+        '1 Patriot Place',
+        'Foxborough, Massachusetts 02035',
       ],
     }),
   },
   closing: {
     type: Array,
     default: () => [
-      'Spectator admission is free, making it a great weekend for families, teammates, and soccer fans to experience the excitement of the tournament together.',
-      'Book your accommodations early to secure the best available rates and stay close to the fields throughout the weekend.',
+      'Your gameday hospitality and tickets are arranged through EventPipe and your host company, making it a premium, worry-free experience for clients, employees, and families alike.',
+      'Book your accommodations early to secure the best available rates and stay close to Gillette Stadium throughout the weekend.',
     ],
   },
 

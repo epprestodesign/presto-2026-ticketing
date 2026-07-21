@@ -36,7 +36,7 @@ const mapHotels = [
   { id: '5', name: 'Union Station Hotel', location: 'Nashville, TN', lat: 36.1547, lng: -86.7861, price: 268, rating: 4.4, reviews: 610 },
   { id: '6', name: 'Bobby Hotel', location: 'Nashville, TN', lat: 36.1638, lng: -86.7795, price: 305, rating: 4.5, reviews: 430 },
 ]
-const eventLocation = { lat: 36.1592, lng: -86.7785, label: 'Tournament venue' }
+const eventLocation = { lat: 36.1592, lng: -86.7785, label: 'Gillette Stadium' }
 </script>
 
 <template>

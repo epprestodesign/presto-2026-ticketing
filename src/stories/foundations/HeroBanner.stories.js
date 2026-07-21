@@ -6,8 +6,8 @@ import defaultBg from '../../../background-img/defaultBackgroundImage.png'
 import epLogoWhite from '../../assets/eventpipe logos/eventpipe-logo-fff.svg'
 
 // Sample event content (name + formatted date range).
-const EVENT_NAME = 'Summer Soccer Classic 2027'
-const EVENT_DATES = 'Wed, 6/16/2027 - Sat, 6/19/2027'
+const EVENT_NAME = 'New England Patriots v Buffalo Bills'
+const EVENT_DATES = 'Sat, Dec 6, 2026'
 
 export default {
   title: 'Components/Media & Visuals/Hero Banner',

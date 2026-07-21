@@ -44,8 +44,8 @@ no key is present the component renders a styled fallback instead of failing.
 ` } } },
 }
 
-// The event/tournament venue — a pulsing dot the map stays centered on.
-const eventLocation = { lat: 36.1592, lng: -86.7785, label: 'Tournament venue' }
+// The event venue — a pulsing dot the map stays centered on.
+const eventLocation = { lat: 36.1592, lng: -86.7785, label: 'Gillette Stadium' }
 
 /** Map with six Nashville hotels; price pills + click-to-open popup cards.
  *  A pulsing "event location" dot anchors the center of the viewport. */

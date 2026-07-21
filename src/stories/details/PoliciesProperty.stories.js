@@ -19,7 +19,7 @@ const policies = [
   { title: 'Incidental Fees', body: "Hotels may require a credit card authorization hold for incidental charges upon check-in. The hold amount varies by property and will be released within 3–5 business days after check-out, provided no charges are incurred. GrandStay is not responsible for incidental charges assessed directly by the hotel." },
 ]
 
-const about = `Located in the heart of Lake Buena Vista, this resort is an ideal base for tournament weekends — minutes from the pitch, with top attractions, dining, and shopping just steps away. Relax in a newly renovated room after match day, unwind at the heated pool and spa, or refuel at one of three on-site restaurants. Complimentary premium Wi-Fi and a 24-hour fitness centre round out a stay built for teams and families alike.`
+const about = `Located in the heart of Lake Buena Vista, this resort is an ideal base for gameday weekends — minutes from the stadium, with top attractions, dining, and shopping just steps away. Relax in a newly renovated room after the game, unwind at the heated pool and spa, or refuel at one of three on-site restaurants. Complimentary premium Wi-Fi and a 24-hour fitness centre round out a stay built for groups and families alike.`
 
 export default {
   title: 'Hotel Details/Components/Policies & Property',

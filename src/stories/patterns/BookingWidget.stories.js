@@ -1,4 +1,4 @@
-// LANDING PAGE / Components / Teams Booking Widget — interactive tournament booking search.
+// LANDING PAGE / Components / Teams Booking Widget — interactive gameday booking search.
 // Default is the tabs-less layout (used on the listings/results page).
 // Alternate mode-selector layouts (tabs, radio) live under Explorations.
 import BookingWidget from '../../components/BookingWidget.vue'
@@ -15,15 +15,15 @@ export default {
   },
   parameters: { docs: { description: { component: `
 ## Overview
-The tournament **Booking Widget** — a search bar with two flows: **Book
-Reservations** (single team + dates + travelers) and **Hold Rooms for Group or
-Team** (multiple teams + travelers).
+The gameday **Booking Widget** — a search bar with two flows: **Book
+Reservations** (single group + dates + travelers) and **Hold Rooms for Group or
+Team** (multiple groups + travelers).
 
 The **default** is the tabs-less layout for the listings / results page. See
 **Explorations** for alternate mode-selector layouts (tabs, radio buttons, and
 the far-left dropdown).
 
-**Interactive:** team search popover with **live filter** · **add-a-team modal**
+**Interactive:** group search popover with **live filter** · **add-a-group modal**
 with duplicate-name error · **dual-month** date range + flexible-date pills ·
 travelers steppers. Flat elevation, DS tokens (Navy/PT Sans), Quasar core.
 ` } } },

@@ -1,8 +1,8 @@
 <script setup>
-// BookingWidget — interactive tabbed tournament booking search.
-// Modes: 'reservations' (team + dates + travelers) | 'group' (team(s) + rooms needed).
-// Features: working tabs (toggle via `tabs`), team search popover with live filter,
-// add-a-team MODAL with duplicate-name error, custom dual-month date range
+// BookingWidget — interactive tabbed gameday booking search.
+// Modes: 'reservations' (group + dates + travelers) | 'group' (group(s) + rooms needed).
+// Features: working tabs (toggle via `tabs`), group search popover with live filter,
+// add-a-group MODAL with duplicate-name error, custom dual-month date range
 // (DateRangeCalendar) + flexible pills, travelers steppers. Flat; DS tokens.
 import { ref, reactive, computed } from 'vue'
 import DateRangeCalendar from './DateRangeCalendar.vue'
@@ -37,23 +37,24 @@ const modeOptions = [
 // (or tabs) takes precedence when chosen.
 const showModeSelect = computed(() => props.showMode && (props.modeDropdown || (!props.tabs && !props.modeRadio)))
 
-// --- Teams ---
+// --- Groups (EventPipe client companies invited to the game) ---
 const clubs = [
-  { name: 'Arsenal Soccer Club', teams: ['Arsenal U12 Boys Gold', 'Arsenal U12 Girls Gold', 'Arsenal U12 Boys Select', 'Arsenal U12 Girls Select', 'Arsenal U14 Boys DPL', 'Arsenal U14 Boys Gold', 'Arsenal U14 Girls SCSC', 'Arsenal U14 Girls Gold', 'Arsenal U16 Boy Elite'] },
-  { name: 'Bulls Soccer Club', teams: ['Bulls U12 Boys Gold', 'Bulls U12 Girls Gold', 'Bulls U12 Boys Select', 'Bulls U12 Girls Select', 'Bulls U14 Boys DPL'] },
+  { name: 'Summit Financial', teams: ['Summit — Client Suite', 'Summit — Executive Group', 'Summit — Sales Incentive'] },
+  { name: 'Harbor Capital', teams: ['Harbor — VIP Hospitality', 'Harbor — Client Group A', 'Harbor — Client Group B'] },
+  { name: 'Northeast Logistics', teams: ['Northeast — Employee Outing', 'Northeast — Partner Guests'] },
 ]
-const myTeams = ['Team 1', 'Team 2']
-const groupsForMulti = [{ label: 'My Teams', teams: myTeams }, ...clubs.map((c) => ({ label: 'All of ' + c.name, teams: c.teams }))]
+const myTeams = ['My Group 1', 'My Group 2']
+const groupsForMulti = [{ label: 'My Groups', teams: myTeams }, ...clubs.map((c) => ({ label: 'All of ' + c.name, teams: c.teams }))]
 const allNames = [...clubs.flatMap((c) => c.teams), ...clubs.map((c) => c.name)]
 
-const selectedTeam = ref('Arsenal U12 Boys Select')
+const selectedTeam = ref('Summit — Client Suite')
 const checked = reactive({})
-;['Team 1', 'Team 2', 'Arsenal U12 Girls Gold', 'Arsenal U12 Boys Select', 'Arsenal U12 Girls Select'].forEach((t) => { checked[t] = true })
+;['My Group 1', 'My Group 2', 'Summit — Client Suite', 'Summit — Executive Group', 'Harbor — VIP Hospitality'].forEach((t) => { checked[t] = true })
 const checkedCount = computed(() => Object.values(checked).filter(Boolean).length)
 const teamLabel = computed(() => {
-  if (mode.value === 'reservations') return selectedTeam.value || 'Select team'
+  if (mode.value === 'reservations') return selectedTeam.value || 'Select group'
   const n = checkedCount.value
-  return n === 0 ? 'Select teams' : n === 1 ? Object.keys(checked).find((k) => checked[k]) : 'Multiple Teams'
+  return n === 0 ? 'Select groups' : n === 1 ? Object.keys(checked).find((k) => checked[k]) : 'Multiple Groups'
 })
 
 const teamQuery = ref('')
@@ -69,7 +70,7 @@ const filteredClubs = computed(() => clubs.map((c) => ({ name: c.name, teams: c.
 const filteredGroups = computed(() => groupsForMulti.map((g) => ({ label: g.label, teams: g.teams.filter(match) })).filter((g) => g.teams.length))
 const teamMenuOpen = ref(false)
 
-// --- Add-a-team modal ---
+// --- Add-a-group modal ---
 const addDialog = ref(false)
 const newTeams = ref([{ name: '' }])
 const openAddDialog = () => { teamMenuOpen.value = false; newTeams.value = [{ name: '' }]; addDialog.value = true }
@@ -81,7 +82,7 @@ const isDup = (name) => {
   return allNames.some((n) => { const x = n.toLowerCase(); return x.includes(v) || v.includes(x) })
 }
 const addDisabled = computed(() => newTeams.value.some((t) => !t.name.trim() || isDup(t.name)))
-const addLabel = computed(() => (newTeams.value.length > 1 ? `Add ${newTeams.value.length} Teams` : 'Add Team'))
+const addLabel = computed(() => (newTeams.value.length > 1 ? `Add ${newTeams.value.length} Groups` : 'Add Group'))
 
 // --- Dates ---
 // DES-91: default the range to the current date + 7 days through + 10 days, so
@@ -146,22 +147,22 @@ const roomsNeeded = ref(null)
         </q-select>
       </div>
 
-      <!-- TEAM — DES-91: on the landing widget the booking type starts blank; the
-           team field only appears once a booking type is chosen (it's contextual
+      <!-- GROUP — DES-91: on the landing widget the booking type starts blank; the
+           group field only appears once a booking type is chosen (it's contextual
            to the flow). In fixed-flow contexts `mode` is always set, so it shows. -->
       <div v-if="showTeams && !!mode" class="bw__field col">
         <q-input outlined stack-label readonly class="bw__input cursor-pointer"
-          :label="mode === 'group' ? 'Registered Team(s)' : 'Registered Team Name'" :model-value="teamLabel">
-          <template #prepend><q-icon name="sports_soccer" /></template>
+          :label="mode === 'group' ? 'Registered Group(s)' : 'Registered Group'" :model-value="teamLabel">
+          <template #prepend><q-icon name="groups" /></template>
         </q-input>
         <q-menu v-model="teamMenuOpen" class="bw-menu" :offset="[0, 8]">
           <div style="width:360px">
             <div class="row items-center justify-between" style="padding:12px 16px 6px">
-              <div class="text-subtitle1" style="font-weight:600">Search Teams</div>
+              <div class="text-subtitle1" style="font-weight:600">Search Groups</div>
               <q-btn flat dense round icon="close" size="sm" v-close-popup />
             </div>
             <div style="padding:0 16px 8px">
-              <q-input v-model="teamQuery" outlined dense clearable placeholder="Filter by name, age or gender">
+              <q-input v-model="teamQuery" outlined dense clearable placeholder="Filter by company or group">
                 <template #prepend><q-icon name="search" /></template>
               </q-input>
             </div>
@@ -171,7 +172,7 @@ const roomsNeeded = ref(null)
                   <div class="text-caption text-grey-7 q-mt-sm q-mb-xs">{{ club.name }}</div>
                   <div v-for="t in club.teams" :key="t" class="q-py-sm"><q-radio v-model="selectedTeam" :val="t" color="primary" dense><span v-html="highlight(t)" /></q-radio></div>
                 </template>
-                <div v-if="!filteredClubs.length" class="text-grey-7 q-py-md">No teams match "{{ teamQuery }}"</div>
+                <div v-if="!filteredClubs.length" class="text-grey-7 q-py-md">No groups match "{{ teamQuery }}"</div>
               </template>
               <template v-else>
                 <template v-for="g in filteredGroups" :key="g.label">
@@ -180,11 +181,11 @@ const roomsNeeded = ref(null)
                     <div v-for="t in g.teams" :key="t" class="q-py-sm"><q-checkbox v-model="checked[t]" color="primary" dense><span v-html="highlight(t)" /></q-checkbox></div>
                   </div>
                 </template>
-                <div v-if="!filteredGroups.length" class="text-grey-7 q-py-md">No teams match "{{ teamQuery }}"</div>
+                <div v-if="!filteredGroups.length" class="text-grey-7 q-py-md">No groups match "{{ teamQuery }}"</div>
               </template>
             </div>
             <div class="bw__link" style="padding:12px 16px;border-top:1px solid var(--ds-color-border)" @click="openAddDialog">
-              <q-icon name="add_circle" size="20px" /><span>Dont see your team in the list? Add them</span>
+              <q-icon name="add_circle" size="20px" /><span>Dont see your group in the list? Add it</span>
             </div>
           </div>
         </q-menu>
@@ -252,25 +253,25 @@ const roomsNeeded = ref(null)
     </div>
 
     <div v-if="tabs && showTeams" class="bw__add" @click="openAddDialog">
-      <q-icon name="add_circle" size="20px" /><span>Dont see your team in the list? Add them</span>
+      <q-icon name="add_circle" size="20px" /><span>Dont see your group in the list? Add it</span>
     </div>
 
-    <!-- ADD A TEAM — full modal -->
+    <!-- ADD A GROUP — full modal -->
     <q-dialog v-if="showTeams" v-model="addDialog">
       <q-card class="bw-dialog" style="width:640px;max-width:92vw;border-radius:var(--ds-radius-lg);padding:20px 24px 24px">
         <q-btn flat dense round icon="arrow_back" class="q-mb-sm" v-close-popup />
         <div class="row items-center justify-between q-mb-md">
-          <div class="text-h6" style="font-weight:700">Add a team</div>
+          <div class="text-h6" style="font-weight:700">Add a group</div>
           <span class="bw__link" style="font-weight:500" @click="clearTeams">Clear</span>
         </div>
         <div v-for="(t, i) in newTeams" :key="i" class="q-mb-md">
-          <q-input v-model="t.name" outlined label="New Team Name" :error="isDup(t.name)" hide-bottom-space />
+          <q-input v-model="t.name" outlined label="New Group Name" :error="isDup(t.name)" hide-bottom-space />
           <div v-if="isDup(t.name)" class="q-mt-sm" style="color:var(--ds-color-text-danger)">
-            <div style="font-weight:700">This team name is already registered.</div>
-            <div class="text-body2">The name you entered matches a team that's already in our system. Please go back and select the correct team from the previous page, or enter a unique team name if you're booking for a different team.</div>
+            <div style="font-weight:700">This group name is already registered.</div>
+            <div class="text-body2">The name you entered matches a group that's already in our system. Please go back and select the correct group from the previous page, or enter a unique group name if you're booking for a different group.</div>
           </div>
         </div>
-        <div class="bw__link q-mb-lg" @click="addRow"><q-icon name="add_circle" size="22px" /><span style="font-weight:600">Add another team</span></div>
+        <div class="bw__link q-mb-lg" @click="addRow"><q-icon name="add_circle" size="22px" /><span style="font-weight:600">Add another group</span></div>
         <q-btn unelevated color="primary" :label="addLabel" :disable="addDisabled" v-close-popup class="full-width" style="height:48px;border-radius:var(--ds-radius-button)" />
       </q-card>
     </q-dialog>

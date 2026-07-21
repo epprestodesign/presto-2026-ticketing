@@ -156,7 +156,7 @@ export const HoldCart = {
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: holdCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="hold" :cart="cart" :open-cart="true" />`,
+    template: `<global-nav brand="EventPipe" cart-mode="hold" :cart="cart" :open-cart="true" />`,
   }),
 }
 
@@ -168,7 +168,7 @@ export const ReserveCart = {
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: reserveCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="reserve" :cart="cart" :show-cart="true" :open-cart="true" />`,
+    template: `<global-nav brand="EventPipe" cart-mode="reserve" :cart="cart" :show-cart="true" :open-cart="true" />`,
   }),
 }
 
@@ -179,6 +179,6 @@ export const ReservationsCart = {
   render: () => ({
     components: { GlobalNav },
     setup: () => ({ cart: reservationsCart }),
-    template: `<global-nav brand="Soccer League" cart-mode="reservations" :cart="cart" :show-cart="true" :open-cart="true" />`,
+    template: `<global-nav brand="EventPipe" cart-mode="reservations" :cart="cart" :show-cart="true" :open-cart="true" />`,
   }),
 }

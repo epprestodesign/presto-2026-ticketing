@@ -15,7 +15,7 @@ const sidebarHotels = [
   { id: '3', name: 'The Hermitage Hotel', location: 'Nashville, TN', lat: 36.1652, lng: -86.7836, price: 415, rating: 4.8, reviews: 540 },
   { id: '4', name: 'JW Marriott Nashville', location: 'Nashville, TN', lat: 36.1554, lng: -86.7812, price: 332, rating: 4.7, reviews: 760 },
 ]
-const sidebarEvent = { lat: 36.1592, lng: -86.7785, label: 'Tournament venue' }
+const sidebarEvent = { lat: 36.1592, lng: -86.7785, label: 'Gillette Stadium' }
 
 export default {
   title: 'Browse Hotels/Components/Left Rail/Search & Filters',

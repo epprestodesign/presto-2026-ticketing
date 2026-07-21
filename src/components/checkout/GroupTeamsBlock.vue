@@ -1,8 +1,9 @@
 <script setup>
-// GroupTeamsBlock — the group/team "Contact & Group Information" step.
+// GroupTeamsBlock — the group "Contact & Group Information" step.
 // Primary contact (names/mobile/email required; org/special optional), then a
-// teams flow: 1) how many teams, 2) select & add teams (or add an unlisted team
-// with Org/Team name + Age division + Gender). Validation surfaces via showErrors.
+// groups flow: 1) how many groups, 2) select & add groups (or add an unlisted
+// group with Company/Group name + Group type + Party size). Groups are the
+// EventPipe client companies attending the game. Validation surfaces via showErrors.
 import { ref, reactive, computed, watch } from 'vue'
 import PhoneField from './PhoneField.vue'
 
@@ -32,14 +33,16 @@ const addEmail = () => additionalEmails.value.push('')
 const removeEmail = (i) => additionalEmails.value.splice(i, 1)
 const query = ref('')
 
-const clubs = ['Arsenal', 'Chelsea', 'Liverpool', 'Manchester City', 'Tottenham', 'Everton', 'Leeds United', 'Newcastle', 'Aston Villa', 'Brighton']
-const teamAges = ['U10', 'U12', 'U14', 'U16']
-const teamGenders = ['Boys', 'Girls']
-const available = ref(clubs.flatMap((c) => teamAges.flatMap((a) => teamGenders.map((g) => ({ name: `${c} ${a} ${g}`, checked: false })))))
+// EventPipe client companies invited to the game — each may hold a group block.
+const clubs = ['Summit Financial', 'Harbor Capital', 'Northeast Logistics', 'Bay State Partners', 'Beacon Health', 'Coastal Ventures', 'Granite Peak Advisors', 'Bristol Manufacturing', 'Charter Oak Group', 'Pioneer Group']
+const teamAges = ['Client Hospitality', 'Executive', 'Employee', 'VIP Suite']
+const teamGenders = ['Group A', 'Group B']
+const available = ref(clubs.flatMap((c) => teamAges.flatMap((a) => teamGenders.map((g) => ({ name: `${c} — ${a} ${g}`, checked: false })))))
 const added = ref([...props.initialTeams])
 
-const ageDivisions = ['U8', 'U10', 'U12', 'U14', 'U16', 'U18', 'U19', 'Open']
-const genders = ['Boys', 'Girls', 'Coed']
+// Unlisted-group form options: "Group type" (was Age Division) + "Party size" (was Gender).
+const ageDivisions = ['Client Hospitality', 'Executive', 'Employee', 'VIP Suite', 'Family']
+const genders = ['1–10', '11–25', '26+']
 const unlisted = reactive({ name: '', ageDivision: '', gender: '' })
 const unlistedValid = computed(() => unlisted.name && unlisted.ageDivision && unlisted.gender)
 
@@ -59,8 +62,8 @@ const anyChecked = computed(() => available.value.some((t) => t.checked))
 const statusText = computed(() => {
   const n = added.value.length
   if (n === 0) return ''
-  if (n >= expected.value) return `All ${n} team${n === 1 ? '' : 's'} added`
-  return `${n} team${n === 1 ? '' : 's'} added (${expected.value - n} more expected) — that's fine`
+  if (n >= expected.value) return `All ${n} group${n === 1 ? '' : 's'} added`
+  return `${n} group${n === 1 ? '' : 's'} added (${expected.value - n} more expected) — that's fine`
 })
 
 const isRadio = computed(() => expected.value === 1)
@@ -96,7 +99,7 @@ const cErr = (f) => {
   if (f === 'email' && !emailOk.value) return 'Enter a valid email'
   return ''
 }
-const teamsErr = computed(() => (props.showErrors && added.value.length === 0 ? 'Add at least one team' : ''))
+const teamsErr = computed(() => (props.showErrors && added.value.length === 0 ? 'Add at least one group' : ''))
 const blockNameErr = computed(() => (props.showErrors && !groupBlockName.value.trim() ? 'Required' : ''))
 
 watch([added, expected, contact, notHolding, groupBlockName, additionalEmails], () => emit('update:modelValue', {
@@ -114,7 +117,7 @@ watch([added, expected, contact, notHolding, groupBlockName, additionalEmails], 
     <!-- Group block name (required) — the block's identifier, shown to guests -->
     <label class="gtb__field gtb__field--full gtb__blockname-top">
       <span>Group Block Name <i class="gtb__req">*</i></span>
-      <input v-model="groupBlockName" placeholder="e.g. Spring Cup — Eagles SC" :class="{ 'is-error': blockNameErr }" />
+      <input v-model="groupBlockName" placeholder="e.g. Patriots v Bills — Summit Financial" :class="{ 'is-error': blockNameErr }" />
       <small v-if="blockNameErr" class="gtb__errmsg">{{ blockNameErr }}</small>
       <small class="gtb__hint">A name for this room block — shown to guests when they book.</small>
     </label>
@@ -195,22 +198,22 @@ watch([added, expected, contact, notHolding, groupBlockName, additionalEmails], 
     <!-- teams flow card (hidden when holding a block without team assignment) -->
     <div v-if="showTeams" class="gtb__flow">
       <div class="gtb__bar">
-        <span v-if="notHolding">Teams — skipped</span>
-        <span v-else>Step {{ view === 'count' ? '1' : '2' }} of 2 — {{ view === 'count' ? 'How many teams?' : 'Select and Add Teams' }}</span>
+        <span v-if="notHolding">Groups — skipped</span>
+        <span v-else>Step {{ view === 'count' ? '1' : '2' }} of 2 — {{ view === 'count' ? 'How many groups?' : 'Select and Add Groups' }}</span>
         <button v-if="!notHolding && view !== 'count'" class="gtb__changecount" @click="view = 'count'">Change Count</button>
       </div>
 
       <!-- NOT HOLDING after-state -->
       <div v-if="notHolding" class="gtb__panel">
-        <div class="gtb__nothold"><q-icon name="info" size="20px" /><div><strong>You're not holding rooms for a team.</strong><p>Guests won't choose a team when booking. You can change this anytime.</p></div></div>
-        <button class="gtb__undo" @click="notHolding = false"><q-icon name="arrow_back" size="16px" /> Hold for a team instead</button>
+        <div class="gtb__nothold"><q-icon name="info" size="20px" /><div><strong>You're not holding rooms for a group.</strong><p>Guests won't choose a group when booking. You can change this anytime.</p></div></div>
+        <button class="gtb__undo" @click="notHolding = false"><q-icon name="arrow_back" size="16px" /> Hold for a group instead</button>
       </div>
 
       <div v-else class="gtb__panel">
         <!-- COUNT -->
         <template v-if="view === 'count'">
-          <h4 class="gtb__qh">How many teams from your organization might share this block?</h4>
-          <p class="gtb__qsub">Include every team that might attend — guests will pick from this list when booking so it's important that they can select their specific team. No problem if you add teams that don't end up attending, it's better to add too many than too few.</p>
+          <h4 class="gtb__qh">How many groups from your company might share this block?</h4>
+          <p class="gtb__qsub">Include every group that might attend — guests will pick from this list when booking so it's important that they can select their specific group. No problem if you add groups that don't end up attending, it's better to add too many than too few.</p>
           <div class="gtb__countrow">
             <div class="gtb__countbox">
               <span class="gtb__countval">{{ expected || '–' }}</span>
@@ -219,16 +222,16 @@ watch([added, expected, contact, notHolding, groupBlockName, additionalEmails], 
                 <button aria-label="Decrease" :disabled="expected === 0" @click="dec"><q-icon name="keyboard_arrow_down" size="16px" /></button>
               </span>
             </div>
-            <span class="gtb__countlabel">Teams</span>
+            <span class="gtb__countlabel">Groups</span>
           </div>
-          <q-btn unelevated no-caps class="gtb__nextbtn" :class="{ 'is-disabled': expected < 1 }" :tabindex="expected < 1 ? -1 : 0" label="Next: Select & Add Teams →" @click="view = 'list'" />
-          <button class="gtb__notholding" @click="notHolding = true">I am not holding for a team</button>
+          <q-btn unelevated no-caps class="gtb__nextbtn" :class="{ 'is-disabled': expected < 1 }" :tabindex="expected < 1 ? -1 : 0" label="Next: Select & Add Groups →" @click="view = 'list'" />
+          <button class="gtb__notholding" @click="notHolding = true">I am not holding for a group</button>
         </template>
 
         <!-- LIST -->
         <template v-else-if="view === 'list'">
           <div v-if="added.length" class="gtb__added">
-            <span class="gtb__added-h">Teams added to block</span>
+            <span class="gtb__added-h">Groups added to block</span>
             <div class="gtb__chips">
               <span v-for="t in added" :key="t" class="gtb__chip">{{ t }}<button aria-label="Remove" @click="removeTeam(t)"><q-icon name="close" size="14px" /></button></span>
             </div>
@@ -236,7 +239,7 @@ watch([added, expected, contact, notHolding, groupBlockName, additionalEmails], 
 
           <div class="gtb__search">
             <q-icon name="search" size="20px" />
-            <input v-model="query" placeholder="Search teams" />
+            <input v-model="query" placeholder="Search groups" />
             <button v-if="query" aria-label="Clear" @click="query = ''"><q-icon name="close" size="18px" /></button>
           </div>
           <div class="gtb__teamlist">
@@ -247,31 +250,31 @@ watch([added, expected, contact, notHolding, groupBlockName, additionalEmails], 
               </span>
               <span class="gtb__teamname">{{ t.name }}</span>
             </button>
-            <p v-if="!filtered.length" class="gtb__empty">No teams match “{{ query }}”.</p>
+            <p v-if="!filtered.length" class="gtb__empty">No groups match “{{ query }}”.</p>
           </div>
-          <button class="gtb__addlink" @click="view = 'add'"><q-icon name="add_circle" size="20px" /> Don't see your team in the list? Add them</button>
+          <button class="gtb__addlink" @click="view = 'add'"><q-icon name="add_circle" size="20px" /> Don't see your group in the list? Add it</button>
           <p v-if="teamsErr" class="gtb__errmsg gtb__errmsg--block">{{ teamsErr }}</p>
 
           <div class="gtb__cardfoot">
             <span v-if="statusText" class="gtb__status"><q-icon name="check_circle" size="16px" /> {{ statusText }}</span>
-            <q-btn unelevated no-caps class="gtb__confirm" :class="{ 'is-disabled': !anyChecked }" :tabindex="anyChecked ? 0 : -1" label="Select & add teams" @click="confirmChecked" />
+            <q-btn unelevated no-caps class="gtb__confirm" :class="{ 'is-disabled': !anyChecked }" :tabindex="anyChecked ? 0 : -1" label="Select & add groups" @click="confirmChecked" />
           </div>
         </template>
 
         <!-- ADD UNLISTED -->
         <template v-else>
-          <button class="gtb__back" @click="view = 'list'"><q-icon name="arrow_back" size="20px" /> Add unlisted team</button>
-          <div class="gtb__skipnote">Without a team list, guests won't be able to identify which team they're with. Are you sure you want to skip?</div>
-          <label class="gtb__field gtb__field--full"><span>Org / Team name</span><input v-model="unlisted.name" placeholder="Team name" /></label>
+          <button class="gtb__back" @click="view = 'list'"><q-icon name="arrow_back" size="20px" /> Add unlisted group</button>
+          <div class="gtb__skipnote">Without a group list, guests won't be able to identify which group they're with. Are you sure you want to skip?</div>
+          <label class="gtb__field gtb__field--full"><span>Company / Group name</span><input v-model="unlisted.name" placeholder="Group name" /></label>
           <div class="gtb__grid gtb__grid--mt">
-            <label class="gtb__field"><span>Age Division *</span>
+            <label class="gtb__field"><span>Group type *</span>
               <div class="gtb__selectwrap"><select v-model="unlisted.ageDivision"><option value="" disabled>Select</option><option v-for="a in ageDivisions" :key="a" :value="a">{{ a }}</option></select><q-icon name="expand_more" size="18px" /></div>
             </label>
-            <label class="gtb__field"><span>Gender *</span>
+            <label class="gtb__field"><span>Party size *</span>
               <div class="gtb__selectwrap"><select v-model="unlisted.gender"><option value="" disabled>Select</option><option v-for="g in genders" :key="g" :value="g">{{ g }}</option></select><q-icon name="expand_more" size="18px" /></div>
             </label>
           </div>
-          <p class="gtb__reqby">Age Division and Gender required by this events organizer</p>
+          <p class="gtb__reqby">Group type and Party size required by this event's organizer</p>
           <q-btn unelevated no-caps class="gtb__addblock" :class="{ 'is-disabled': !unlistedValid }" :tabindex="unlistedValid ? 0 : -1" label="Add to Block" @click="saveUnlisted" />
         </template>
       </div>

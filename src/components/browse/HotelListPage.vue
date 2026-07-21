@@ -51,8 +51,8 @@ const gridStyle = computed(() =>
 )
 
 // Hero content.
-const EVENT_NAME = 'Summer Soccer Classic 2027'
-const EVENT_DATES = 'Wed, 6/16/2027 - Sat, 6/19/2027'
+const EVENT_NAME = 'New England Patriots v Buffalo Bills'
+const EVENT_DATES = 'Sat, Dec 6, 2026'
 const scrim = 'linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.5))'
 const heroStyle = {
   backgroundImage: `${scrim}, url(${defaultBg})`,

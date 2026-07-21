@@ -58,8 +58,8 @@ payment step, no protection, no totals/taxes anywhere).
 - **Reads:** `event` (name, dates, venue), `mode`.
 - **Content:** hero (event name + dates) → **Booking Widget** → intro / benefits /
   *Who's Attending?* / *Event Information* (venue) → display ads → footer.
-- **Reference event:** *Virginia International Youth Soccer Cup 2026*, divisions
-  **U9–U19**, Fredericksburg Sportsplex (Fields 1–8), July 18–19 2026.
+- **Reference event:** *New England Patriots v Buffalo Bills* — an EventPipe
+  client-appreciation outing at Gillette Stadium, Foxborough, MA (Sat, Dec 6, 2026).
 - **Widget by mode:**
   - `reserve` / `reservations` → `mode="reservations"`, **Core** widget
     (`showTeams` may be true for a single registered team).
@@ -260,7 +260,7 @@ own prop name for `mode`.
 ```js
 const journey = reactive({
   mode: 'reserve',                 // reserve | hold | reservations (canonical)
-  event: { name, dates, venue, divisions },
+  event: { name, dates, venue },
   search: { teams: [], dates: { from, to }, flexible, travelers: { adults, children }, roomsNeeded },
   hotel: null,                     // chosen hotel (Stage 1 → 2)
   rooms: [],                       // selected rooms/nights (Stage 2)

@@ -67,7 +67,7 @@ concern, not a widget one.
 | The app shell (nav + footer) around a page | `App Shell / Page Frame` | `PageFrame.vue` (`brand`, `cartMode`, `showCart`, `minimalNav`) |
 | The top nav / cart fly-out | `App Shell / Global Nav & Cart` | `GlobalNav.vue` (+ `CartFlyout`); `minimal` = checkout nav; Contact Us dropdown |
 | The event landing page | `Landing Page / *` | `LandingPage.vue` (`mode`, `showTeams`) |
-| The tournament search widget | `Landing Page / Components` | `BookingWidget.vue` (`mode`, `showTeams`, `showDates`) |
+| The gameday search widget | `Landing Page / Components` | `BookingWidget.vue` (`mode`, `showTeams`, `showDates`) |
 | A surface card | `Components / Layout & Structure / Card` | `DsCard` |
 | A centered modal / dialog | `Components / Actions / Modal` | `DsModal` (backdrop, ESC, click-out, scroll-lock, header/footer slots, teleported) |
 | A slide-over / drawer | `Components / Actions / Side Panel` | `DsSidePanel` (`side="right" / "left" / "center"`) |
@@ -193,7 +193,7 @@ concern, not a widget one.
 | --- | --- | --- |
 | `PageFrame` | `components/PageFrame.vue` | App shell: `GlobalNav` + content slot + footer. `minimalNav` → the checkout "Secure Checkout" nav. |
 | `GlobalNav` + `CartFlyout` | `components/` | Nav (brand + Contact Us dropdown + Manage Booking + cart) with a right slide-over cart. Cart shows only for `hold` unless `showCart` forces it. |
-| `BookingWidget` | `components/BookingWidget.vue` | Tournament search — teams, date range + flexible-date pills, travelers/rooms. `mode` reservations/group. |
+| `BookingWidget` | `components/BookingWidget.vue` | Gameday search — groups, date range + flexible-date pills, travelers/rooms. `mode` reservations/group. |
 | `CartReview` | `components/CartReview.vue` | Recyclable cart body — `reserve` (summary + price card), `hold` (accordion + per-night steppers, **no totals/taxes**), `reservations` (multi-hotel per-night rows, **with** price card). Shared by fly-out, review-order step, rail. |
 | `HotelCardReserve` / `HotelCardGroup` | `components/browse/` | Horizontal result cards — Book Reservations (Choose Your Room) & Group Block (Select Rooms). Each: 3 availability edge cases + expandable Availability panel. |
 | `HotelListPage` | `components/browse/HotelListPage.vue` | Result list with `state` (full/partial/empty/error/loading) + firm separators between availability blocks. |
