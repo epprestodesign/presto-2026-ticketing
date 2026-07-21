@@ -11,7 +11,7 @@ const props = defineProps({
   pkg: { type: Object, required: true },
   selected: { type: Boolean, default: false },
 })
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select', 'title'])
 
 const soldOut = computed(() => props.pkg.soldOut)
 const hasExperiences = computed(() => Array.isArray(props.pkg.experiences) && props.pkg.experiences.length > 0)
@@ -39,7 +39,7 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
     </div>
 
     <div class="pkg__head">
-      <h4 class="pkg__name">{{ pkg.name }}</h4>
+      <button type="button" class="pkg__name pkg__name--btn" @click="emit('title', pkg)">{{ pkg.name }}<q-icon name="tune" size="15px" /></button>
       <BundleSavingsBadge v-if="!pkg.theme && !soldOut" :amount="pkg.savings" size="sm" />
       <span v-else-if="!pkg.theme && soldOut" class="pkg__soldtag">Sold out</span>
     </div>
@@ -108,6 +108,11 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
 
 .pkg__head { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); }
 .pkg__name { margin: 0; font-size: var(--ds-font-size-md); font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }
+/* Clickable title — opens the package customization dialog. */
+.pkg__name--btn { display: inline-flex; align-items: center; gap: 6px; padding: 0; background: none; border: 0; font-family: inherit; text-align: left; cursor: pointer; }
+.pkg__name--btn .q-icon { color: var(--ds-color-icon-subtle); }
+.pkg__name--btn:hover { color: var(--ds-color-text-brand); text-decoration: underline; }
+.pkg__name--btn:hover .q-icon { color: var(--ds-color-text-brand); }
 .pkg__soldtag { font-size: var(--ds-font-size-sm); color: var(--ds-color-text-subtle); }
 .pkg__tagline { margin: -6px 0 0; font-size: var(--ds-font-size-sm); color: var(--ds-color-text-subtle); }
 .pkg__sponsor { margin: 0; display: flex; align-items: center; gap: 4px; font-size: var(--ds-font-size-sm); color: var(--ds-color-text-brand); font-weight: var(--ds-font-weight-medium); }

@@ -104,7 +104,7 @@ const preview = {
               'Event & Tickets', ['Event Page', 'Event Hero', 'Ticket Tiers', 'Ticket Category Card'],
               'Seat Map & View', ['Venue Map (Ticketmaster)', 'Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
               'Hotel Add-On', ['Add-On Step', 'Live Search', 'Contracted Hotel Card', 'No Availability'],
-              'Packages', ['Package List', 'Package Card'],
+              'Packages', ['Package List', 'Package Card', 'Package Dialog'],
               'Bundle Cart & Checkout', ['Bundle Cart'],
               'Confirmation', ['Bundle Confirmation'],
               'Selection Summary',
