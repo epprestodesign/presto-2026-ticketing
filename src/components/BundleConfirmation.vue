@@ -36,7 +36,6 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
       <h2 class="bconf__title">You're all set!</h2>
       <p class="bconf__sub">{{ event.name }}<template v-if="event.venue?.name"> · {{ event.venue.name }}</template></p>
       <div class="bconf__order">Order <strong>{{ orderNumber }}</strong></div>
-      <div v-if="cart.dealScore" class="bconf__deal"><span class="bconf__dealscore">{{ cart.dealScore }}</span>{{ cart.dealLabel || 'Great Deal' }}</div>
     </div>
 
     <ul class="bconf__items">
@@ -89,8 +88,6 @@ function fmt(n) { return new Intl.NumberFormat('en-US', { style: 'currency', cur
 .bconf__title { margin: 0; font-size: var(--ds-font-size-lg); font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }
 .bconf__sub { margin: 0; color: var(--ds-color-text-subtle); font-size: var(--ds-font-size-sm); }
 .bconf__order { margin-top: 4px; font-size: var(--ds-font-size-sm); color: var(--ds-color-text); }
-.bconf__deal { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; color: var(--ds-palette-green-700); font-weight: var(--ds-font-weight-bold); font-size: var(--ds-font-size-sm); }
-.bconf__dealscore { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: var(--ds-radius-sm); background: var(--ds-palette-green-700); color: #fff; font-size: 0.8125rem; font-weight: var(--ds-font-weight-bold); }
 
 /* Value props block — matches the confirmation section-label + card convention. */
 .bconf__vp { display: flex; flex-direction: column; gap: var(--ds-space-3); }

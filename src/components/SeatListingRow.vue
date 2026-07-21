@@ -1,9 +1,8 @@
 <script setup>
 // SeatListingRow — one offer in the SeatGeek-style listings rail: a view-from-
-// seat thumbnail, section/row, quantity, a deal score, value flags (best deal /
-// cheapest in section), and price incl. fees. Emits `select` on click.
+// seat thumbnail, section/row, quantity, and price incl. fees. Emits `select`
+// on click.
 import { computed } from 'vue'
-import DealScoreBadge from './DealScoreBadge.vue'
 
 const props = defineProps({
   listing: { type: Object, required: true }, // a generateListings() item
@@ -30,10 +29,7 @@ function fmt(n) {
         <span>Row {{ l.row }} · {{ l.quantityAvailable }} ticket{{ l.quantityAvailable === 1 ? '' : 's' }}</span>
         <span class="slrow__fees">incl. fees</span>
       </div>
-      <div class="slrow__flags">
-        <DealScoreBadge :score="l.dealScore" size="sm" />
-        <DealScoreBadge v-if="l.bestDeal" flag="best-deal" size="sm" />
-        <DealScoreBadge v-else-if="l.cheapestInSection" flag="cheapest-in-section" size="sm" />
+      <div v-if="l.perks && l.perks.length" class="slrow__flags">
         <span v-for="p in l.perks" :key="p" class="slrow__perk">{{ p }}</span>
       </div>
     </div>

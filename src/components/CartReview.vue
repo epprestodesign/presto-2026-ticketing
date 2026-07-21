@@ -234,10 +234,6 @@ defineExpose({ clear })
     <!-- ============ TICKETING ============ -->
     <template v-else-if="isTicketing">
       <div class="cr__tickets">
-        <div v-if="cart.dealScore" class="cr__deal">
-          <span class="cr__dealscore">{{ cart.dealScore }}</span>{{ cart.dealLabel || 'Great Deal' }}
-        </div>
-
         <div class="cr__titems" :class="{ 'cr__titems--card': cards }">
           <div v-for="(it, i) in ticketItems" :key="i" class="cr__titem">
             <span class="cr__ticon"><q-icon :name="ticketIcon(it.type)" size="20px" /></span>
@@ -424,11 +420,6 @@ defineExpose({ clear })
 .cr__tsub { font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
 .cr__tamount { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); white-space: nowrap; }
 .cr__tqty { font-weight: 500; color: var(--ds-color-text-subtle); }
-
-/* Deal score chip */
-.cr__deal { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin: 0 20px; color: var(--ds-palette-green-700); font-weight: 700; font-size: 0.875rem; }
-.cr--cards .cr__deal { margin: 0; }
-.cr__dealscore { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: var(--ds-radius-sm); background: var(--ds-palette-green-700); color: #fff; font-size: 0.8125rem; font-weight: 700; }
 
 /* Ticket details — seat location + delivery / verification / protection */
 .cr__tdetails { display: flex; flex-direction: column; gap: 18px; padding: 20px; border-top: 1px solid var(--ds-color-border); }

@@ -13,8 +13,8 @@ export const hotel = CONTRACTED_HOTELS[1] // The Westin
 export const pkgOnly = stripHotel(generateExperiencePackages(event, { nights: 1 })[0]) // Legends Stadium Tour, no hotel
 export const pkgHotel = generateExperiencePackages(event, { nights: 1 })[0]            // …with the hotel stay
 
-// Shared seat-detail rows + deal score (SeatGeek-style ticket info; EventPipe-framed).
-const detail = { dealScore: 9, dealLabel: 'Great Deal', ticketDetails: ticketDetails({ section: 'CL10', row: '12' }) }
+// Shared seat-detail rows (ticket info; EventPipe-framed).
+const detail = { ticketDetails: ticketDetails({ section: 'CL10', row: '12' }) }
 
 // The four carts, all in the shared ticketing cart shape.
 export const ticketsOnlyCart = { ...buildBundleCart({ event, tier, quantity: 2 }), ...detail }

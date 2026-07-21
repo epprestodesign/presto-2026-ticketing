@@ -29,7 +29,7 @@ export const Default = {
     template: `
       <div style="width:460px;max-width:100%;">
         <ViewFromSeat :photo="top.photo" :section="top.section" :row="top.row"
-                      :deal-score="top.dealScore" :price="top.priceWithFees" @look-around="() => {}" />
+                      :price="top.priceWithFees" @look-around="() => {}" />
       </div>
     `,
   }),

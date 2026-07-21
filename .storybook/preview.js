@@ -70,7 +70,7 @@ const preview = {
               'Slider', 'Range', 'Rating', 'Quantity Stepper', 'Phone Field', 'Transfer List',
             ],
             'Feedback & Status', [
-              'Alert', 'Banner', 'Badge', 'Deal Score', 'Availability Badge', 'Savings Badge', 'Snackbar', 'Toast', 'Progress', 'Skeleton',
+              'Alert', 'Banner', 'Badge', 'Availability Badge', 'Savings Badge', 'Snackbar', 'Toast', 'Progress', 'Skeleton',
             ],
             'Layout & Structure', [
               'Box', 'Card', 'Container', 'Grid', 'Stack', 'Divider', 'Section Header',

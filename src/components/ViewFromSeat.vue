@@ -1,16 +1,14 @@
 <script setup>
 // ViewFromSeat — the SeatGeek-style "look at the seat you're buying" hero: a
 // photo of the view toward the field/stage with a "Look around 360°" affordance,
-// a deal score, and the section/row + price. PROTOTYPE: the photo is a stock
-// (Unsplash) stand-in, not a real view from this seat — Ticketmaster provides no
-// seat-view imagery. Unsplash attribution is rendered as required.
-import DealScoreBadge from './DealScoreBadge.vue'
+// and the section/row + price. PROTOTYPE: the photo is a stock (Unsplash)
+// stand-in, not a real view from this seat — Ticketmaster provides no seat-view
+// imagery. Unsplash attribution is rendered as required.
 
 const props = defineProps({
   photo: { type: Object, required: true },      // { url, alt, photographer, photographerUrl, photoUrl }
   section: { type: [String, Number], default: null },
   row: { type: [String, Number], default: null },
-  dealScore: { type: Number, default: null },
   price: { type: Number, default: null },
   currency: { type: String, default: 'USD' },
   has360: { type: Boolean, default: true },
@@ -29,9 +27,6 @@ function fmt(n) {
       <button v-if="has360" type="button" class="vfs__look" @click="emit('look-around')">
         <q-icon name="360" size="16px" /> Look around
       </button>
-      <span v-if="dealScore != null" class="vfs__deal">
-        <DealScoreBadge :score="dealScore" size="sm" />
-      </span>
     </div>
 
     <div class="vfs__meta">
@@ -62,10 +57,6 @@ function fmt(n) {
   font-family: inherit; font-size: var(--ds-font-size-sm); font-weight: var(--ds-font-weight-bold);
 }
 .vfs__look:hover { background: rgba(0, 0, 0, 0.8); }
-.vfs__deal {
-  position: absolute; left: 10px; top: 10px; background: var(--ds-color-surface);
-  padding: 3px 7px; border-radius: var(--ds-radius-sm); box-shadow: var(--ds-shadow-1, 0 1px 3px rgba(0,0,0,.2));
-}
 .vfs__meta { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--ds-space-3); }
 .vfs__seat { font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }
 .vfs__attr { font-size: 11px; color: var(--ds-color-text-subtlest); margin-top: 2px; }

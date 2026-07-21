@@ -12,8 +12,8 @@ const event = fixtureEvents.find((e) => /gillette|stadium/i.test(e.venue?.name |
 const tier = deriveTiers(event)[1] // Club
 const hotel = CONTRACTED_HOTELS[1]
 const HELD = 895 // 14:55 countdown
-// Shared seat-detail rows + deal score (SeatGeek-style ticket info; EventPipe-framed).
-const detail = { dealScore: 9, dealLabel: 'Great Deal', ticketDetails: ticketDetails({ section: 'CL10', row: '12' }), heldSeconds: HELD }
+// Shared seat-detail rows (ticket info; EventPipe-framed).
+const detail = { ticketDetails: ticketDetails({ section: 'CL10', row: '12' }), heldSeconds: HELD }
 
 // Tickets — no hotel / with hotel. buildBundleCart already returns the ticketing
 // cart shape { items, subtotal, fees, taxes, total } the fly-out consumes.

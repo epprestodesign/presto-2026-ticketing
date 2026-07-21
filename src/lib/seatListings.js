@@ -1,9 +1,9 @@
-// SeatGeek-style listing + deal-score mock layer.
+// SeatGeek-style listing mock layer.
 //
 // PROTOTYPE DATA: Ticketmaster's Discovery API returns events + a static seatmap
-// image only — no per-seat listings, prices, deal scores, or view-from-seat
-// photos. Everything below is generated deterministically from a real event so
-// we can prototype the SeatGeek-like "browse listings on a map" experience.
+// image only — no per-seat listings, prices, or view-from-seat photos.
+// Everything below is generated deterministically from a real event so we can
+// prototype the SeatGeek-like "browse listings on a map" experience.
 // View-from-seat photos are stock (Unsplash) placeholders, not real seat views.
 import { deriveTiers } from './seatmap.js'
 
@@ -26,22 +26,9 @@ function hash(str = '') {
 }
 
 /**
- * Map a 1–10 deal score to a label + intent color token. Higher = better value
- * (SeatGeek convention: green = great deal).
- */
-export function dealMeta(score) {
-  if (score >= 9) return { label: 'Amazing', colorVar: '--ds-palette-green-600' }
-  if (score >= 7) return { label: 'Great', colorVar: '--ds-palette-green-600' }
-  if (score >= 5) return { label: 'Good', colorVar: '--ds-palette-amber-500' }
-  if (score >= 3) return { label: 'Fair', colorVar: '--ds-palette-amber-600' }
-  return { label: 'Low', colorVar: '--ds-palette-gray-400' }
-}
-
-/**
  * Generate deterministic SeatGeek-style listings for an event. Each listing is
- * a section/row offer with a price, a deal score (relative to its tier median),
- * a stock view-from-seat photo, and flags (best in section, cheapest in
- * section). Returns listings sorted by best value first.
+ * a section/row offer with a price and a stock view-from-seat photo. Returns
+ * listings sorted by price (lowest first).
  */
 export function generateListings(event = {}, opts = {}) {
   const { kind = 'stadium', perListingTiers = null, count = 14 } = opts
@@ -73,29 +60,10 @@ export function generateListings(event = {}, opts = {}) {
       currency: tier.currency || 'USD',
       perks,
       photo,
-      _score: r, // temp; replaced with deal score below
     })
   }
 
-  // Deal score: cheaper than the tier's own listings ⇒ higher score.
-  const byTier = {}
-  for (const l of listings) (byTier[l.tierId] ??= []).push(l)
-  for (const group of Object.values(byTier)) {
-    const prices = group.map((l) => l.priceWithFees)
-    const min = Math.min(...prices)
-    const max = Math.max(...prices)
-    const cheapest = group.reduce((a, b) => (b.priceWithFees < a.priceWithFees ? b : a))
-    for (const l of group) {
-      const rel = max === min ? 0.5 : 1 - (l.priceWithFees - min) / (max - min) // 1 = cheapest
-      l.dealScore = Math.max(1, Math.min(10, Math.round(3 + rel * 7)))
-      l.dealLabel = dealMeta(l.dealScore).label
-      l.cheapestInSection = l === cheapest
-      delete l._score
-    }
-    cheapest.bestDeal = true
-  }
-
-  return listings.sort((a, b) => b.dealScore - a.dealScore || a.priceWithFees - b.priceWithFees)
+  return listings.sort((a, b) => a.priceWithFees - b.priceWithFees)
 }
 
 /** A histogram-friendly price distribution (bin counts) for a set of listings. */

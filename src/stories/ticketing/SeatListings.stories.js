@@ -1,7 +1,7 @@
 // TICKETING & BUNDLES / Seat Map & View / Seat Listings — the SeatGeek-style
-// browse experience: a listings rail (price histogram + rows with deal scores)
-// paired with the view-from-seat and the interactive map. All listings are
-// prototype data generated from a real Ticketmaster event.
+// browse experience: a listings rail (price histogram + rows) paired with the
+// view-from-seat and the interactive map. All listings are prototype data
+// generated from a real Ticketmaster event.
 import { ref, computed } from 'vue'
 import SeatListingRow from '../../components/SeatListingRow.vue'
 import PriceHistogram from '../../components/PriceHistogram.vue'
@@ -47,7 +47,7 @@ export const Browser = {
         <div style="padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:24px;background:var(--ds-color-surface-canvas);">
           <div style="max-width:520px;">
             <ViewFromSeat :photo="selected.photo" :section="selected.section" :row="selected.row"
-                          :deal-score="selected.dealScore" :price="selected.priceWithFees" />
+                          :price="selected.priceWithFees" />
           </div>
           <div style="max-width:620px;">
             <VenueMap :event="event" :pins="pins" />
