@@ -234,6 +234,10 @@ defineExpose({ clear })
     <!-- ============ TICKETING ============ -->
     <template v-else-if="isTicketing">
       <div class="cr__tickets">
+        <div v-if="cart.dealScore" class="cr__deal">
+          <span class="cr__dealscore">{{ cart.dealScore }}</span>{{ cart.dealLabel || 'Great Deal' }}
+        </div>
+
         <div class="cr__titems" :class="{ 'cr__titems--card': cards }">
           <div v-for="(it, i) in ticketItems" :key="i" class="cr__titem">
             <span class="cr__ticon"><q-icon :name="ticketIcon(it.type)" size="20px" /></span>
@@ -241,7 +245,10 @@ defineExpose({ clear })
               <span class="cr__tlabel">{{ it.label }}</span>
               <span v-if="it.sublabel" class="cr__tsub">{{ it.sublabel }}</span>
             </div>
-            <span class="cr__tamount">{{ money(it.amount) }}</span>
+            <span class="cr__tamount">
+              <template v-if="it.unitPrice != null && it.qty">{{ money(it.unitPrice) }} <span class="cr__tqty">× {{ it.qty }}</span></template>
+              <template v-else>{{ money(it.amount) }}</template>
+            </span>
           </div>
         </div>
 
@@ -254,6 +261,17 @@ defineExpose({ clear })
           <div class="cr__rule" />
           <div class="cr__kv cr__kv--total"><span>Total</span><span>{{ money(cart.total) }}</span></div>
           <div class="cr__quoted">Rates are quoted in USD ($).</div>
+        </div>
+
+        <!-- Seat location + delivery / verification / protection guarantees -->
+        <div v-if="cart.ticketDetails?.length" class="cr__tdetails">
+          <div v-for="(d, i) in cart.ticketDetails" :key="i" class="cr__tdrow">
+            <q-icon :name="d.icon" size="22px" class="cr__tdicon" />
+            <div class="cr__tdinfo">
+              <span class="cr__tdtitle">{{ d.title }}</span>
+              <span v-if="d.text" class="cr__tdtext">{{ d.text }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -405,6 +423,21 @@ defineExpose({ clear })
 .cr__tlabel { font-weight: 600; font-size: 0.9375rem; color: var(--ds-color-text); }
 .cr__tsub { font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
 .cr__tamount { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); white-space: nowrap; }
+.cr__tqty { font-weight: 500; color: var(--ds-color-text-subtle); }
+
+/* Deal score chip */
+.cr__deal { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin: 0 20px; color: var(--ds-palette-green-700); font-weight: 700; font-size: 0.875rem; }
+.cr--cards .cr__deal { margin: 0; }
+.cr__dealscore { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: var(--ds-radius-sm); background: var(--ds-palette-green-700); color: #fff; font-size: 0.8125rem; font-weight: 700; }
+
+/* Ticket details — seat location + delivery / verification / protection */
+.cr__tdetails { display: flex; flex-direction: column; gap: 18px; padding: 20px; border-top: 1px solid var(--ds-color-border); }
+.cr--cards .cr__tdetails { border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); background: var(--ds-color-surface); }
+.cr__tdrow { display: flex; align-items: flex-start; gap: 14px; }
+.cr__tdicon { color: var(--ds-color-text); flex: none; margin-top: 1px; }
+.cr__tdinfo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cr__tdtitle { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); }
+.cr__tdtext { font-size: 0.8125rem; color: var(--ds-color-text-subtle); line-height: 1.45; }
 
 /* Shared key/value + rule */
 .cr__rule { height: 1px; background: var(--ds-color-border); margin: 12px 0; }

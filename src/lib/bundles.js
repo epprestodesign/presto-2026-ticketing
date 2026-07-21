@@ -184,7 +184,7 @@ export function stripHotel(pkg) {
 export function buildBundleCart({ event, tier, quantity = 2, hotel = null, nights = 1, feeRate = 0.18, taxRate = 0.09 }) {
   const items = []
   const ticketSubtotal = (tier?.price ?? 0) * quantity
-  items.push({ type: 'ticket', label: `${tier?.name ?? 'Ticket'} × ${quantity}`, sublabel: event?.venue?.name, amount: ticketSubtotal })
+  items.push({ type: 'ticket', label: `${tier?.name ?? 'Ticket'} × ${quantity}`, sublabel: event?.venue?.name, amount: ticketSubtotal, unitPrice: tier?.price, qty: quantity })
   if (hotel) {
     const hotelTotal = hotel.nightlyRate * nights
     items.push({ type: 'hotel', label: `${hotel.name} · ${hotel.roomType}`, sublabel: `${nights} night${nights === 1 ? '' : 's'}`, amount: hotelTotal })
@@ -193,4 +193,38 @@ export function buildBundleCart({ event, tier, quantity = 2, hotel = null, night
   const fees = Math.round(ticketSubtotal * feeRate)
   const taxes = Math.round(subtotal * taxRate)
   return { items, subtotal, fees, taxes, total: subtotal + fees + taxes, currency: 'USD' }
+}
+
+/**
+ * SeatGeek-style ticket-detail rows for the cart — the seat location plus the
+ * delivery / verification / protection guarantees shown under the price. All
+ * fulfilment is framed through EventPipe.
+ */
+export function ticketDetails({ section = 'CL10', row = '12' } = {}) {
+  return [
+    { icon: 'confirmation_number', title: `Section ${section}, Row ${row}` },
+    { icon: 'qr_code_2', title: 'Mobile tickets', text: 'Delivered to the EventPipe app before gameday and scanned at the gate.' },
+    { icon: 'verified', title: 'Verified tickets', text: 'Reviewed and verified by the venue — sourced through EventPipe.' },
+    { icon: 'event_seat', title: 'Seats together', text: 'Your whole party is seated together in one block.' },
+    { icon: 'verified_user', title: 'Every ticket protected', text: "If something comes up with the event, EventPipe has you covered." },
+  ]
+}
+
+/**
+ * Build a single-SKU cart for an experience package (one line at the package
+ * price) in the shared ticketing cart shape. The sublabel auto-describes the
+ * package — ticket + hotel when the package includes a stay, ticket-only when
+ * stripHotel() has removed it.
+ */
+export function buildPackageCart(pkg, { sublabel = null, feeRate = 0.10, taxRate = 0.09 } = {}) {
+  const fees = Math.round(pkg.packagePrice * feeRate)
+  const taxes = Math.round(pkg.packagePrice * taxRate)
+  const sub = sublabel ?? (pkg.hotel
+    ? `${pkg.ticket.tierName} + ${pkg.hotel.name} · ${pkg.theme}`
+    : `${pkg.ticket.tierName} ticket · ${pkg.theme}`)
+  return {
+    items: [{ type: 'package', label: pkg.name, sublabel: sub, amount: pkg.packagePrice }],
+    subtotal: pkg.packagePrice, fees, taxes, total: pkg.packagePrice + fees + taxes,
+    currency: 'USD', savings: pkg.savings,
+  }
 }
