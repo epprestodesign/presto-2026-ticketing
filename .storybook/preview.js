@@ -92,7 +92,8 @@ const preview = {
             ],
           ],
           'App Shell', [
-            'Global Nav & Cart', 'Page Frame',
+            'Global Nav & Cart', ['Book Reservation', 'Group Block', 'Ticketing'],
+            'Page Frame',
           ],
           'Ticketing & Bundles', [
             'Overview',

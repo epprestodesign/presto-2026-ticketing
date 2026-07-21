@@ -39,6 +39,14 @@ const isReservations = computed(() => props.mode === 'reservations')
 // each room just shows its nightly cost. So the aggregated Price details card is
 // omitted for hold (kept for reservations, which are booked/charged).
 const isHold = computed(() => props.mode === 'hold')
+// 'ticketing' → a flat itemized cart (tickets / hotel / experience / package
+// lines + subtotal · fees · taxes · total). Shared by the ticketing App Shell
+// cart fly-out and the ticketing Checkout "Review order" step. Cart shape:
+//   { items: [{ type, label, sublabel, amount }], subtotal, fees, taxes, total }
+const isTicketing = computed(() => props.mode === 'ticketing')
+const ticketItems = computed(() => props.cart.items || [])
+const TICKET_ICONS = { ticket: 'confirmation_number', tickets: 'confirmation_number', seat: 'event_seat', hotel: 'hotel', experience: 'stars', package: 'redeem' }
+const ticketIcon = (t) => TICKET_ICONS[t] || 'local_activity'
 
 // --- Imagery (reserve carousel + per-hotel thumbnails) ---
 const lib = ref(null)
@@ -119,8 +127,15 @@ const holdTotal = computed(() => holdSubtotal.value + holdTaxes.value + holdFee.
 
 const total = computed(() => (isReserve.value ? (props.cart.priceDetails?.total ?? 0) : holdTotal.value))
 
-watch(totalRooms, (v) => emit('update:count', isReserve.value ? 1 : v), { immediate: true })
-watch(total, (v) => emit('update:total', v), { immediate: true })
+// Cart badge count + running total, resolved per mode.
+const cartCount = computed(() => {
+  if (isTicketing.value) return ticketItems.value.reduce((s, it) => s + (it.qty ?? 1), 0)
+  if (isReserve.value) return 1
+  return totalRooms.value
+})
+const cartTotal = computed(() => (isTicketing.value ? (props.cart.total ?? 0) : total.value))
+watch(cartCount, (v) => emit('update:count', v), { immediate: true })
+watch(cartTotal, (v) => emit('update:total', v), { immediate: true })
 
 defineExpose({ clear })
 </script>
@@ -213,6 +228,33 @@ defineExpose({ clear })
         <div class="cr__quoted">Rates are quoted in USD ($).</div>
         <div v-if="cart.roomsLeft" class="cr__heldnote"><q-icon name="king_bed" size="15px" /> <span>We have {{ cart.roomsLeft }} room{{ cart.roomsLeft === 1 ? '' : 's' }} left at this price!</span></div>
         </template>
+      </div>
+    </template>
+
+    <!-- ============ TICKETING ============ -->
+    <template v-else-if="isTicketing">
+      <div class="cr__tickets">
+        <div class="cr__titems" :class="{ 'cr__titems--card': cards }">
+          <div v-for="(it, i) in ticketItems" :key="i" class="cr__titem">
+            <span class="cr__ticon"><q-icon :name="ticketIcon(it.type)" size="20px" /></span>
+            <div class="cr__tinfo">
+              <span class="cr__tlabel">{{ it.label }}</span>
+              <span v-if="it.sublabel" class="cr__tsub">{{ it.sublabel }}</span>
+            </div>
+            <span class="cr__tamount">{{ money(it.amount) }}</span>
+          </div>
+        </div>
+
+        <div v-if="showPrice" class="cr__pricecard">
+          <h4 class="cr__price-h">Price details</h4>
+          <div class="cr__kv"><span>Subtotal</span><span>{{ money(cart.subtotal) }}</span></div>
+          <div v-if="cart.fees" class="cr__kv"><span>Fees</span><span>{{ money(cart.fees) }}</span></div>
+          <div v-if="cart.taxes" class="cr__kv"><span class="cr__taxlabel">Taxes &amp; Fees <button type="button" class="cr__info" aria-label="About taxes and fees"><q-icon name="info" size="16px" /><q-tooltip class="cr__tooltip" anchor="top middle" self="bottom middle" :offset="[0, 8]" max-width="360px">{{ TAX_DISCLAIMER }}</q-tooltip></button></span><span>{{ money(cart.taxes) }}</span></div>
+          <div v-if="cart.savings" class="cr__discount">Bundle savings −{{ money(cart.savings) }}</div>
+          <div class="cr__rule" />
+          <div class="cr__kv cr__kv--total"><span>Total</span><span>{{ money(cart.total) }}</span></div>
+          <div class="cr__quoted">Rates are quoted in USD ($).</div>
+        </div>
       </div>
     </template>
 
@@ -351,6 +393,18 @@ defineExpose({ clear })
 .cr__nightcost-p { font-weight: 700; font-size: 0.875rem; color: var(--ds-palette-green-600); }
 .cr__addhotel { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 14px 20px 20px; padding: 10px 18px; border: 1px solid var(--ds-color-background-brand-bold); border-radius: var(--ds-radius-pill); background: var(--ds-color-surface); color: var(--ds-color-text); font-weight: 600; font-size: 0.9375rem; cursor: pointer; transition: background var(--ds-duration-fast) var(--ds-ease-standard), color var(--ds-duration-fast) var(--ds-ease-standard); }
 .cr__addhotel:hover { background: var(--ds-color-background-brand-bold); color: #fff; }
+
+/* Ticketing: flat itemized cart */
+.cr__tickets { display: flex; flex-direction: column; }
+.cr--cards .cr__tickets { gap: 16px; }
+.cr__titems--card { background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); overflow: hidden; }
+.cr__titem { display: flex; align-items: flex-start; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--ds-color-border); }
+.cr__titem:last-child { border-bottom: 0; }
+.cr__ticon { flex: none; width: 38px; height: 38px; border-radius: var(--ds-radius-md); background: var(--ds-palette-slate-100); display: flex; align-items: center; justify-content: center; color: var(--ds-color-text); }
+.cr__tinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cr__tlabel { font-weight: 600; font-size: 0.9375rem; color: var(--ds-color-text); }
+.cr__tsub { font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
+.cr__tamount { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); white-space: nowrap; }
 
 /* Shared key/value + rule */
 .cr__rule { height: 1px; background: var(--ds-color-border); margin: 12px 0; }
