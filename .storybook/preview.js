@@ -70,7 +70,7 @@ const preview = {
               'Slider', 'Range', 'Rating', 'Quantity Stepper', 'Phone Field', 'Transfer List',
             ],
             'Feedback & Status', [
-              'Alert', 'Banner', 'Badge', 'Deal Score', 'Availability Badge', 'Snackbar', 'Toast', 'Progress', 'Skeleton',
+              'Alert', 'Banner', 'Badge', 'Deal Score', 'Availability Badge', 'Savings Badge', 'Snackbar', 'Toast', 'Progress', 'Skeleton',
             ],
             'Layout & Structure', [
               'Box', 'Card', 'Container', 'Grid', 'Stack', 'Divider', 'Section Header',
@@ -95,6 +95,10 @@ const preview = {
           'Ticketing & Bundles', [
             'Overview',
             'Seat Map & View', ['Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
+            'Hotel Add-On', ['Add-On Step', 'Contracted Hotel Card'],
+            'Packages', ['Package List', 'Package Card'],
+            'Bundle Cart & Checkout', ['Bundle Cart'],
+            'Confirmation', ['Bundle Confirmation'],
             'Selection Summary',
           ],
           'Landing Page', [
