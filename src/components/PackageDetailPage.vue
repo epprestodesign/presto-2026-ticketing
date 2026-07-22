@@ -1,19 +1,25 @@
 <script setup>
-// PackageDetailPage — the event's ticket + package offerings on one screen, laid
-// out like the Book Reservation hotel-details page: a photo gallery hero, a
-// sticky section-tab nav, an event summary header, then the offerings —
-// Overview, Tickets (all tiers), Packages (every experience package), the
-// signature Experiences, and Policies. Reuses the Hotel Details building blocks
-// (GalleryHero, DetailTabs, PoliciesSection) alongside the ticketing components
-// (TicketTierList, PackageCard).
-import { ref } from 'vue'
+// PackageDetailPage — the event's package offerings on one screen, laid out like
+// the Book Reservation hotel-details page: a photo gallery hero, a sticky
+// section-tab nav, an event summary header, then the offerings — Overview (with
+// value props + a Read more), the signature Experiences (promoted up), the
+// Packages, and Policies. Reuses the Hotel Details building blocks (GalleryHero,
+// DetailTabs, PoliciesSection). Each package card opens a condensed quick-view.
+import { ref, computed } from 'vue'
 import GalleryHero from './details/GalleryHero.vue'
 import DetailTabs from './details/DetailTabs.vue'
 import PoliciesSection from './details/PoliciesSection.vue'
-import TicketTierList from './TicketTierList.vue'
 import PackageCard from './PackageCard.vue'
 import PackageSummary from './PackageSummary.vue'
 import PackageExperiences from './PackageExperiences.vue'
+import PackageQuickViewDialog from './PackageQuickViewDialog.vue'
+
+const DEFAULT_VALUE_PROPS = [
+  { icon: 'inventory_2', title: 'Everything handled', text: 'Tickets, hotel, and signature extras bundled into one plan — no juggling logistics.' },
+  { icon: 'verified', title: 'Verified premium seats', text: 'Real ticket levels for this game, sourced and protected through EventPipe.' },
+  { icon: 'savings', title: 'One simple price', text: 'Bundle savings baked in — what you see is what your group pays.' },
+  { icon: 'support_agent', title: 'Gameday concierge', text: 'We sweat the details so your crew just shows up and enjoys the day.' },
+]
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -22,6 +28,7 @@ const props = defineProps({
   experiences: { type: Array, default: () => [] },     // [{ icon, label, theme }]
   about: { type: Array, default: () => [] },           // paragraphs
   policies: { type: Array, default: () => [] },        // [{ title, body }]
+  valueProps: { type: Array, default: () => [] },      // [{ icon, title, text }] — falls back to DEFAULT_VALUE_PROPS
   host: { type: String, default: 'EventPipe' },
   eyebrow: { type: String, default: 'Client Appreciation' },
 })
@@ -29,15 +36,25 @@ const emit = defineEmits(['back', 'select'])
 
 const tabs = [
   { name: 'overview', label: 'Overview' },
-  { name: 'tickets', label: 'Tickets' },
-  { name: 'packages', label: 'Packages' },
   { name: 'experiences', label: 'Experiences' },
+  { name: 'packages', label: 'Packages' },
   { name: 'policies', label: 'Policies' },
 ]
 const activeTab = ref('overview')
 const root = ref(null)
 const selectedId = ref(null)
-const pick = (p) => { selectedId.value = p.id; emit('select', p) }
+const vProps = computed(() => (props.valueProps.length ? props.valueProps : DEFAULT_VALUE_PROPS))
+
+// About: show the first paragraph, reveal the rest behind "Read more".
+const aboutOpen = ref(false)
+const aboutLead = computed(() => props.about[0])
+const aboutRest = computed(() => props.about.slice(1))
+
+// Condensed per-package quick view.
+const quickOpen = ref(false)
+const quickPkg = ref(null)
+const openQuick = (p) => { quickPkg.value = p; quickOpen.value = true; selectedId.value = p.id; emit('select', p) }
+const onQuickCustomize = (p) => { quickOpen.value = false; emit('select', p) }
 
 const onTab = (name) => {
   if (name === 'overview') { root.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return }
@@ -63,39 +80,54 @@ const onTab = (name) => {
     <!-- Event summary header -->
     <package-summary class="pdp__summary" :event="event" :host="host" :eyebrow="eyebrow" />
 
-    <!-- Overview / About -->
+    <!-- Overview / About — lead paragraph + Read more, then value props -->
     <section id="pdp-overview" class="pdp__section">
       <h2 class="pdp__h">About this outing</h2>
-      <p v-for="(p, i) in about" :key="i" class="pdp__p">{{ p }}</p>
+      <p v-if="aboutLead" class="pdp__p">{{ aboutLead }}</p>
+      <template v-if="aboutRest.length">
+        <template v-if="aboutOpen">
+          <p v-for="(p, i) in aboutRest" :key="i" class="pdp__p">{{ p }}</p>
+        </template>
+        <button type="button" class="pdp__readmore" @click="aboutOpen = !aboutOpen">
+          {{ aboutOpen ? 'Read less' : 'Read more' }}
+          <q-icon :name="aboutOpen ? 'expand_less' : 'expand_more'" size="18px" />
+        </button>
+      </template>
+
+      <!-- Helpful value props -->
+      <ul class="pdp__vp">
+        <li v-for="(v, i) in vProps" :key="i" class="pdp__vpitem">
+          <q-icon :name="v.icon" size="24px" class="pdp__vpicon" />
+          <div><span class="pdp__vptitle">{{ v.title }}</span><span class="pdp__vptext">{{ v.text }}</span></div>
+        </li>
+      </ul>
     </section>
 
-    <!-- Tickets — every tier for this event -->
-    <section id="pdp-tickets" class="pdp__section pdp__section--ruled">
-      <h2 class="pdp__h">Tickets</h2>
-      <p class="pdp__sub">Pick your level — prices are per ticket for {{ event.name }}.</p>
-      <ticket-tier-list :event="event" />
-    </section>
-
-    <!-- Packages — every experience package -->
-    <section id="pdp-packages" class="pdp__section pdp__section--ruled">
-      <h2 class="pdp__h">Patriots experience packages</h2>
-      <p class="pdp__sub">Pre-built ticket + experience bundles, each with an optional hotel stay.</p>
-      <div class="pdp__pkgs">
-        <package-card v-for="p in packages" :key="p.id" :pkg="p" :selected="p.id === selectedId" @select="pick" />
-      </div>
-    </section>
-
-    <!-- Experiences — the signature add-ons across packages -->
+    <!-- Experiences — the signature add-ons across packages (promoted up) -->
     <section id="pdp-experiences" class="pdp__section pdp__section--ruled">
       <h2 class="pdp__h">Signature experiences</h2>
       <p class="pdp__sub">The extras that make each package — mix and match with any ticket.</p>
       <package-experiences :experiences="experiences" />
     </section>
 
+    <!-- Packages — every experience package -->
+    <section id="pdp-packages" class="pdp__section pdp__section--ruled">
+      <h2 class="pdp__h">Patriots experience packages</h2>
+      <p class="pdp__sub">Pre-built ticket + experience bundles, each with an optional hotel stay. Select a package for a quick view.</p>
+      <div class="pdp__pkgs">
+        <package-card v-for="p in packages" :key="p.id" :pkg="p" :selected="p.id === selectedId" @select="openQuick" @title="openQuick" />
+      </div>
+    </section>
+
     <!-- Policies -->
     <section id="pdp-policies" class="pdp__section pdp__section--ruled">
       <policies-section title="Ticketing & event policies" :policies="policies" />
     </section>
+
+    <!-- Condensed per-package quick view -->
+    <q-dialog v-model="quickOpen">
+      <package-quick-view-dialog v-if="quickPkg" :pkg="quickPkg" @close="quickOpen = false" @select="onQuickCustomize" @customize="onQuickCustomize" />
+    </q-dialog>
   </div>
 </template>
 
@@ -119,6 +151,16 @@ const onTab = (name) => {
 .pdp__h { margin: 0 0 6px; font-size: 1.375rem; font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }
 .pdp__sub { margin: 0 0 18px; color: var(--ds-color-text-subtle); }
 .pdp__p { margin: 0 0 12px; color: var(--ds-color-text); line-height: 1.6; max-width: 760px; }
+
+.pdp__readmore { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--ds-color-text-brand); cursor: pointer; }
+.pdp__readmore:hover { text-decoration: underline; }
+
+.pdp__vp { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.pdp__vpitem { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); background: var(--ds-color-surface); }
+.pdp__vpicon { color: var(--ds-color-text-brand); flex: none; margin-top: 1px; }
+.pdp__vpitem > div { display: flex; flex-direction: column; gap: 3px; }
+.pdp__vptitle { font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text); }
+.pdp__vptext { font-size: var(--ds-font-size-sm); color: var(--ds-color-text-subtle); line-height: 1.45; }
 
 .pdp__pkgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
 .pdp__exps { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }

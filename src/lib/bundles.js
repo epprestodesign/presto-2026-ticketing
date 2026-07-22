@@ -235,19 +235,59 @@ export function stripHotel(pkg) {
   return { ...pkg, hotel: null, nights: 0, componentsTotal, packagePrice, savings: componentsTotal - packagePrice }
 }
 
+// Itemized hotel-stay policies shown inside an expanded hotel line in the cart —
+// mirroring the Book Reservation confirmation policies.
+const HOTEL_CART_POLICIES = [
+  { title: 'Check-in / Check-out', body: 'Check-in from 3:00 PM, check-out by 11:00 AM. Photo ID and the booking card required at check-in.' },
+  { title: 'Cancellation', body: 'Free cancellation until 48 hours before check-in; after that, one night’s room rate plus tax.' },
+  { title: 'Parking & Wi-Fi', body: 'Complimentary Wi-Fi. Event-day parking and shuttle options near Gillette Stadium are available.' },
+]
+
+/**
+ * Itemized hotel-stay detail for an expandable cart line: address, dates, room,
+ * a per-night breakdown, and the stay policies. Mirrors what the reservations
+ * cart shows when a hotel is expanded, so ticket+hotel / package+hotel carts can
+ * itemize the hotel the same way. Prototype dates.
+ */
+export function hotelCartDetail(hotel = {}, nights = 1) {
+  const dates = ['Fri, Dec 5, 2026', 'Sat, Dec 6, 2026', 'Sun, Dec 7, 2026']
+  const rate = hotel.nightlyRate ?? hotel.rate ?? 0
+  return {
+    name: hotel.name,
+    // Imagery for the cart hotel block (resolved from the hosted library).
+    image: hotel.image,
+    imageCategories: hotel.imageCategories || ['exterior', 'rooms', 'lobby'],
+    seed: Math.floor(hash(hotel.id || hotel.name || 'hotel') * 90),
+    roomType: hotel.roomType || 'Deluxe King',
+    address: hotel.address || '1 Patriot Pl, Foxborough, MA 02035',
+    note: '1 King Bed · Sleeps 2 · Near Gillette Stadium',
+    checkIn: 'Fri, Dec 5, 2026 · 3:00 PM',
+    checkOut: 'Sat, Dec 6, 2026 · 11:00 AM',
+    nights: Array.from({ length: nights }, (_, i) => ({ date: dates[i] || `Night ${i + 1}`, price: rate })),
+    rate,
+    total: rate * nights,
+    policies: HOTEL_CART_POLICIES,
+  }
+}
+
 /** Build a unified cart model from a ticket selection (+ optional hotel). */
 export function buildBundleCart({ event, tier, quantity = 2, hotel = null, nights = 1, feeRate = 0.18, taxRate = 0.09 }) {
   const items = []
   const ticketSubtotal = (tier?.price ?? 0) * quantity
-  items.push({ type: 'ticket', label: `${tier?.name ?? 'Ticket'} × ${quantity}`, sublabel: event?.venue?.name, amount: ticketSubtotal, unitPrice: tier?.price, qty: quantity })
+  // Quantity is editable in the cart (dropdown), so keep it out of the label.
+  items.push({ type: 'ticket', label: `${tier?.name ?? 'Ticket'} ticket`, sublabel: event?.venue?.name, amount: ticketSubtotal, unitPrice: tier?.price, qty: quantity, maxQty: 8 })
   if (hotel) {
     const hotelTotal = hotel.nightlyRate * nights
-    items.push({ type: 'hotel', label: `${hotel.name} · ${hotel.roomType}`, sublabel: `${nights} night${nights === 1 ? '' : 's'}`, amount: hotelTotal })
+    items.push({
+      type: 'hotel', label: `${hotel.name} · ${hotel.roomType}`, sublabel: `${nights} night${nights === 1 ? '' : 's'}`, amount: hotelTotal,
+      image: hotel.image, imageCategories: hotel.imageCategories || ['exterior', 'rooms', 'lobby'], seed: Math.floor(hash(hotel.id || hotel.name || 'hotel') * 90),
+      hotelDetail: hotelCartDetail(hotel, nights),
+    })
   }
   const subtotal = items.reduce((s, i) => s + i.amount, 0)
   const fees = Math.round(ticketSubtotal * feeRate)
   const taxes = Math.round(subtotal * taxRate)
-  return { items, subtotal, fees, taxes, total: subtotal + fees + taxes, currency: 'USD' }
+  return { items, subtotal, fees, taxes, total: subtotal + fees + taxes, currency: 'USD', feeRate, taxRate }
 }
 
 /**
@@ -277,9 +317,27 @@ export function buildPackageCart(pkg, { sublabel = null, feeRate = 0.10, taxRate
   const sub = sublabel ?? (pkg.hotel
     ? `${pkg.ticket.tierName} + ${pkg.hotel.name} · ${pkg.theme}`
     : `${pkg.ticket.tierName} ticket · ${pkg.theme}`)
+  // Itemized "what's inside" rows for the expandable package line — the ticket
+  // tier and each signature experience (the hotel gets its own rich sub-block).
+  const details = [
+    { icon: 'confirmation_number', title: `${pkg.ticket.tierName} ticket${pkg.quantity > 1 ? ` × ${pkg.quantity}` : ''}` },
+    ...(pkg.experiences || []).map((x) => ({ icon: x.icon || 'stars', title: x.label })),
+  ]
+  // Re-pricing metadata so the cart's guests stepper can re-price the package
+  // (scale the ticket portion, keep hotel + baked-in experience value fixed).
+  const origQty = pkg.quantity || 2
+  const ticketPrice = pkg.ticket?.price ?? 0
+  const hotelTotal = pkg.hotel?.hotelTotal ?? 0
+  const expValue = Math.max(0, (pkg.componentsTotal ?? 0) - ticketPrice * origQty - hotelTotal)
+  const discountRate = pkg.componentsTotal ? (pkg.componentsTotal - pkg.packagePrice) / pkg.componentsTotal : 0
   return {
-    items: [{ type: 'package', label: pkg.name, sublabel: sub, amount: pkg.packagePrice }],
+    items: [{
+      type: 'package', label: pkg.name, sublabel: sub, amount: pkg.packagePrice,
+      details,
+      reprice: { ticketPrice, hotelTotal, expValue, discountRate, origQty, maxQty: 12 },
+      hotelDetail: pkg.hotel ? hotelCartDetail(pkg.hotel, pkg.nights) : null,
+    }],
     subtotal: pkg.packagePrice, fees, taxes, total: pkg.packagePrice + fees + taxes,
-    currency: 'USD', savings: pkg.savings,
+    currency: 'USD', savings: pkg.savings, feeRate, taxRate,
   }
 }

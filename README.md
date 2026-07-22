@@ -1,7 +1,10 @@
-# Presto DS
+# Presto DS — Ticketing
 
 A **Quasar + Vue 3 design system**, documented and QA'd in **Storybook**, themed
-for a consumer **hotel booking & reservation** experience ("Presto Design System").
+for the **EventPipe** client-appreciation outing — **New England Patriots v
+Buffalo Bills** at **Gillette Stadium, Sat Dec 6 2026**. It spans the full guest
+journey: **ticket map & seat selection**, **experience packages**, **hotel
+booking**, checkout, and confirmation.
 
 - **Stack:** Vue 3 · Quasar 2 · Storybook 10 · Vite 6 · pnpm
 - **Font:** PT Sans (400 / 700)
@@ -9,23 +12,57 @@ for a consumer **hotel booking & reservation** experience ("Presto Design System
 - **Shape:** uniform **4px** radius system (pills reserved for chips / rounded buttons)
 - **Color system:** Tailwind-based 3-tier tokens (primitives → semantic → Quasar bridge)
 
+## 🔗 Hosted on GitHub Pages
+Everything below deploys automatically on every push to `main`.
+
+| Surface | What it is | Link |
+| --- | --- | --- |
+| **Storybook** | The full design system + experience flows | **https://epprestodesign.github.io/presto-2026-ticketing/** |
+| **Experience Hub** | Landing directory linking the prototypes | https://epprestodesign.github.io/presto-2026-ticketing/hub/ |
+| **Booking Journey** | Clickable end-to-end **hotel booking** prototype | https://epprestodesign.github.io/presto-2026-ticketing/prototype/ |
+| **Ticket + Hotel Bundle** | Clickable **ticket + hotel bundle** prototype | https://epprestodesign.github.io/presto-2026-ticketing/bundle/ |
+| **Imagery Library** | Gallery of the hosted stadium + hotel photography | https://epprestodesign.github.io/presto-2026-ticketing/library/ |
+| **Imagery Host** | Separate Pages repo serving the runtime image manifest | https://epprestodesign.github.io/presto-ds-imagery/ |
+
+## What's new
+
+- **Ticket Map** (SeatGeek-style) — a two-pane browse experience: an
+  "Authenticated NFL Tickets" listings rail beside the interactive Gillette
+  seat map with **one live price pin per listing**. Selecting a seat opens a
+  view-from-seat detail (photo + section/row + quantity + guarantees).
+- **Real-time stress-test controls** — every listing/dataset is generated
+  deterministically, and the primary stories expose a **`count`** Storybook
+  Control so you can scale the data live and watch the filters cope:
+  - **Ticket Map / Browse Tickets** — up to **200** listings (default 100).
+  - **Packages / Patriots Experiences** — scale the package grid.
+  - **Browse Hotels** (Book Reservation + Group Block) — pad the results list.
+- **Experience Packages** — themed ticket + hotel (+ experience) SKUs with an
+  option/quantity customization dialog, plus a **Package Details** page.
+- **Hosted imagery library** — a new **`seat-views`** category (American-football
+  stadium points-of-view) powers the view-from-seat hero, plus more hotel
+  photography. Served from the imagery host **and** mirrored in the in-repo
+  **[Imagery Library gallery](https://epprestodesign.github.io/presto-2026-ticketing/library/)**.
+
 ## Live docs
 Storybook is published to GitHub Pages on every push to `main`:
 
 **https://epprestodesign.github.io/presto-2026-ticketing/**
 
-## Interactive prototype
-A clickable, end-to-end **booking journey** built entirely from the real library
-components (zero forks) — all three modes: **Book Reservation**, **Group Block**,
-and **Multiple Reservations**. Search hotels on a live Google map, filter, pick
-rooms, checkout, and confirm, at 1440px.
+## Interactive prototypes
+Clickable, end-to-end journeys built entirely from the real library components
+(zero forks), at a fixed **1440px** canvas. Both are linked from the
+**[Experience Hub](https://epprestodesign.github.io/presto-2026-ticketing/hub/)**
+and from Storybook's **Getting Started → Introduction** page.
 
-**▶ Launch: https://epprestodesign.github.io/presto-2026-ticketing/prototype/**
+- **▶ Booking Journey — https://epprestodesign.github.io/presto-2026-ticketing/prototype/**
+  All three modes: **Book Reservation**, **Group Block**, **Multiple
+  Reservations**. Search hotels on a live Google map, filter, pick rooms,
+  checkout, confirm. Source: [`prototype/`](prototype/).
+- **▶ Ticket + Hotel Bundle — https://epprestodesign.github.io/presto-2026-ticketing/bundle/**
+  The ticket + hotel bundle flow. Source: [`bundle/`](bundle/).
 
-It's deployed alongside Storybook (also linked from the Storybook **Getting
-Started → Introduction** page). Source lives in [`prototype/`](prototype/) — a
-small Vite app that imports the library from `../src` via the `@lib` alias and has
-no dependencies of its own (they resolve from this repo's `node_modules`).
+Each is a small Vite app that imports the library from `../src` and has no
+dependencies of its own (they resolve from this repo's `node_modules`).
 
 ```bash
 cd prototype
@@ -65,46 +102,56 @@ The sidebar mirrors how product & design think — **primitives** plus **experie
 
 - **Primitives:** Foundations · **Components** (Actions · Forms · Feedback & Status ·
   Layout & Structure · Media & Visuals · Typography & Content)
-- **Experience flows:** App Shell · Landing Page · Browse Hotels · Hotel Details ·
-  Checkout Experience · Confirmation · Manage Booking
+- **Experience flows:** App Shell · **Ticket Map** · **Package Details** ·
+  Landing Page · Browse Hotels · Hotel Details · Checkout Experience ·
+  Confirmation · Manage Booking
 
 Read **Getting Started** first — **Introduction** (the IA + booking modes),
 **Architecture & Conventions** (the machine map + mode-name cheat-sheet), and
-**User Journey & Build Spec** (every stage of every flow, with edge cases, for
-building the localized prototype).
+**User Journey & Build Spec** (every stage of every flow, with edge cases).
 
-Every experience flow follows the same shape: a top-level **Book Reservation** and
+Most experience flows follow the same shape: a top-level **Book Reservation** and
 **Group Block** story (the composed page) plus a **Components** folder of the pieces
 it's built from. Three booking modes run throughout — **reserve** (single stay,
 charged) · **hold** (group/team block, *not* charged) · **reservations** (multiple
 stays, charged). Highlights:
 
+- **Ticket Map** — the unified **Browse Tickets** experience (listings rail +
+  interactive seat map with a pin per listing, an all-inclusive filters dialog,
+  per-filter dropdowns, a location legend, and a seat-detail view). A
+  **Components** folder itemizes the building blocks, plus the ticketing +
+  packages pieces (Event, Seat Map, Hotel Add-On, Packages, Bundle Cart).
+- **Package Details** — a Hotel-Details-style page laying out every ticket /
+  package offering for the event, broken into a Components folder.
 - **Browse Hotels** — Booking Widget, Hotel Listing Card (Horizontal primary,
   Vertical legacy × Book Reservation + Group Block, each with three availability
   edge cases and an expandable room-availability panel), Result States, Search &
-  Filters, Hotel Map (search-radius). No pagination on the composed pages.
+  Filters, Hotel Map (search-radius). A `count` control scales the results list.
 - **Hotel Details** — the Hotel Detail Page plus its sections; the Room Cards
   (no image / no amenities; sold-out "Unavailable" state) and "Select Your Room"
-  Rooms **grid** (not a carousel), split Book Reservation / Group Block.
+  Rooms **grid**, split Book Reservation / Group Block.
 - **Checkout Experience** — the stepped Checkout Page, per-step stories, the inline
-  **Payment** form (credit card only; the old Payment Dialogs live under **Old
-  Designs**), and the **Policies** agreement (single-hotel / group single-checkbox
-  / multi-hotel per-hotel checkboxes). Group Block collects no payment.
-- **Confirmation** — success banner + Summary + per-hotel Policies (Book
-  Reservation / Group Block).
+  **Payment** form, and the **Policies** agreement — for Book Reservation, Group
+  Block, **and the four ticketing types** (Tickets Only / Tickets + Hotel /
+  Packages Only / Packages + Hotel). Group Block collects no payment.
+- **Confirmation** — success banner + Summary + per-hotel Policies, for Book
+  Reservation, Group Block, and the four ticketing types (Tickets + Hotel and
+  Packages + Hotel bundle full hotel reservation details + policies).
 
-## Imagery — using it in Claude prototypes
+## Imagery — using it in prototypes
 
-Hotel imagery lives in a **separate hosted repo** so it can be updated without
-rebuilding the design system:
+Imagery lives in a **separate hosted repo** so it can be updated without
+rebuilding the design system, and is mirrored by an in-repo gallery page:
 
 - **Repo:** https://github.com/epprestodesign/presto-ds-imagery
+- **Gallery page:** https://epprestodesign.github.io/presto-2026-ticketing/library/
 - **Manifest:** `https://epprestodesign.github.io/presto-ds-imagery/manifest.json`
 - **Images:** `https://epprestodesign.github.io/presto-ds-imagery/<category>/<file>.jpg`
-- **Categories:** `rooms · suites · lobby · pool · spa · dining · bar · bathroom ·
-  exterior · views · destinations · guests · amenities`
+- **Categories:** `seat-views` (stadium points-of-view) · `rooms · suites · lobby ·
+  pool · spa · dining · bar · bathroom · exterior · views · destinations · guests ·
+  amenities`
 
-> **Tell Claude (or any prototype):** "Use hotel imagery from the Presto DS imagery
+> **Tell Claude (or any prototype):** "Use imagery from the Presto DS imagery
 > manifest at the URL above; pick by category; show the photographer `credit`."
 
 ### Option 1 — Any prototype (zero setup, recommended)
@@ -116,7 +163,7 @@ const BASE = 'https://epprestodesign.github.io/presto-ds-imagery'
 const lib = await fetch(`${BASE}/manifest.json`).then(r => r.json())
 
 // a specific category
-const first = lib.rooms[0]               // { file, alt, credit, creditUrl }
+const first = lib['seat-views'][0]       // { file, alt, credit, creditUrl }
 const url   = `${BASE}/${first.file}`    // full image URL
 
 // a random image from a category
@@ -151,14 +198,27 @@ Requires `VITE_UNSPLASH_ACCESS_KEY` in `.env`. Best for prototypes that need an
 image the curated library doesn't have yet. (Don't ship the key in a public build.)
 
 ### Add more imagery (no DS redeploy)
-In the imagery repo: `node build.mjs 12` → commit → push. GitHub Pages redeploys
-and prototypes / Storybook pick up the new manifest on next load.
+In the [imagery repo](https://github.com/epprestodesign/presto-ds-imagery):
+`node build.mjs 12` → commit → push. GitHub Pages redeploys and prototypes /
+Storybook pick up the new manifest on next load. When you add images, regenerate
+the in-repo gallery under [`public/library/`](public/library/) to keep it in sync.
 
 **Attribution:** always surface the `credit` (and link `creditUrl`) where feasible —
-required by the Unsplash API Guidelines.
+required by the Unsplash API Guidelines. See [`docs/UNSPLASH.md`](docs/UNSPLASH.md).
 
 ## Deployment
-Handled by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): builds
-Storybook, builds the [`prototype/`](prototype/) app (nested at `/prototype/`), and
-publishes `storybook-static/` to GitHub Pages on every push to `main`. Pages is
-already enabled (**Settings → Pages → Source: GitHub Actions**).
+Handled by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) on every
+push to `main`. It builds Storybook and nests the extra surfaces under it before
+publishing `storybook-static/` to GitHub Pages:
+
+| Path | Built from | Notes |
+| --- | --- | --- |
+| `/` | `pnpm build-storybook` | The design system |
+| `/prototype/` | [`prototype/`](prototype/) | Booking journey app |
+| `/bundle/` | [`bundle/`](bundle/) | Ticket + hotel bundle app |
+| `/hub/` | [`hub/index.html`](hub/) | Experience directory |
+| `/library/` | [`public/library/`](public/library/) | Imagery gallery (via `staticDirs`) |
+
+Pages is already enabled (**Settings → Pages → Source: GitHub Actions**). The
+prototype/bundle builds read `VITE_IMAGERY_URL`; the Google Maps key is a repo
+secret restricted by HTTP referrer.

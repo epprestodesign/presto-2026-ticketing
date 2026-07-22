@@ -8,6 +8,12 @@ canvas.
 **Live:** https://epprestodesign.github.io/presto-2026-ticketing/prototype/ (deployed
 alongside Storybook; linked from *Getting Started → Introduction*).
 
+**Sibling surfaces:** [Storybook](https://epprestodesign.github.io/presto-2026-ticketing/) ·
+[Experience Hub](https://epprestodesign.github.io/presto-2026-ticketing/hub/) ·
+[Ticket + Hotel Bundle](https://epprestodesign.github.io/presto-2026-ticketing/bundle/) ·
+[Imagery Library](https://epprestodesign.github.io/presto-2026-ticketing/library/) —
+see the [root README](../README.md#-hosted-on-github-pages) for the full list.
+
 ## Run it
 
 ```bash

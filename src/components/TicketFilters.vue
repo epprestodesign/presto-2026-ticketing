@@ -13,8 +13,12 @@ const props = defineProps({
   listings: { type: Array, default: () => [] },
   currency: { type: String, default: 'USD' },
   maxQuantity: { type: Number, default: 6 },
+  sort: { type: String, default: 'top' },
 })
 const emit = defineEmits(['close', 'apply', 'clear'])
+
+const SORTS = { top: 'Top picks', 'price-asc': 'Price · low to high', 'price-desc': 'Price · high to low', section: 'Section' }
+const sortSel = ref(props.sort)
 
 const dist = priceDistribution(props.listings)
 
@@ -52,10 +56,11 @@ const clearAll = () => {
   quantity.value = 2
   price.value = { min: dist.min, max: dist.max }
   sections.value = []
+  sortSel.value = 'top'
   emit('clear')
 }
 const apply = () => emit('apply', {
-  quantity: quantity.value, price: { ...price.value }, sections: sections.value,
+  quantity: quantity.value, price: { ...price.value }, sections: sections.value, sort: sortSel.value,
 })
 </script>
 
@@ -67,6 +72,17 @@ const apply = () => emit('apply', {
     </header>
 
     <div class="tf__body">
+      <!-- Sort -->
+      <section class="tf__sec">
+        <h3 class="tf__h">Sort by</h3>
+        <div class="tf__selectwrap">
+          <select v-model="sortSel">
+            <option v-for="(label, val) in SORTS" :key="val" :value="val">{{ label }}</option>
+          </select>
+          <q-icon name="expand_more" size="20px" />
+        </div>
+      </section>
+
       <!-- Number of tickets -->
       <section class="tf__sec">
         <h3 class="tf__h">Number of tickets</h3>

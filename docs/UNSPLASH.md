@@ -40,7 +40,26 @@ The app calls the Unsplash REST API itself. Used by `DsUnsplashImage.vue` via
 - Attribution is required and rendered automatically; a download event is
   registered when an image is used (Unsplash API Guidelines).
 
+## 3) Hosted library (curated, versioned — the default for prototypes)
+A separate GitHub Pages repo serves a curated, attributed manifest that Storybook
+and the prototypes fetch at runtime (`VITE_IMAGERY_URL`) — so new images appear
+**without rebuilding the design system**.
+
+- **Repo:** https://github.com/epprestodesign/presto-ds-imagery
+- **Gallery page:** https://epprestodesign.github.io/presto-2026-ticketing/library/
+- **Manifest:** `https://epprestodesign.github.io/presto-ds-imagery/manifest.json`
+- **Categories:** `seat-views` (American-football stadium points-of-view) ·
+  `rooms · suites · lobby · pool · spa · dining · bar · bathroom · exterior ·
+  views · destinations · guests · amenities`
+- **Add more:** in the imagery repo, `node build.mjs 12` → commit → push. When you
+  add images, regenerate the in-repo mirror under `public/library/` to keep the
+  gallery in sync.
+- **Consume:** `import { loadImagery, getImages, randomImage } from '@/lib/imagery.js'`
+  (see the root [README](../README.md#imagery--using-it-in-prototypes) for options).
+
 ### Which to use when
 - **Component library / Storybook docs** → curate stable, attributed shots via
-  the **MCP** server (deterministic, no client key).
-- **Prototypes** → `DsUnsplashImage` for live, dynamic imagery.
+  the **MCP** server (deterministic, no client key), then publish them to the
+  **hosted library** (#3) so every surface picks them up.
+- **Prototypes** → the **hosted library** (#3) by default; `DsUnsplashImage` (#2)
+  only for live, one-off imagery the curated set doesn't have yet.

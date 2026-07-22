@@ -9,8 +9,9 @@
 // section, sort, and histogram filters handle a complex, real-world-sized data
 // set in real time. Listings are venue-anchored — every offer maps to a real
 // Gillette section and gets its own pin on the map.
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import TicketMap from '../../components/TicketMap.vue'
+import TicketQuantityDialog from '../../components/TicketQuantityDialog.vue'
 import { fixtureEvents } from '../../lib/ticketmaster.js'
 import { generateVenueListings, listingPins } from '../../lib/seatListings.js'
 
@@ -51,5 +52,31 @@ export const Default = {
     // :key remounts TicketMap when the board size changes so its price
     // distribution + range reset cleanly to the new data set.
     template: `<TicketMap :key="args.count + '-' + args.maxQuantity" :event="event" :listings="listings" :pins="pins" :max-quantity="args.maxQuantity" @continue="() => {}" />`,
+  }),
+}
+
+/**
+ * The Ticket Map with the "how many tickets?" quantity prompt overlaid on load —
+ * the guest picks a party size before browsing, which seeds the map's quantity.
+ */
+export const WithQuantityPrompt = {
+  name: 'With Quantity Prompt',
+  render: (args) => ({
+    components: { TicketMap, TicketQuantityDialog },
+    setup() {
+      const listings = computed(() => generateVenueListings(event, { count: args.count }))
+      const pins = computed(() => listingPins(listings.value))
+      const promptOpen = ref(true)
+      const chosenQty = ref(2)
+      const onSelect = (n) => { chosenQty.value = n; promptOpen.value = false }
+      return { event, args, listings, pins, promptOpen, chosenQty, onSelect }
+    },
+    template: `
+      <div style="position:relative;height:100vh;">
+        <TicketMap :key="chosenQty" :event="event" :listings="listings" :pins="pins" :max-quantity="args.maxQuantity" :initial-quantity="chosenQty" @continue="() => {}" />
+        <q-dialog v-model="promptOpen">
+          <TicketQuantityDialog :selected="chosenQty" :available="6" :max="8" @select="onSelect" @skip="promptOpen = false" @close="promptOpen = false" />
+        </q-dialog>
+      </div>`,
   }),
 }
