@@ -296,15 +296,15 @@ defineExpose({ clear })
               :aria-expanded="hasItemDetail(it) ? String(isItemOpen(it, i)) : null"
               @click="hasItemDetail(it) ? toggleTItem(it, i) : null"
             >
-              <img v-if="it.type === 'hotel' && hotelImgFor(it)" :src="hotelImgFor(it).url" :alt="hotelImgFor(it).alt" class="cr__tthumb" />
-              <span v-else class="cr__ticon"><q-icon :name="ticketIcon(it.type)" size="20px" /></span>
+              <span class="cr__ticon"><q-icon :name="ticketIcon(it.type)" size="20px" /></span>
               <div class="cr__tinfo">
                 <span class="cr__tlabel">{{ it.label }}</span>
                 <span v-if="it.sublabel" class="cr__tsub">{{ it.sublabel }}</span>
                 <span v-if="hasItemDetail(it)" class="cr__tmore">{{ isItemOpen(it, i) ? 'Hide details' : 'View details' }}</span>
               </div>
-              <span class="cr__tamount">
-                <template v-if="it.unitPrice != null && it.qty">{{ money(it.unitPrice) }} <span class="cr__tqty">× {{ it.qty }}</span></template>
+              <span class="cr__tamount" :class="{ 'cr__tamount--incl': it.included }">
+                <template v-if="it.included">Included</template>
+                <template v-else-if="it.unitPrice != null && it.qty">{{ money(it.unitPrice) }} <span class="cr__tqty">× {{ it.qty }}</span></template>
                 <template v-else>{{ money(it.amount) }}</template>
               </span>
               <q-icon v-if="hasItemDetail(it)" :name="isItemOpen(it, i) ? 'expand_less' : 'expand_more'" size="22px" class="cr__tchevron" />
@@ -336,7 +336,6 @@ defineExpose({ clear })
               <!-- rich hotel-stay sub-block -->
               <div v-if="it.hotelDetail" class="cr__hd">
                 <div class="cr__tphead">Hotel details</div>
-                <div v-if="hotelImgFor(it.hotelDetail)" class="cr__hdimg"><img :src="hotelImgFor(it.hotelDetail).url" :alt="hotelImgFor(it.hotelDetail).alt" /></div>
                 <div v-if="it.hotelDetail.address" class="cr__hdaddr"><q-icon name="place" size="16px" /> {{ it.hotelDetail.address }}</div>
                 <div class="cr__hdgrid">
                   <div class="cr__hdcell"><span class="cr__hdlabel">Check-in</span><span class="cr__hdval">{{ it.hotelDetail.checkIn }}</span></div>
@@ -528,6 +527,9 @@ defineExpose({ clear })
 /* Top-level cart section header (Tickets · Hotel · Package) */
 .cr__csechead { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ds-color-text-subtle); padding: 14px 20px 4px; }
 .cr__csechead:first-child { padding-top: 4px; }
+/* In carded contexts (checkout rail / cart fly-out) the first section header is
+   the top of its card, so give it real top padding instead of hugging the edge. */
+.cr--cards .cr__csechead:first-child { padding-top: 16px; }
 /* Sub-header inside an expanded panel (Package details / Hotel details) */
 .cr__tphead { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ds-color-text-subtle); margin-bottom: 8px; }
 .cr__titemwrap { border-bottom: 1px solid var(--ds-color-border); }
@@ -536,14 +538,17 @@ defineExpose({ clear })
 .cr__titem--btn { text-align: left; background: none; border: 0; font: inherit; cursor: pointer; }
 .cr__titem--btn:hover { background: var(--ds-palette-slate-50); }
 .cr__ticon { flex: none; width: 38px; height: 38px; border-radius: var(--ds-radius-md); background: var(--ds-palette-slate-100); display: flex; align-items: center; justify-content: center; color: var(--ds-color-text); }
-.cr__tthumb { flex: none; width: 46px; height: 38px; border-radius: var(--ds-radius-md); object-fit: cover; background: var(--ds-palette-slate-100); }
-.cr__hdimg { border-radius: var(--ds-radius-md); overflow: hidden; aspect-ratio: 16 / 7; background: var(--ds-palette-slate-100); }
-.cr__hdimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cr__tinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .cr__tlabel { font-weight: 600; font-size: 0.9375rem; color: var(--ds-color-text); }
 .cr__tsub { font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
 .cr__tmore { font-size: 0.8125rem; font-weight: 700; color: var(--ds-color-text-brand); margin-top: 2px; }
 .cr__tamount { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); white-space: nowrap; }
+/* An "Included" line (e.g. a package's hotel stay) — muted, its price is already
+   counted in the package total. */
+.cr__tamount--incl { font-weight: 700; color: var(--ds-color-text-positive, #1b7a3d); }
+/* When a line has no expand chevron, reserve the chevron's space so the amount
+   keeps the same right inset as expandable lines (and isn't flush to the edge). */
+.cr__tamount:last-child { margin-right: 34px; }
 .cr__tqty { font-weight: 500; color: var(--ds-color-text-subtle); }
 .cr__tchevron { flex: none; color: var(--ds-color-text-subtle); margin-top: 1px; }
 

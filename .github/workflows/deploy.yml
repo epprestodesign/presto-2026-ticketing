@@ -71,6 +71,31 @@ jobs:
       - name: Nest bundle prototype under Storybook
         run: cp -r bundle/dist storybook-static/bundle
 
+      # Build the integrated tickets + packages EXPERIENCE prototype (a stepper-
+      # guided end-to-end journey reusing the real library components) and nest it
+      # at /presto-2026-ticketing/experience/.
+      - name: Build experience prototype (tickets + packages)
+        working-directory: experience
+        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/experience/
+        env:
+          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
+      - name: Nest experience prototype under Storybook
+        run: cp -r experience/dist storybook-static/experience
+
+      # Build the Hotel + Packages EXPERIENCE prototype (same stepper-guided flow
+      # as /experience, with packages in place of tickets) → /experience-packages/.
+      - name: Build experience-packages prototype (hotel + packages)
+        working-directory: experience-packages
+        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/experience-packages/
+        env:
+          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
+      - name: Nest experience-packages prototype under Storybook
+        run: cp -r experience-packages/dist storybook-static/experience-packages
+
       # The experience directory / hub landing page → /presto-2026-ticketing/hub/.
       - name: Nest hub directory page
         run: mkdir -p storybook-static/hub && cp hub/index.html storybook-static/hub/index.html

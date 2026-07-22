@@ -93,6 +93,7 @@ const preview = {
           ],
           'App Shell', [
             'Global Nav & Cart', ['Book Reservation', 'Group Block', 'Ticketing'],
+            'Stepper',
             'Page Frame',
           ],
           'Ticket Map', [
@@ -113,7 +114,7 @@ const preview = {
           // Event package offerings, laid out like Hotel Details + a Browse
           // Packages list in the Browse Hotels layout. Components folder last.
           'Package Details', [
-            'Browse Packages',
+            'Browse Packages', ['Browse Packages', 'With Display Ad', 'With Guest Prompt', 'Components', ['Filter Rail']],
             'Package Details Page',
             'Components', ['Gallery', 'Summary', 'Experiences', 'Packages', 'Result Card', 'Quick View', 'Quick View · Showcase', 'Policies'],
           ],

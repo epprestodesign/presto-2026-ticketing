@@ -7,6 +7,7 @@ import { ref, computed } from 'vue'
 import GlobalNav from '../../components/GlobalNav.vue'
 import PackageListPage from '../../components/PackageListPage.vue'
 import PackageBookingDialog from '../../components/PackageBookingDialog.vue'
+import TicketQuantityDialog from '../../components/TicketQuantityDialog.vue'
 import { fixtureEvents } from '../../lib/ticketmaster.js'
 import { generatePackageGrid, CONTRACTED_HOTELS } from '../../lib/bundles.js'
 import { deriveTiers } from '../../lib/seatmap.js'
@@ -57,3 +58,43 @@ export const CoreBookingWidget = { name: 'Browse Packages', render: makePage(nul
 
 /** Browse Packages — with a right-rail Display Ad (160×600). */
 export const WithDisplayAd = { name: 'With Display Ad', render: makePage([160, 600]) }
+
+/**
+ * Browse Packages with the "how many guests?" prompt overlaid on load — the guest
+ * picks a party size before browsing, which seeds the search bar's guest count
+ * (mirrors the Ticket Map's "With Quantity Prompt").
+ */
+export const WithGuestPrompt = {
+  name: 'With Guest Prompt',
+  render: (args) => ({
+    components: { GlobalNav, PackageListPage, PackageBookingDialog, TicketQuantityDialog },
+    setup() {
+      const packages = computed(() => generatePackageGrid(event, { count: args.count, nights: 1 }))
+      const bookOpen = ref(false)
+      const bookPkg = ref(null)
+      const customize = (p) => { bookPkg.value = p; bookOpen.value = true }
+      const promptOpen = ref(true)
+      const guests = ref(2)
+      const onSelect = (n) => { guests.value = n; promptOpen.value = false }
+      return { event, packages, tiers, hotels: CONTRACTED_HOTELS, addOns: ADDONS, bookOpen, bookPkg, customize, promptOpen, guests, onSelect }
+    },
+    template: `
+      <div style="min-height:100vh;background:var(--ds-color-surface-canvas);">
+        <global-nav brand="EventPipe" />
+        <package-list-page :key="guests" :event="event" :packages="packages" :initial-guests="guests" @customize="customize" @select="() => {}" />
+        <q-dialog v-model="bookOpen">
+          <package-booking-dialog v-if="bookPkg" :pkg="bookPkg" :tiers="tiers" :hotels="hotels" :add-ons="addOns" @close="bookOpen = false" @add="bookOpen = false" />
+        </q-dialog>
+        <q-dialog v-model="promptOpen">
+          <ticket-quantity-dialog
+            title="How many guests?"
+            subtitle="Everyone in your group is included in the package."
+            icon="group"
+            :selected="guests" :available="8" :max="8" cap-plus
+            skip-label="Skip, browse all packages"
+            @select="onSelect" @skip="promptOpen = false" @close="promptOpen = false"
+          />
+        </q-dialog>
+      </div>`,
+  }),
+}

@@ -75,10 +75,10 @@ const policyHotels = computed(() => {
 // Group blocks are held, not charged — no payment step. Reservation flows keep
 // payment but drop the "Review order" step (the rail already shows the order).
 const steps = computed(() => {
-  // Ticketing is charged (unlike held group blocks): review → contact →
-  // payment → final review, all four steps.
+  // Ticketing is charged (unlike held group blocks): contact → payment → final
+  // review. The "Review order" step is dropped — the sticky rail already itemizes
+  // the order, so a left-column copy would be redundant.
   if (isTicketing.value) return [
-    { key: 'review', label: 'Review order' },
     { key: 'contact', label: 'Enter contact information' },
     { key: 'payment', label: 'Add a payment method' },
     { key: 'final', label: 'Review your order' },

@@ -3,7 +3,7 @@
 // Details building blocks: a photo gallery (DsImageList), a sticky DetailTabs
 // nav that scrolls to each section, the HotelSummaryHeader, the RoomsCarousel
 // ("Select Your Room"), and the About / Amenities / Policies sections.
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { loadImagery } from '../../lib/imagery'
 import GalleryHero from './GalleryHero.vue'
 import DetailTabs from './DetailTabs.vue'
@@ -51,8 +51,11 @@ const props = defineProps({
   about: { type: [String, Array], default: '' },
   amenityGroups: { type: Array, default: () => [] },
   policies: { type: Array, default: () => [] },
+  // The section tab to open on load — enables deep-linking to a section
+  // (overview · rooms · property · amenities · policies).
+  initialTab: { type: String, default: 'overview' },
 })
-const emit = defineEmits(['back'])
+const emit = defineEmits(['back', 'update:tab'])
 const widgetMode = computed(() => (props.roomsFlow === 'group' ? 'group' : 'reservations'))
 
 // About copy: array → paragraphs, string → single paragraph.
@@ -66,14 +69,26 @@ const tabs = [
   { name: 'amenities', label: 'Amenities' },
   { name: 'policies', label: 'Policies' },
 ]
-const activeTab = ref('overview')
+const activeTab = ref(props.initialTab || 'overview')
 const root = ref(null)
 
 const onTab = (name) => {
+  emit('update:tab', name) // reflect the section in the URL for deep-linking
   if (name === 'overview') { root.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return }
   const el = root.value?.querySelector(`#hdp-${name}`)
   el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
+
+// Deep-link entry: if opened on a non-overview tab, scroll to that section on
+// load. Re-apply as the gallery images finish loading (layout shifts down), so
+// the section stays pinned to the top instead of drifting off-screen.
+onMounted(() => {
+  if (!props.initialTab || props.initialTab === 'overview') return
+  const scrollToSection = () => root.value?.querySelector(`#hdp-${props.initialTab}`)?.scrollIntoView({ block: 'start' })
+  nextTick(scrollToSection)
+  ;[150, 400, 900].forEach((ms) => setTimeout(scrollToSection, ms))
+  if (typeof window !== 'undefined') window.addEventListener('load', scrollToSection, { once: true })
+})
 
 // Gallery images sourced from the local imagery library by category.
 const gallery = ref([])

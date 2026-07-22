@@ -21,3 +21,7 @@ export const ticketsOnlyCart = { ...buildBundleCart({ event, tier, quantity: 2 }
 export const ticketsHotelCart = { ...buildBundleCart({ event, tier, quantity: 2, hotel, nights: 1 }), ...detail, savings: 58 }
 export const packagesOnlyCart = { ...buildPackageCart(pkgOnly), ...detail }
 export const packagesHotelCart = { ...buildPackageCart(pkgHotel), ...detail }
+// Same package + hotel, but the included hotel stay broken out into its OWN cart
+// section (like the ticket + hotel cart) — the hotel shows as an "Included" line.
+// Used by the Packages + Hotel CHECKOUT so its rail matches the Tickets + Hotel one.
+export const packagesHotelCartSplit = { ...buildPackageCart(pkgHotel, { separateHotel: true }), ...detail }

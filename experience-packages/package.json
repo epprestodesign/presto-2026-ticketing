@@ -1,0 +1,11 @@
+{
+  "name": "presto-experience-packages-072226",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 6300 --host",
+    "build": "vite build",
+    "preview": "vite preview --port 6300"
+  }
+}

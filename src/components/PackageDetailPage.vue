@@ -5,7 +5,7 @@
 // value props + a Read more), the signature Experiences (promoted up), the
 // Packages, and Policies. Reuses the Hotel Details building blocks (GalleryHero,
 // DetailTabs, PoliciesSection). Each package card opens a condensed quick-view.
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import GalleryHero from './details/GalleryHero.vue'
 import DetailTabs from './details/DetailTabs.vue'
 import PoliciesSection from './details/PoliciesSection.vue'
@@ -31,8 +31,11 @@ const props = defineProps({
   valueProps: { type: Array, default: () => [] },      // [{ icon, title, text }] — falls back to DEFAULT_VALUE_PROPS
   host: { type: String, default: 'EventPipe' },
   eyebrow: { type: String, default: 'Client Appreciation' },
+  // The section tab to open on load — enables deep-linking to a section
+  // (overview · experiences · packages · policies).
+  initialTab: { type: String, default: 'overview' },
 })
-const emit = defineEmits(['back', 'select'])
+const emit = defineEmits(['back', 'select', 'update:tab'])
 
 const tabs = [
   { name: 'overview', label: 'Overview' },
@@ -40,7 +43,7 @@ const tabs = [
   { name: 'packages', label: 'Packages' },
   { name: 'policies', label: 'Policies' },
 ]
-const activeTab = ref('overview')
+const activeTab = ref(props.initialTab || 'overview')
 const root = ref(null)
 const selectedId = ref(null)
 const vProps = computed(() => (props.valueProps.length ? props.valueProps : DEFAULT_VALUE_PROPS))
@@ -57,9 +60,21 @@ const openQuick = (p) => { quickPkg.value = p; quickOpen.value = true; selectedI
 const onQuickCustomize = (p) => { quickOpen.value = false; emit('select', p) }
 
 const onTab = (name) => {
+  emit('update:tab', name) // reflect the section in the URL for deep-linking
   if (name === 'overview') { root.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return }
   root.value?.querySelector(`#pdp-${name}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
+
+// Deep-link entry: if opened on a non-overview tab, scroll to that section on
+// load. Re-apply as the gallery images finish loading (layout shifts down), so
+// the section stays pinned to the top instead of drifting off-screen.
+onMounted(() => {
+  if (!props.initialTab || props.initialTab === 'overview') return
+  const scrollToSection = () => root.value?.querySelector(`#pdp-${props.initialTab}`)?.scrollIntoView({ block: 'start' })
+  nextTick(scrollToSection)
+  ;[150, 400, 900].forEach((ms) => setTimeout(scrollToSection, ms))
+  if (typeof window !== 'undefined') window.addEventListener('load', scrollToSection, { once: true })
+})
 </script>
 
 <template>
