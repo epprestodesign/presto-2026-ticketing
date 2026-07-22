@@ -8,6 +8,7 @@ import TicketFilters from '../../components/TicketFilters.vue'
 import SeatListingRow from '../../components/SeatListingRow.vue'
 import VenueMap from '../../components/VenueMap.vue'
 import PriceHistogram from '../../components/PriceHistogram.vue'
+import TicketQuantityDialog from '../../components/TicketQuantityDialog.vue'
 import { fixtureEvents } from '../../lib/ticketmaster.js'
 import { generateListings, priceDistribution } from '../../lib/seatListings.js'
 import { gillettePins } from '../../lib/gilletteMap.js'
@@ -59,6 +60,18 @@ export const VenueMapBlock = {
     components: { VenueMap },
     setup: () => ({ pins }),
     template: pad(`<VenueMap :pins="pins" :initial-scale="1.4" />`, 820),
+  }),
+}
+
+/** The "how many tickets?" quantity prompt (up to 8; beyond availability disabled). */
+export const TicketQuantity = {
+  name: 'Ticket Quantity',
+  render: () => ({
+    components: { TicketQuantityDialog },
+    setup: () => ({ pick: () => {} }),
+    template: `<div style="display:flex;justify-content:center;padding:40px;background:var(--ds-color-surface-sunken);min-height:100vh;">
+      <TicketQuantityDialog :selected="2" :available="6" :max="8" @select="pick" @skip="() => {}" @close="() => {}" />
+    </div>`,
   }),
 }
 

@@ -19,6 +19,7 @@ const props = defineProps({
   pins: { type: Array, default: () => [] },
   host: { type: String, default: 'EventPipe' },
   maxQuantity: { type: Number, default: 6 },
+  initialQuantity: { type: Number, default: 2 },
 })
 const emit = defineEmits(['continue'])
 
@@ -33,7 +34,7 @@ const SEAT_INFO = [
 ]
 
 // --- Filters + sort ---
-const qty = ref(2)
+const qty = ref(props.initialQuantity)
 const sortBy = ref('top')
 const SORTS = { top: 'Top picks', 'price-asc': 'Price · low to high', 'price-desc': 'Price · high to low', section: 'Section' }
 const filtersOpen = ref(false)
@@ -66,10 +67,31 @@ const filtered = computed(() => {
   return out
 })
 
+// Segment the rail by section (a header per section with its tier + count +
+// from-price) instead of one flat list — whenever the guest filters to specific
+// sections OR sorts by Section. Keeps picks organized by where they sit.
+const isGrouped = computed(() => sectionsSel.value.length > 0 || sortBy.value === 'section')
+const grouped = computed(() => {
+  const by = new Map()
+  for (const l of filtered.value) {
+    if (!by.has(l.section)) by.set(l.section, [])
+    by.get(l.section).push(l)
+  }
+  return [...by.entries()]
+    .map(([section, listings]) => ({
+      section,
+      listings,
+      tierName: listings[0]?.tierName,
+      from: Math.min(...listings.map((x) => x.priceWithFees)),
+    }))
+    .sort((a, b) => String(a.section).localeCompare(String(b.section), undefined, { numeric: true }))
+})
+
 const onApply = (state) => {
   qty.value = state.quantity
   if (state.price) priceRange.value = { ...state.price }
   sectionsSel.value = state.sections || []
+  if (state.sort) sortBy.value = state.sort
   filtersOpen.value = false
 }
 const onClearFilters = () => { priceRange.value = { min: dist.min, max: dist.max }; sectionsSel.value = [] }
@@ -92,8 +114,9 @@ const LEGEND_MARKS = [
 const selectedId = ref(null)
 const selected = computed(() => props.listings.find((l) => l.id === selectedId.value) || null)
 const detailQty = ref(2)
-const pick = (l) => { selectedId.value = l.id; detailQty.value = qty.value }
-const back = () => { selectedId.value = null }
+// Selecting a listing (rail row or map pin) highlights + focuses its map pin.
+const pick = (l) => { selectedId.value = l.id; mapSel.value = l.id; detailQty.value = qty.value }
+const back = () => { selectedId.value = null; mapSel.value = null }
 
 // Map v-model — pins carry their listing id, so a pin click selects that exact
 // offer. (Falls back to section match for legacy pin sets.)
@@ -163,7 +186,7 @@ const onMap = (pinId) => {
 
           <!-- Price — its own dropdown (histogram + range) -->
           <button class="tm__chip" :class="{ 'is-on': priceActive }">
-            Price <span>Incl. fees</span> <q-icon name="expand_more" size="16px" />
+            Price <q-icon name="expand_more" size="16px" />
             <q-menu anchor="bottom left" self="top left" :offset="[0, 8]">
               <div class="tm__pop">
                 <div class="tm__poptitle">Price <small>Incl. fees</small></div>
@@ -189,26 +212,46 @@ const onMap = (pinId) => {
               </div>
             </q-menu>
           </button>
+
+          <!-- Sort — its own dropdown, in the same row -->
+          <button class="tm__chip">
+            Sort <span>{{ SORTS[sortBy] }}</span> <q-icon name="expand_more" size="16px" />
+            <q-menu anchor="bottom left" self="top left" :offset="[0, 8]">
+              <div class="tm__pop tm__pop--sort">
+                <button v-for="(label, val) in SORTS" :key="val" v-close-popup class="tm__sortopt" :class="{ 'is-sel': sortBy === val }" @click="sortBy = val">
+                  <q-icon :name="sortBy === val ? 'check' : 'remove'" size="18px" :class="sortBy === val ? 'tm__sortcheck' : 'tm__sortblank'" />{{ label }}
+                </button>
+              </div>
+            </q-menu>
+          </button>
         </div>
 
         <div class="tm__railhead">
-          <div class="tm__railtitle"><q-icon name="verified" size="18px" /> Authenticated NFL Tickets</div>
-          <label class="tm__sort">
-            <select v-model="sortBy"><option v-for="(label, val) in SORTS" :key="val" :value="val">{{ label }}</option></select>
-            <q-icon name="unfold_more" size="16px" />
-          </label>
+          <div class="tm__railcount">{{ filtered.length }} Listing{{ filtered.length === 1 ? '' : 's' }}</div>
+          <div class="tm__nofees"><q-icon name="check" size="16px" /> No hidden fees – taxes and fees included.</div>
         </div>
-        <p class="tm__note">{{ filtered.length }} listings held for {{ host }} guests · {{ event.venue?.name }}</p>
 
         <div class="tm__list">
-          <SeatListingRow v-for="l in filtered" :key="l.id" :listing="l" :selected="l.id === selectedId" @select="pick" />
+          <!-- Segmented by section when the guest has filtered to sections -->
+          <template v-if="isGrouped">
+            <section v-for="g in grouped" :key="g.section" class="tm__seg">
+              <header class="tm__seghead">
+                <span class="tm__segsec">Section {{ g.section }}</span>
+                <span class="tm__segmeta">{{ g.tierName }} · {{ g.listings.length }} listing{{ g.listings.length === 1 ? '' : 's' }} · from {{ money(g.from) }}</span>
+              </header>
+              <SeatListingRow v-for="l in g.listings" :key="l.id" :listing="l" :selected="l.id === selectedId" @select="pick" />
+            </section>
+          </template>
+          <template v-else>
+            <SeatListingRow v-for="l in filtered" :key="l.id" :listing="l" :selected="l.id === selectedId" @select="pick" />
+          </template>
         </div>
       </template>
     </aside>
 
     <!-- RIGHT: interactive map (full height, zoomed in a couple steps) -->
     <div class="tm__mapwrap">
-      <VenueMap :pins="pins" fill :initial-scale="1.6" v-model="mapSel" @update:modelValue="onMap" />
+      <VenueMap :pins="pins" fill :initial-scale="1.6" :focus-id="selectedId" v-model="mapSel" @update:modelValue="onMap" />
 
       <!-- Location legend — orients the guest to the areas of the stadium. -->
       <div class="tm__legend" :class="{ 'is-open': legendOpen }">
@@ -234,7 +277,7 @@ const onMap = (pinId) => {
 
     <!-- All-inclusive filters dialog -->
     <q-dialog v-model="filtersOpen">
-      <TicketFilters :listings="listings" :max-quantity="maxQuantity" @close="filtersOpen = false" @apply="onApply" @clear="onClearFilters" />
+      <TicketFilters :listings="listings" :max-quantity="maxQuantity" :sort="sortBy" @close="filtersOpen = false" @apply="onApply" @clear="onClearFilters" />
     </q-dialog>
   </div>
 </template>
@@ -274,14 +317,24 @@ const onMap = (pinId) => {
 .tm__popclear { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--ds-color-text); text-decoration: underline; cursor: pointer; }
 .tm__chip.is-on { border-color: var(--ds-color-background-brand-bold); color: var(--ds-color-text-brand); }
 
-.tm__railhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 4px; }
-.tm__railtitle { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--ds-color-text); }
-.tm__railtitle .q-icon { color: var(--ds-color-text-brand); }
-.tm__sort { position: relative; display: inline-flex; align-items: center; }
-.tm__sort select { appearance: none; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--ds-color-text); background: none; border: 0; padding-right: 20px; cursor: pointer; }
-.tm__sort .q-icon { position: absolute; right: 0; color: var(--ds-color-text-subtle); pointer-events: none; }
-.tm__note { margin: 0; padding: 0 16px 10px; font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
+.tm__railhead { display: flex; flex-direction: column; gap: 3px; padding: 16px 16px 10px; }
+.tm__railcount { font-size: 1.0625rem; font-weight: 700; color: var(--ds-color-text); }
+.tm__nofees { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
+.tm__nofees .q-icon { color: var(--ds-color-text-positive, #1b7a3d); }
+
+/* Sort dropdown */
+.tm__pop--sort { width: 240px; padding: 8px; }
+.tm__sortopt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; background: none; border: 0; border-radius: var(--ds-radius-md); font: inherit; font-size: 0.9375rem; color: var(--ds-color-text); text-align: left; cursor: pointer; }
+.tm__sortopt:hover { background: var(--ds-palette-slate-100); }
+.tm__sortopt.is-sel { font-weight: 700; }
+.tm__sortcheck { color: var(--ds-color-text-brand); }
+.tm__sortblank { visibility: hidden; }
 .tm__list { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.tm__seg { display: flex; flex-direction: column; gap: 10px; }
+.tm__seg + .tm__seg { margin-top: 8px; }
+.tm__seghead { position: sticky; top: 0; z-index: 1; display: flex; flex-direction: column; gap: 1px; padding: 8px 0 6px; background: var(--ds-color-surface); border-bottom: 1px solid var(--ds-color-border); }
+.tm__segsec { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); }
+.tm__segmeta { font-size: 0.75rem; color: var(--ds-color-text-subtle); }
 
 /* Seat detail */
 .tm__detail { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 18px 24px; }

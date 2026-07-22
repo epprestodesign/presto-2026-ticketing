@@ -7,12 +7,14 @@ export default {
   title: 'Checkout Experience/Old Designs/Payment Dialogs',
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen', docs: { description: { component: `
-> **Old design.** The checkout Payment step now uses the inline
-> **Payment Method** form (Components → Payment Method) — no dialogs. Kept here
-> for reference.
+> **Old designs — prepped for future use.** Not wired into the live checkout flow
+> (which uses the inline Payment Method form). Kept here to iterate on.
 
 Instacart-style payment surfaces:
-- **Payment Method** — saved methods (single-select) + an "Add payment method" list.
+- **Payment Method** — leads with the express wallets **Apple Pay** then
+  **Google Pay**, followed by any saved card (single-select with a check), then an
+  **Add payment method** list (Debit/Credit · Venmo · PayPal · Klarna · Amazon Pay
+  · Affirm). Choosing Debit/Credit opens Add Payment.
 - **Add Payment** — card form with a Save that enables once valid.
 Logos come from the local \`creditCards\` SVG set.
 ` } } },

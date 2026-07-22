@@ -100,7 +100,7 @@ const preview = {
             'Browse Tickets',
             // Everything else — the individual building blocks.
             'Components', [
-              'Browse Tickets', ['Filters Dialog', 'Listing Row', 'Venue Map', 'Price Histogram'],
+              'Browse Tickets', ['Filters Dialog', 'Ticket Quantity', 'Listing Row', 'Venue Map', 'Price Histogram'],
               'Event & Tickets', ['Event Page', 'Event Hero', 'Ticket Tiers', 'Ticket Category Card'],
               'Seat Map & View', ['Venue Map (Ticketmaster)', 'Seat Map', 'Static Seat Map', 'View From Seat', 'Seat Listings'],
               'Hotel Add-On', ['Add-On Step', 'Live Search', 'Contracted Hotel Card', 'No Availability'],
@@ -110,10 +110,12 @@ const preview = {
               'Selection Summary',
             ],
           ],
-          // Event ticket + package offerings, laid out like Hotel Details.
+          // Event package offerings, laid out like Hotel Details + a Browse
+          // Packages list in the Browse Hotels layout. Components folder last.
           'Package Details', [
-            'Offerings',
-            'Components', ['Gallery', 'Summary', 'Tickets', 'Packages', 'Experiences', 'Policies'],
+            'Browse Packages',
+            'Package Details Page',
+            'Components', ['Gallery', 'Summary', 'Experiences', 'Packages', 'Result Card', 'Quick View', 'Quick View · Showcase', 'Policies'],
           ],
           'Landing Page', [
             'Book Reservation', 'Group Block',

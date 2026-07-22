@@ -35,12 +35,12 @@ const policies = [
 ]
 
 export default {
-  title: 'Package Details/Offerings',
+  title: 'Package Details/Package Details Page',
   component: PackageDetailPage,
   parameters: {
     layout: 'fullscreen',
     docs: { description: { component:
-      'The event’s **ticket + package offerings** on one screen, laid out like the Book Reservation hotel-details page — gallery hero, sticky section tabs, an event summary, then Tickets (all tiers), Packages (every Patriots experience package), the signature Experiences, and Policies. Built specifically for the Patriots v Bills client-appreciation outing. Prototype pricing/inventory.' } },
+      'The event’s **package offerings** on one screen, laid out like the Book Reservation hotel-details page — gallery hero, sticky section tabs, an event summary, an Overview with value props (and a Read more), the signature Experiences, the Patriots experience Packages (each opens a condensed quick-view), and Policies. Built for the Patriots v Bills client-appreciation outing. Prototype pricing/inventory.' } },
   },
 }
 

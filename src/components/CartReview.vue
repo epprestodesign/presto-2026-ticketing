@@ -44,7 +44,51 @@ const isHold = computed(() => props.mode === 'hold')
 // cart fly-out and the ticketing Checkout "Review order" step. Cart shape:
 //   { items: [{ type, label, sublabel, amount }], subtotal, fees, taxes, total }
 const isTicketing = computed(() => props.mode === 'ticketing')
-const ticketItems = computed(() => props.cart.items || [])
+
+// Editable quantities: ticket lines get a dropdown, package lines a guests
+// stepper. Each re-prices its line and the cart totals live.
+const itemQty = ref(Object.fromEntries((props.cart.items || []).map((it, i) => [i, it.qty ?? it.reprice?.origQty ?? 1])))
+const setQty = (i, v) => { itemQty.value = { ...itemQty.value, [i]: v } }
+const editableQty = (it) => (it.type === 'ticket' && it.unitPrice != null) || (it.type === 'package' && it.reprice)
+const lineAmount = (it, i) => {
+  const q = itemQty.value[i]
+  if (it.type === 'ticket' && it.unitPrice != null) return it.unitPrice * q
+  if (it.type === 'package' && it.reprice) {
+    const r = it.reprice
+    return Math.round((r.ticketPrice * q + r.hotelTotal + r.expValue) * (1 - r.discountRate))
+  }
+  return it.amount
+}
+// The line items with live amounts + quantities applied.
+const ticketItems = computed(() => (props.cart.items || []).map((it, i) => ({
+  ...it, qty: it.type === 'ticket' ? itemQty.value[i] : it.qty, amount: lineAmount(it, i),
+})))
+// Live cart totals recomputed from the editable quantities.
+const liveSubtotal = computed(() => ticketItems.value.reduce((s, it) => s + it.amount, 0))
+const feeBase = computed(() => ticketItems.value.filter((it) => it.type !== 'hotel').reduce((s, it) => s + it.amount, 0))
+const liveFees = computed(() => Math.round(feeBase.value * (props.cart.feeRate ?? 0)))
+const liveTaxes = computed(() => Math.round(liveSubtotal.value * (props.cart.taxRate ?? 0)))
+const liveTotal = computed(() => liveSubtotal.value + liveFees.value + liveTaxes.value)
+const liveSavings = computed(() => {
+  const items = props.cart.items || []
+  const i = items.findIndex((it) => it.type === 'package' && it.reprice)
+  if (i >= 0) { const r = items[i].reprice; const q = itemQty.value[i]; const comp = r.ticketPrice * q + r.hotelTotal + r.expValue; return comp - Math.round(comp * (1 - r.discountRate)) }
+  return props.cart.savings
+})
+// Ticketing lines expand/collapse to reveal itemized details (a hotel line opens
+// its stay breakdown + policies; a package line opens what's inside). Collapsed
+// by default, mirroring the reservations cart's hotel rows.
+const openTItems = ref({})
+const hasItemDetail = (it) => !!((it.details && it.details.length) || it.hotelDetail)
+// Items with details start EXPANDED so the itemized hotel / inclusions are
+// visible up front; toggling records an explicit state that overrides the default.
+const isItemOpen = (it, i) => (i in openTItems.value ? openTItems.value[i] : hasItemDetail(it))
+const toggleTItem = (it, i) => { openTItems.value = { ...openTItems.value, [i]: !isItemOpen(it, i) } }
+// Section headers itemize the cart — e.g. "Tickets" vs "Hotel", or "Package" vs
+// (its expanded "Hotel stay"). A header shows above the first item of each group.
+const CART_SECTION = { ticket: 'Tickets', tickets: 'Tickets', seat: 'Tickets', package: 'Package', experience: 'Experiences', hotel: 'Hotel' }
+const sectionLabel = (it) => CART_SECTION[it?.type] || 'Items'
+const showSectionHead = (i) => i === 0 || sectionLabel(ticketItems.value[i]) !== sectionLabel(ticketItems.value[i - 1])
 const TICKET_ICONS = { ticket: 'confirmation_number', tickets: 'confirmation_number', seat: 'event_seat', hotel: 'hotel', experience: 'stars', package: 'redeem' }
 const ticketIcon = (t) => TICKET_ICONS[t] || 'local_activity'
 
@@ -64,6 +108,14 @@ const prev = () => go(idx.value - 1)
 const next = () => go(idx.value + 1)
 const hotelThumb = (h) => resolveImages(h.imageCategories || ['suites', 'rooms'], h.seed)[0]
 const hotel = computed(() => props.cart.hotel || {})
+// Hotel imagery for a ticketing line / hotel sub-block — resolved from the hosted
+// imagery library (matching the Group Block cart), falling back to any bundled
+// image on the source.
+const hotelImgFor = (src) => {
+  if (!src) return null
+  const fromLib = resolveImages(src.imageCategories || ['exterior', 'rooms', 'lobby'], src.seed)[0]
+  return fromLib || (src.image ? { url: src.image, alt: src.name || 'Hotel' } : null)
+}
 
 // --- Hold: collapsible hotels → rooms → nights. With `bind`, edit the passed
 // (reactive) cart directly so multiple instances stay in sync; otherwise clone. ---
@@ -133,7 +185,7 @@ const cartCount = computed(() => {
   if (isReserve.value) return 1
   return totalRooms.value
 })
-const cartTotal = computed(() => (isTicketing.value ? (props.cart.total ?? 0) : total.value))
+const cartTotal = computed(() => (isTicketing.value ? liveTotal.value : total.value))
 watch(cartCount, (v) => emit('update:count', v), { immediate: true })
 watch(cartTotal, (v) => emit('update:total', v), { immediate: true })
 
@@ -235,27 +287,88 @@ defineExpose({ clear })
     <template v-else-if="isTicketing">
       <div class="cr__tickets">
         <div class="cr__titems" :class="{ 'cr__titems--card': cards }">
-          <div v-for="(it, i) in ticketItems" :key="i" class="cr__titem">
-            <span class="cr__ticon"><q-icon :name="ticketIcon(it.type)" size="20px" /></span>
-            <div class="cr__tinfo">
-              <span class="cr__tlabel">{{ it.label }}</span>
-              <span v-if="it.sublabel" class="cr__tsub">{{ it.sublabel }}</span>
+          <template v-for="(it, i) in ticketItems" :key="i">
+          <div v-if="showSectionHead(i)" class="cr__csechead">{{ sectionLabel(it) }}</div>
+          <div class="cr__titemwrap">
+            <component
+              :is="hasItemDetail(it) ? 'button' : 'div'" class="cr__titem"
+              :class="{ 'cr__titem--btn': hasItemDetail(it), 'is-open': isItemOpen(it, i) }"
+              :aria-expanded="hasItemDetail(it) ? String(isItemOpen(it, i)) : null"
+              @click="hasItemDetail(it) ? toggleTItem(it, i) : null"
+            >
+              <img v-if="it.type === 'hotel' && hotelImgFor(it)" :src="hotelImgFor(it).url" :alt="hotelImgFor(it).alt" class="cr__tthumb" />
+              <span v-else class="cr__ticon"><q-icon :name="ticketIcon(it.type)" size="20px" /></span>
+              <div class="cr__tinfo">
+                <span class="cr__tlabel">{{ it.label }}</span>
+                <span v-if="it.sublabel" class="cr__tsub">{{ it.sublabel }}</span>
+                <span v-if="hasItemDetail(it)" class="cr__tmore">{{ isItemOpen(it, i) ? 'Hide details' : 'View details' }}</span>
+              </div>
+              <span class="cr__tamount">
+                <template v-if="it.unitPrice != null && it.qty">{{ money(it.unitPrice) }} <span class="cr__tqty">× {{ it.qty }}</span></template>
+                <template v-else>{{ money(it.amount) }}</template>
+              </span>
+              <q-icon v-if="hasItemDetail(it)" :name="isItemOpen(it, i) ? 'expand_less' : 'expand_more'" size="22px" class="cr__tchevron" />
+            </component>
+
+            <!-- Quantity control — ticket dropdown / package guests stepper -->
+            <div v-if="editableQty(it)" class="cr__qtyrow">
+              <span class="cr__qtylabel"><q-icon :name="it.type === 'package' ? 'group' : 'confirmation_number'" size="16px" /> {{ it.type === 'package' ? 'Guests' : 'Tickets' }}</span>
+              <div v-if="it.type === 'ticket'" class="cr__selectwrap">
+                <select :value="itemQty[i]" @change="setQty(i, +$event.target.value)">
+                  <option v-for="n in (it.maxQty || 8)" :key="n" :value="n">{{ n }} ticket{{ n === 1 ? '' : 's' }}</option>
+                </select>
+                <q-icon name="expand_more" size="18px" />
+              </div>
+              <QuantityStepper v-else :model-value="itemQty[i]" :min="1" :max="(it.reprice && it.reprice.maxQty) || 12" size="sm" @update:model-value="setQty(i, $event)" />
             </div>
-            <span class="cr__tamount">
-              <template v-if="it.unitPrice != null && it.qty">{{ money(it.unitPrice) }} <span class="cr__tqty">× {{ it.qty }}</span></template>
-              <template v-else>{{ money(it.amount) }}</template>
-            </span>
+
+            <!-- Expanded itemized detail -->
+            <div v-if="hasItemDetail(it)" v-show="isItemOpen(it, i)" class="cr__tpanel">
+              <!-- generic "what's inside" rows (package inclusions, etc.) -->
+              <div v-if="it.details && it.details.length" class="cr__tdrows">
+                <div class="cr__tphead">{{ it.type === 'package' ? 'Package details' : "What's included" }}</div>
+                <div v-for="(d, di) in it.details" :key="di" class="cr__tdrow">
+                  <q-icon :name="d.icon" size="20px" class="cr__tdicon" />
+                  <div class="cr__tdinfo"><span class="cr__tdtitle">{{ d.title }}</span><span v-if="d.text" class="cr__tdtext">{{ d.text }}</span></div>
+                </div>
+              </div>
+
+              <!-- rich hotel-stay sub-block -->
+              <div v-if="it.hotelDetail" class="cr__hd">
+                <div class="cr__tphead">Hotel details</div>
+                <div v-if="hotelImgFor(it.hotelDetail)" class="cr__hdimg"><img :src="hotelImgFor(it.hotelDetail).url" :alt="hotelImgFor(it.hotelDetail).alt" /></div>
+                <div v-if="it.hotelDetail.address" class="cr__hdaddr"><q-icon name="place" size="16px" /> {{ it.hotelDetail.address }}</div>
+                <div class="cr__hdgrid">
+                  <div class="cr__hdcell"><span class="cr__hdlabel">Check-in</span><span class="cr__hdval">{{ it.hotelDetail.checkIn }}</span></div>
+                  <div class="cr__hdcell"><span class="cr__hdlabel">Check-out</span><span class="cr__hdval">{{ it.hotelDetail.checkOut }}</span></div>
+                </div>
+                <div class="cr__hdroom">
+                  <q-icon name="king_bed" size="18px" class="cr__tdicon" />
+                  <div class="cr__tdinfo"><span class="cr__tdtitle">{{ it.hotelDetail.roomType }}</span><span v-if="it.hotelDetail.note" class="cr__tdtext">{{ it.hotelDetail.note }}</span></div>
+                </div>
+                <div class="cr__hdnights">
+                  <div v-for="(n, ni) in it.hotelDetail.nights" :key="ni" class="cr__hdnight"><span>{{ n.date }}</span><span>{{ money(n.price) }}</span></div>
+                </div>
+                <div v-if="it.hotelDetail.policies && it.hotelDetail.policies.length" class="cr__hdpol">
+                  <div v-for="(pol, pi) in it.hotelDetail.policies" :key="pi" class="cr__hdpolrow">
+                    <span class="cr__hdpoltitle">{{ pol.title }}</span>
+                    <span class="cr__hdpolbody">{{ pol.body }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+          </template>
         </div>
 
         <div v-if="showPrice" class="cr__pricecard">
           <h4 class="cr__price-h">Price details</h4>
-          <div class="cr__kv"><span>Subtotal</span><span>{{ money(cart.subtotal) }}</span></div>
-          <div v-if="cart.fees" class="cr__kv"><span>Fees</span><span>{{ money(cart.fees) }}</span></div>
-          <div v-if="cart.taxes" class="cr__kv"><span class="cr__taxlabel">Taxes &amp; Fees <button type="button" class="cr__info" aria-label="About taxes and fees"><q-icon name="info" size="16px" /><q-tooltip class="cr__tooltip" anchor="top middle" self="bottom middle" :offset="[0, 8]" max-width="360px">{{ TAX_DISCLAIMER }}</q-tooltip></button></span><span>{{ money(cart.taxes) }}</span></div>
-          <div v-if="cart.savings" class="cr__discount">Bundle savings −{{ money(cart.savings) }}</div>
+          <div class="cr__kv"><span>Subtotal</span><span>{{ money(liveSubtotal) }}</span></div>
+          <div v-if="liveFees" class="cr__kv"><span>Fees</span><span>{{ money(liveFees) }}</span></div>
+          <div v-if="liveTaxes" class="cr__kv"><span class="cr__taxlabel">Taxes &amp; Fees <button type="button" class="cr__info" aria-label="About taxes and fees"><q-icon name="info" size="16px" /><q-tooltip class="cr__tooltip" anchor="top middle" self="bottom middle" :offset="[0, 8]" max-width="360px">{{ TAX_DISCLAIMER }}</q-tooltip></button></span><span>{{ money(liveTaxes) }}</span></div>
+          <div v-if="liveSavings" class="cr__discount">Bundle savings −{{ money(liveSavings) }}</div>
           <div class="cr__rule" />
-          <div class="cr__kv cr__kv--total"><span>Total</span><span>{{ money(cart.total) }}</span></div>
+          <div class="cr__kv cr__kv--total"><span>Total</span><span>{{ money(liveTotal) }}</span></div>
           <div class="cr__quoted">Rates are quoted in USD ($).</div>
         </div>
 
@@ -412,14 +525,54 @@ defineExpose({ clear })
 .cr__tickets { display: flex; flex-direction: column; }
 .cr--cards .cr__tickets { gap: 16px; }
 .cr__titems--card { background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); overflow: hidden; }
-.cr__titem { display: flex; align-items: flex-start; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--ds-color-border); }
-.cr__titem:last-child { border-bottom: 0; }
+/* Top-level cart section header (Tickets · Hotel · Package) */
+.cr__csechead { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ds-color-text-subtle); padding: 14px 20px 4px; }
+.cr__csechead:first-child { padding-top: 4px; }
+/* Sub-header inside an expanded panel (Package details / Hotel details) */
+.cr__tphead { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ds-color-text-subtle); margin-bottom: 8px; }
+.cr__titemwrap { border-bottom: 1px solid var(--ds-color-border); }
+.cr__titemwrap:last-child { border-bottom: 0; }
+.cr__titem { display: flex; align-items: flex-start; gap: 12px; padding: 14px 20px; width: 100%; }
+.cr__titem--btn { text-align: left; background: none; border: 0; font: inherit; cursor: pointer; }
+.cr__titem--btn:hover { background: var(--ds-palette-slate-50); }
 .cr__ticon { flex: none; width: 38px; height: 38px; border-radius: var(--ds-radius-md); background: var(--ds-palette-slate-100); display: flex; align-items: center; justify-content: center; color: var(--ds-color-text); }
+.cr__tthumb { flex: none; width: 46px; height: 38px; border-radius: var(--ds-radius-md); object-fit: cover; background: var(--ds-palette-slate-100); }
+.cr__hdimg { border-radius: var(--ds-radius-md); overflow: hidden; aspect-ratio: 16 / 7; background: var(--ds-palette-slate-100); }
+.cr__hdimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cr__tinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .cr__tlabel { font-weight: 600; font-size: 0.9375rem; color: var(--ds-color-text); }
 .cr__tsub { font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
+.cr__tmore { font-size: 0.8125rem; font-weight: 700; color: var(--ds-color-text-brand); margin-top: 2px; }
 .cr__tamount { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); white-space: nowrap; }
 .cr__tqty { font-weight: 500; color: var(--ds-color-text-subtle); }
+.cr__tchevron { flex: none; color: var(--ds-color-text-subtle); margin-top: 1px; }
+
+/* Quantity control row (ticket dropdown / package guests stepper) */
+.cr__qtyrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px 12px; }
+.cr__qtylabel { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 700; color: var(--ds-color-text); }
+.cr__qtylabel .q-icon { color: var(--ds-color-text-subtle); }
+.cr__selectwrap { position: relative; display: inline-flex; align-items: center; }
+.cr__selectwrap select { appearance: none; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--ds-color-text); background: var(--ds-color-surface); border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-md); padding: 8px 34px 8px 12px; cursor: pointer; }
+.cr__selectwrap select:focus { outline: none; border-color: var(--ds-color-border-brand); }
+.cr__selectwrap .q-icon { position: absolute; right: 10px; color: var(--ds-color-text-subtle); pointer-events: none; }
+
+/* Expanded per-item detail panel */
+.cr__tpanel { padding: 4px 20px 18px; background: var(--ds-color-surface-sunken, var(--ds-palette-slate-50)); }
+.cr__tdrows { display: flex; flex-direction: column; gap: 14px; padding: 12px 0; }
+.cr__hd { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; }
+.cr__hdaddr { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
+.cr__hdgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cr__hdcell { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md); background: var(--ds-color-surface); }
+.cr__hdlabel { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ds-color-text-subtle); }
+.cr__hdval { font-weight: 700; font-size: 0.875rem; color: var(--ds-color-text); }
+.cr__hdroom { display: flex; align-items: flex-start; gap: 14px; }
+.cr__hdnights { display: flex; flex-direction: column; gap: 4px; }
+.cr__hdnight { display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; color: var(--ds-color-text); padding: 4px 0; border-bottom: 1px dashed var(--ds-color-border); }
+.cr__hdnight:last-child { border-bottom: 0; }
+.cr__hdpol { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--ds-color-border); }
+.cr__hdpolrow { display: flex; flex-direction: column; gap: 2px; }
+.cr__hdpoltitle { font-weight: 700; font-size: 0.8125rem; color: var(--ds-color-text); }
+.cr__hdpolbody { font-size: 0.8125rem; color: var(--ds-color-text-subtle); line-height: 1.45; }
 
 /* Ticket details — seat location + delivery / verification / protection */
 .cr__tdetails { display: flex; flex-direction: column; gap: 18px; padding: 20px; border-top: 1px solid var(--ds-color-border); }

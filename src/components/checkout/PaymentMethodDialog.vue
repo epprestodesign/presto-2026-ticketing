@@ -1,6 +1,7 @@
 <script setup>
-// PaymentMethodDialog — Instacart-style payment selector modal: saved methods
-// (single-select with a check) plus an "Add payment method" list. Choosing
+// PaymentMethodDialog — Instacart-style payment selector modal. Leads with the
+// express wallets (Apple Pay, then Google Pay) followed by any saved card
+// (single-select with a check), then an "Add payment method" list. Choosing
 // Debit/Credit opens AddPaymentDialog; saving a card adds + selects it.
 import { ref } from 'vue'
 import { paymentLogo } from '../../lib/paymentLogos'
@@ -8,10 +9,13 @@ import AddPaymentDialog from './AddPaymentDialog.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
+  // Express wallets lead, then saved cards.
   methods: { type: Array, default: () => ([
+    { id: 'applepay', logo: 'ApplePay', label: 'Apple Pay' },
+    { id: 'gpay', logo: 'GooglePay', label: 'Google Pay' },
     { id: 'amex', logo: 'Amex', label: 'Amex *1009', sub: 'Exp. 5/27' },
   ]) },
-  selected: { type: String, default: 'amex' },
+  selected: { type: String, default: 'applepay' },
 })
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
@@ -19,9 +23,15 @@ const saved = ref(props.methods.map((m) => ({ ...m })))
 const sel = ref(props.selected)
 const addOpen = ref(false)
 
-// Credit card only — no Google Pay / Venmo / PayPal / Klarna / Amazon Pay / Affirm.
+// "Add payment method" list — Debit/Credit opens the card form; the rest are
+// alternative methods shown with their brand logo.
 const addMethods = [
   { id: 'card', name: 'Debit/Credit', add: true },
+  { id: 'venmo', name: 'Venmo', logo: 'Venmo' },
+  { id: 'paypal', name: 'PayPal', logo: 'PayPal' },
+  { id: 'klarna', name: 'Klarna', logo: 'Klarna' },
+  { id: 'amazon', name: 'Amazon Pay', logo: 'AmazonPay' },
+  { id: 'affirm', name: 'Affirm', logo: 'Affirm' },
 ]
 
 const close = () => emit('update:modelValue', false)
@@ -42,7 +52,6 @@ const confirm = () => { emit('confirm', saved.value.find((m) => m.id === sel.val
       </div>
 
       <div class="pmd__body">
-        <h4 class="pmd__group">Saved payment methods</h4>
         <button v-for="m in saved" :key="m.id" class="pmd__row" @click="sel = m.id">
           <img v-if="paymentLogo(m.logo)" :src="paymentLogo(m.logo)" :alt="m.logo" class="pmd__logo" />
           <span v-else class="pmd__logo pmd__logo--blank" />

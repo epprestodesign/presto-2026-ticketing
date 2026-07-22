@@ -6,7 +6,7 @@
 // Pan (drag + flick momentum), zoom (wheel / buttons), and clickable price pins
 // overlaid like map markers. Pricing + inventory are PROTOTYPE / hypothetical —
 // Ticketmaster's map feed carries the geometry only, not per-seat listings.
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
 // The interactive layer uses a high-res RASTER of the map: browsers re-rasterize
 // SVGs on every zoom step (janky), but GPU-scale raster images smoothly. The
@@ -23,6 +23,11 @@ const props = defineProps({
   fill: { type: Boolean, default: false },
   // Initial zoom multiplier applied on load (e.g. 1.8 = zoomed in a couple steps).
   initialScale: { type: Number, default: 1 },
+  // When set, the map animates to center + zoom on the pin with this id (driven
+  // by the selected listing, so picking a seat in the rail focuses its pin).
+  focusId: { type: String, default: null },
+  // Zoom level used when focusing a pin (kept if already zoomed in further).
+  focusScale: { type: Number, default: 3.2 },
 })
 const emit = defineEmits(['update:modelValue', 'select'])
 
@@ -95,6 +100,28 @@ function zoomBtn(f) {
   animTimer = setTimeout(() => { animate.value = false }, 180)
 }
 function reset() { animate.value = true; initView(); clearTimeout(animTimer); animTimer = setTimeout(() => { animate.value = false }, 180) }
+
+// Smoothly center + zoom on a pin (its x/y are % of the map). Zooms in to
+// `focusScale`, keeping a deeper manual zoom if the user is already closer in.
+function focusPin(pin) {
+  if (!pin || !vw.value) return
+  const worldX = (pin.x / 100) * vw.value
+  const worldY = (pin.y / 100) * worldH.value
+  const s = Math.min(MAX, Math.max(view.scale, props.focusScale))
+  animate.value = true
+  view.scale = s
+  view.tx = vw.value / 2 - worldX * s
+  view.ty = containerH() / 2 - worldY * s
+  clampPan()
+  clearTimeout(animTimer)
+  animTimer = setTimeout(() => { animate.value = false }, 300)
+}
+// Focus whenever the externally-selected pin changes (rail selection or a pin tap).
+watch(() => props.focusId, (id) => {
+  if (!id) return
+  const pin = props.pins.find((p) => p.id === id)
+  if (pin) focusPin(pin)
+})
 
 // Drag-pan with flick momentum. Panning only begins once the pointer moves past
 // a small threshold, so a click (to select a pin) never nudges the map.
