@@ -22,7 +22,8 @@
     .hero { padding: 56px 0 24px; }
     .hero h1 { font-size: 34px; margin: 0 0 10px; letter-spacing: -0.01em; }
     .hero p { font-size: 17px; color: var(--subtle); max-width: 64ch; margin: 0; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px 0 8px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px 0 8px; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
     .card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -33,6 +34,7 @@
     .card__banner { height: 8px; }
     .card--hotel .card__banner { background: linear-gradient(90deg, #1f6feb, #4f9cff); }
     .card--bundle .card__banner { background: linear-gradient(90deg, #01113e, #7a1420); }
+    .card--experience .card__banner { background: linear-gradient(90deg, #1D4ED8, #01113e); }
     .card__body { padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
     .card__kicker { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--subtle); }
     .card__title { font-size: 21px; font-weight: 800; margin: 0; }
@@ -58,7 +60,7 @@
   <div class="wrap">
     <section class="hero">
       <h1>Prototype experiences</h1>
-      <p>Two clickable prototypes built from the same Presto design system. One is the core hotel-booking journey; the other bundles event tickets <em>with</em> a hotel for a client-appreciation outing. Open either below.</p>
+      <p>Three clickable prototypes built from the same Presto design system: the core hotel-booking journey, a ticket + hotel bundle, and a stepper-guided tickets + packages journey that combines a stay, tickets, and an experience package into one order. Open any below.</p>
     </section>
 
     <div class="grid">
@@ -83,6 +85,28 @@
           <span class="card__go">Open prototype →</span>
         </div>
       </a>
+
+      <a class="card card--experience" href="/presto-2026-ticketing/experience/">
+        <div class="card__banner"></div>
+        <div class="card__body">
+          <span class="card__kicker">Experience 3</span>
+          <h3 class="card__title">Hotel + Tickets Journey</h3>
+          <p class="card__desc">A stepper-guided journey — Stays → Tickets → Review — leading with a landing page: browse hotels, pick seats on the Ticket Map (with a "how many tickets?" prompt), then a Tickets + Hotel checkout. Skip tickets for a hotel-only checkout.</p>
+          <div class="chips"><span class="chip">Stepper</span><span class="chip">Ticket map</span><span class="chip">Checkout</span></div>
+          <span class="card__go">Open prototype →</span>
+        </div>
+      </a>
+
+      <a class="card card--experience" href="/presto-2026-ticketing/experience-packages/">
+        <div class="card__banner"></div>
+        <div class="card__body">
+          <span class="card__kicker">Experience 4</span>
+          <h3 class="card__title">Hotel + Packages Journey</h3>
+          <p class="card__desc">The same stepper-guided flow — Stays → Packages → Review — with experience packages in place of tickets: browse hotels, then Browse Packages → Package Details, then a Packages + Hotel checkout. Skip the package for a hotel-only checkout.</p>
+          <div class="chips"><span class="chip">Stepper</span><span class="chip">Packages</span><span class="chip">Checkout</span></div>
+          <span class="card__go">Open prototype →</span>
+        </div>
+      </a>
     </div>
 
     <section class="diff">
@@ -99,6 +123,8 @@
 
     <div class="extra">
       <a href="/presto-2026-ticketing/">→ Design system (Storybook)</a>
+      <a href="/presto-2026-ticketing/experience/">→ Hotel + Tickets journey</a>
+      <a href="/presto-2026-ticketing/experience-packages/">→ Hotel + Packages journey</a>
       <a href="/presto-2026-ticketing/bundle/">→ Bundle prototype</a>
       <a href="/presto-2026-ticketing/prototype/">→ Hotel prototype</a>
     </div>

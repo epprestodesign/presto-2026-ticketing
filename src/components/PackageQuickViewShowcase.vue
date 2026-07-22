@@ -1,129 +1,163 @@
 <script setup>
-// PackageQuickViewShowcase — an alternate "quick view" for a Patriots experience
-// package, patterned after the Browse Hotels AvailabilityDialog: a compact
-// high-level summary (photo · theme · name · tagline · quick facts) above a
-// horizontal carousel that SHOWCASES the package's signature experiences as
-// cards. A richer companion to the condensed PackageQuickViewDialog. Rendered as
-// content inside a <q-dialog> by the parent.
-import { computed } from 'vue'
+// PackageQuickViewShowcase — a package browser patterned directly after the
+// Browse Hotels AvailabilityDialog: a compact high-level summary of the offering
+// (photo · theme · name · meta · quick facts) above a horizontal carousel that
+// SHOWCASES the available experience packages as full PackageCards (each with its
+// own guests stepper + Select CTA), with prev/next arrows and scroll-snap. Where
+// AvailabilityDialog pairs a hotel summary with a RoomsCarousel, this pairs an
+// offering summary with a carousel of packages. Rendered as content inside a
+// <q-dialog> by the parent.
+import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import PackageCard from './PackageCard.vue'
 
 const props = defineProps({
-  pkg: { type: Object, required: true }, // generateExperiencePackages() item
+  // The packages shown in the carousel.
+  packages: { type: Array, default: () => [] },
+  // High-level offering summary (with sensible fallbacks derived from packages).
+  title: { type: String, default: 'Experience packages' },
+  theme: { type: String, default: '' },
+  meta: { type: String, default: '' },
+  tagline: { type: String, default: 'Pre-built ticket + hotel + signature experience bundles — pick the one that fits your group.' },
+  image: { type: String, default: '' },
+  icon: { type: String, default: 'confirmation_number' },
+  accentVar: { type: String, default: '--ds-palette-navy-700' },
+  currency: { type: String, default: 'USD' },
+  carouselTitle: { type: String, default: 'Choose your package' },
+  carouselSubtitle: { type: String, default: '' },
 })
-const emit = defineEmits(['close', 'select', 'customize'])
+const emit = defineEmits(['close', 'select', 'title'])
 
-const p = computed(() => props.pkg)
-const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: p.value.currency || 'USD', maximumFractionDigits: 0 }).format(n || 0)
-const soldOut = computed(() => p.value.soldOut)
-const experiences = computed(() => p.value.experiences || [])
+const list = computed(() => props.packages || [])
+const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: props.currency, maximumFractionDigits: 0 }).format(n || 0)
+
+// Header photo falls back to the first package's hero image.
+const heroImage = computed(() => props.image || list.value.find((p) => p.image)?.image || '')
+// Quick facts: how many packages, and the best available savings across them.
+const bestSavings = computed(() => list.value.reduce((m, p) => (!p.soldOut && p.savings > m ? p.savings : m), 0))
+const startingFrom = computed(() => {
+  const prices = list.value.filter((p) => !p.soldOut).map((p) => p.packagePrice)
+  return prices.length ? Math.min(...prices) : 0
+})
+
+// --- Carousel scroll (mirrors RoomsCarousel) ------------------------------
+const track = ref(null)
+const scrollable = ref(false)
+const atStart = ref(true)
+const atEnd = ref(false)
+const STEP = (320 + 18) * 1.5 // one card + track gap, ~1.5 cards per click
+const update = () => {
+  const el = track.value
+  if (!el) return
+  const max = el.scrollWidth - el.clientWidth
+  scrollable.value = max > 1
+  atStart.value = el.scrollLeft <= 1
+  atEnd.value = el.scrollLeft >= max - 1
+}
+const scroll = (dir) => track.value?.scrollBy({ left: dir * STEP, behavior: 'smooth' })
+let ro
+onMounted(async () => {
+  await nextTick()
+  update()
+  if (window.ResizeObserver) { ro = new ResizeObserver(update); ro.observe(track.value) }
+})
+onBeforeUnmount(() => ro?.disconnect())
 </script>
 
 <template>
   <div class="pqs">
     <!-- Title bar -->
     <header class="pqs__bar">
-      <h2 class="pqs__title">Quick view</h2>
+      <h2 class="pqs__title">{{ title }}</h2>
       <button class="pqs__close" aria-label="Close" @click="emit('close')"><q-icon name="close" size="22px" /></button>
     </header>
 
     <div class="pqs__body">
-      <!-- High-level summary -->
+      <!-- High-level offering summary -->
       <div class="pqs__summary">
-        <div class="pqs__photo" :style="{ '--accent': `var(${p.accentVar || '--ds-palette-navy-700'})` }">
-          <img v-if="p.image" :src="p.image" :alt="p.name" />
-          <div v-else class="pqs__photo--empty"><q-icon name="confirmation_number" size="28px" /></div>
+        <div class="pqs__photo" :style="{ '--accent': `var(${accentVar})` }">
+          <img v-if="heroImage" :src="heroImage" :alt="title" />
+          <div v-else class="pqs__photo--empty"><q-icon :name="icon" size="28px" /></div>
         </div>
         <div class="pqs__info">
-          <span class="pqs__theme"><q-icon :name="p.icon || 'star'" size="14px" /> {{ p.theme }}</span>
-          <h3 class="pqs__name">{{ p.name }}</h3>
-          <p v-if="p.tagline" class="pqs__tagline">{{ p.tagline }}</p>
+          <span v-if="theme" class="pqs__theme"><q-icon :name="icon" size="14px" /> {{ theme }}</span>
+          <h3 class="pqs__name">{{ title }}</h3>
+          <p v-if="meta" class="pqs__meta">{{ meta }}</p>
+          <p v-if="tagline" class="pqs__tagline">{{ tagline }}</p>
           <div class="pqs__facts">
-            <span class="pqs__fact"><span class="pqs__swatch" :style="{ background: `var(${p.ticket.colorVar})` }" /> {{ p.ticket.tierName }}<template v-if="p.quantity > 1"> ×{{ p.quantity }}</template></span>
-            <span v-if="p.hotel" class="pqs__fact"><q-icon name="hotel" size="16px" /> {{ p.hotel.name }} · {{ p.nights }}n</span>
+            <span class="pqs__fact"><q-icon name="apps" size="16px" /> {{ list.length }} package{{ list.length === 1 ? '' : 's' }}</span>
+            <span v-if="startingFrom" class="pqs__fact"><q-icon name="sell" size="16px" /> From {{ fmt(startingFrom) }}</span>
+            <span v-if="bestSavings > 0" class="pqs__fact pqs__fact--save"><q-icon name="savings" size="16px" /> Save up to {{ fmt(bestSavings) }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Signature experiences carousel -->
-      <div class="pqs__section">
-        <div class="pqs__sechead">
-          <h4 class="pqs__sectitle">Signature experiences</h4>
-          <span class="pqs__seccount">{{ experiences.length }} included</span>
-        </div>
-        <div v-if="experiences.length" class="pqs__carousel">
-          <article v-for="(x, i) in experiences" :key="i" class="pqs__card">
-            <span class="pqs__cardicon" :style="{ '--accent': `var(${p.accentVar || '--ds-palette-navy-700'})` }"><q-icon :name="x.icon || 'stars'" size="24px" /></span>
-            <span class="pqs__cardlabel">{{ x.label }}</span>
-            <span class="pqs__cardtag"><q-icon name="check_circle" size="14px" /> Included</span>
-          </article>
-        </div>
-        <p v-else class="pqs__noexp">This package has no signature experiences.</p>
-      </div>
-    </div>
+      <!-- Packages carousel -->
+      <section class="pqs__carsec">
+        <header class="pqs__carhead">
+          <div class="pqs__carheading">
+            <h4 class="pqs__cartitle">{{ carouselTitle }}</h4>
+            <p v-if="carouselSubtitle" class="pqs__carsub">{{ carouselSubtitle }}</p>
+          </div>
+          <div v-if="scrollable" class="pqs__nav">
+            <button type="button" class="pqs__arrow" :disabled="atStart" aria-label="Previous packages" @click="scroll(-1)"><q-icon name="chevron_left" size="22px" /></button>
+            <button type="button" class="pqs__arrow" :disabled="atEnd" aria-label="More packages" @click="scroll(1)"><q-icon name="chevron_right" size="22px" /></button>
+          </div>
+        </header>
 
-    <!-- Footer: price + actions -->
-    <footer class="pqs__foot">
-      <div class="pqs__price">
-        <span v-if="p.componentsTotal > p.packagePrice" class="pqs__was">{{ fmt(p.componentsTotal) }}</span>
-        <span class="pqs__now">{{ fmt(p.packagePrice) }}</span>
-        <span v-if="!soldOut && p.savings > 0" class="pqs__save">Save {{ fmt(p.savings) }}</span>
-      </div>
-      <div class="pqs__actions">
-        <button class="pqs__link" @click="emit('customize', p)">Customize</button>
-        <q-btn unelevated no-caps class="pqs__cta" :disable="soldOut" :label="soldOut ? 'Sold out' : 'Select package'" @click="emit('select', p)" />
-      </div>
-    </footer>
+        <div v-if="list.length" ref="track" class="pqs__track" @scroll="update">
+          <div v-for="p in list" :key="p.id" class="pqs__item">
+            <PackageCard :pkg="p" @select="emit('select', $event)" @title="emit('title', $event)" />
+          </div>
+        </div>
+        <p v-else class="pqs__empty">No packages available.</p>
+      </section>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.pqs { display: flex; flex-direction: column; width: 100%; max-width: 640px; max-height: 88vh; background: var(--ds-color-surface); border-radius: var(--ds-radius-lg); overflow: hidden; box-shadow: var(--ds-shadow-4); font-family: var(--ds-font-family); }
+.pqs { display: flex; flex-direction: column; width: 100%; max-width: 860px; max-height: 90vh; background: var(--ds-color-surface); border-radius: var(--ds-radius-lg); overflow: hidden; box-shadow: var(--ds-shadow-4); font-family: var(--ds-font-family); }
 .pqs__bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--ds-color-border); flex: none; }
 .pqs__title { margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--ds-color-text); }
 .pqs__close { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--ds-palette-slate-100); color: var(--ds-color-text); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .pqs__close:hover { background: var(--ds-palette-slate-200); }
 
-.pqs__body { flex: 1; min-height: 0; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 22px; }
+.pqs__body { flex: 1; min-height: 0; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 24px; }
 
 /* Summary */
 .pqs__summary { display: flex; gap: 18px; }
-.pqs__photo { flex: 0 0 200px; height: 132px; border-radius: var(--ds-radius-md); overflow: hidden; background: var(--accent); }
+.pqs__photo { flex: 0 0 220px; height: 140px; border-radius: var(--ds-radius-md); overflow: hidden; background: var(--accent); }
 .pqs__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pqs__photo--empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.8); }
 .pqs__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .pqs__theme { display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; background: var(--ds-palette-slate-100); color: var(--ds-color-text); font-size: 0.75rem; font-weight: 700; padding: 3px 9px; border-radius: var(--ds-radius-pill); }
 .pqs__name { margin: 0; font-size: 1.375rem; font-weight: 700; line-height: 1.2; color: var(--ds-color-text); }
+.pqs__meta { margin: 0; color: var(--ds-color-text); font-size: 0.9375rem; font-weight: 600; }
 .pqs__tagline { margin: 0; color: var(--ds-color-text-subtle); font-size: 0.9375rem; line-height: 1.45; }
-.pqs__facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 2px; }
+.pqs__facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; }
 .pqs__fact { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; color: var(--ds-color-text); }
 .pqs__fact .q-icon { color: var(--ds-color-text-subtle); }
-.pqs__swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.pqs__fact--save { color: var(--ds-color-text-positive, #1b7a3d); font-weight: 700; }
+.pqs__fact--save .q-icon { color: currentColor; }
 
-/* Experiences carousel */
-.pqs__sechead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
-.pqs__sectitle { margin: 0; font-size: 1.0625rem; font-weight: 700; color: var(--ds-color-text); }
-.pqs__seccount { font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
-.pqs__carousel { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
-.pqs__carousel::-webkit-scrollbar { height: 6px; }
-.pqs__carousel::-webkit-scrollbar-thumb { background: var(--ds-color-border-bold); border-radius: 3px; }
-.pqs__card { scroll-snap-align: start; flex: 0 0 172px; display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); background: var(--ds-color-surface); }
-.pqs__cardicon { width: 46px; height: 46px; border-radius: var(--ds-radius-md); display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
-.pqs__cardlabel { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); line-height: 1.3; flex: 1; }
-.pqs__cardtag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 700; color: var(--ds-color-text-positive, #1b7a3d); }
-.pqs__noexp { color: var(--ds-color-text-subtle); font-size: 0.9375rem; margin: 0; }
+/* Packages carousel — mirrors RoomsCarousel */
+.pqs__carsec { display: flex; flex-direction: column; gap: 14px; }
+.pqs__carhead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.pqs__cartitle { margin: 0; font-size: 1.1875rem; font-weight: 700; color: var(--ds-color-text); }
+.pqs__carsub { margin: 4px 0 0; color: var(--ds-color-text-subtle); font-size: 0.9375rem; }
+.pqs__nav { display: flex; gap: 8px; flex: 0 0 auto; }
+.pqs__arrow { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--ds-color-border-bold); background: var(--ds-color-surface); color: var(--ds-color-text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background var(--ds-duration-fast) var(--ds-ease-standard); }
+.pqs__arrow:hover:not(:disabled) { background: var(--ds-color-surface-sunken); }
+.pqs__arrow:disabled { opacity: 0.4; cursor: default; }
 
-/* Footer */
-.pqs__foot { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--ds-color-border); flex-wrap: wrap; }
-.pqs__price { display: flex; align-items: baseline; gap: 10px; }
-.pqs__was { color: var(--ds-color-text-subtle); text-decoration: line-through; }
-.pqs__now { font-size: 1.375rem; font-weight: 700; color: var(--ds-color-text); }
-.pqs__save { background: var(--ds-color-background-positive, #e6f4ea); color: var(--ds-color-text-positive, #1b7a3d); font-weight: 700; font-size: 0.8125rem; padding: 4px 10px; border-radius: var(--ds-radius-pill); }
-.pqs__actions { display: flex; align-items: center; gap: 16px; margin-left: auto; }
-.pqs__link { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--ds-color-text); text-decoration: underline; cursor: pointer; }
-.pqs__cta { height: 46px; padding: 0 22px; border-radius: var(--ds-radius-button); background: var(--ds-color-background-brand-bold); color: #fff; font-weight: 700; }
+.pqs__track { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 2px; padding: 4px 2px 8px; margin: -4px -2px -8px; scrollbar-width: thin; }
+.pqs__item { scroll-snap-align: start; flex: 0 0 320px; }
+.pqs__item > :deep(.pkg) { height: 100%; }
+.pqs__empty { color: var(--ds-color-text-subtle); font-size: 0.9375rem; margin: 0; }
 
-@media (max-width: 560px) {
+@media (max-width: 620px) {
   .pqs__summary { flex-direction: column; }
-  .pqs__photo { flex: none; width: 100%; height: 160px; }
+  .pqs__photo { flex: none; width: 100%; height: 170px; }
+  .pqs__item { flex-basis: 84%; }
 }
 </style>

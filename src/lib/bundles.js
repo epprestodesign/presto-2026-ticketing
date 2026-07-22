@@ -311,10 +311,14 @@ export function ticketDetails({ section = 'CL10', row = '12' } = {}) {
  * package — ticket + hotel when the package includes a stay, ticket-only when
  * stripHotel() has removed it.
  */
-export function buildPackageCart(pkg, { sublabel = null, feeRate = 0.10, taxRate = 0.09 } = {}) {
+export function buildPackageCart(pkg, { sublabel = null, feeRate = 0.10, taxRate = 0.09, separateHotel = false } = {}) {
   const fees = Math.round(pkg.packagePrice * feeRate)
   const taxes = Math.round(pkg.packagePrice * taxRate)
-  const sub = sublabel ?? (pkg.hotel
+  // When `separateHotel`, the included hotel stay is broken out into its OWN cart
+  // section (like the ticket + hotel cart) instead of nested under the package —
+  // shown as an "Included" line so the package total isn't double-counted.
+  const splitHotel = separateHotel && !!pkg.hotel
+  const sub = sublabel ?? (pkg.hotel && !splitHotel
     ? `${pkg.ticket.tierName} + ${pkg.hotel.name} · ${pkg.theme}`
     : `${pkg.ticket.tierName} ticket · ${pkg.theme}`)
   // Itemized "what's inside" rows for the expandable package line — the ticket
@@ -330,13 +334,25 @@ export function buildPackageCart(pkg, { sublabel = null, feeRate = 0.10, taxRate
   const hotelTotal = pkg.hotel?.hotelTotal ?? 0
   const expValue = Math.max(0, (pkg.componentsTotal ?? 0) - ticketPrice * origQty - hotelTotal)
   const discountRate = pkg.componentsTotal ? (pkg.componentsTotal - pkg.packagePrice) / pkg.componentsTotal : 0
+
+  const items = [{
+    type: 'package', label: pkg.name, sublabel: sub, amount: pkg.packagePrice,
+    details,
+    reprice: { ticketPrice, hotelTotal, expValue, discountRate, origQty, maxQty: 12 },
+    // Hotel nested under the package only when it's NOT broken out into its own section.
+    hotelDetail: splitHotel ? null : (pkg.hotel ? hotelCartDetail(pkg.hotel, pkg.nights) : null),
+  }]
+  if (splitHotel) {
+    items.push({
+      type: 'hotel',
+      label: `${pkg.hotel.name} · ${pkg.hotel.roomType}`,
+      sublabel: `${pkg.nights || 1} night${(pkg.nights || 1) === 1 ? '' : 's'}`,
+      amount: 0, included: true, // price is already in the package total
+      hotelDetail: hotelCartDetail(pkg.hotel, pkg.nights),
+    })
+  }
   return {
-    items: [{
-      type: 'package', label: pkg.name, sublabel: sub, amount: pkg.packagePrice,
-      details,
-      reprice: { ticketPrice, hotelTotal, expValue, discountRate, origQty, maxQty: 12 },
-      hotelDetail: pkg.hotel ? hotelCartDetail(pkg.hotel, pkg.nights) : null,
-    }],
+    items,
     subtotal: pkg.packagePrice, fees, taxes, total: pkg.packagePrice + fees + taxes,
     currency: 'USD', savings: pkg.savings, feeRate, taxRate,
   }

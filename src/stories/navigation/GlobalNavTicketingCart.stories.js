@@ -24,7 +24,9 @@ const ticketsHotelCart = { ...buildBundleCart({ event, tier, quantity: 2, hotel,
 const pkgOnly = stripHotel(generateExperiencePackages(event, { nights: 1 })[0])
 const pkgHotel = generateExperiencePackages(event, { nights: 1 })[0]
 const packagesOnlyCart = { ...buildPackageCart(pkgOnly), ...detail }
-const packagesHotelCart = { ...buildPackageCart(pkgHotel), ...detail }
+// Split cart → the included hotel is its OWN section (matches the Tickets + Hotel
+// cart and the Packages + Hotel checkout rail).
+const packagesHotelCart = { ...buildPackageCart(pkgHotel, { separateHotel: true }), ...detail }
 
 export default {
   title: 'App Shell/Global Nav & Cart/Ticketing',

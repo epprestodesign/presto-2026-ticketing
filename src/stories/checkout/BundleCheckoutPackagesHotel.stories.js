@@ -7,7 +7,7 @@
 import CheckoutPage from '../../components/checkout/CheckoutPage.vue'
 import PageFrame from '../../components/PageFrame.vue'
 import HoldTimerPill from '../../components/HoldTimerPill.vue'
-import { pkgHotel, packagesHotelCart } from '../ticketing/_ticketing-flow-carts.js'
+import { pkgHotel, packagesHotelCart, packagesHotelCartSplit } from '../ticketing/_ticketing-flow-carts.js'
 import { makeSummary } from './_ticketing-checkout-data.js'
 
 const summary = makeSummary(packagesHotelCart, [
@@ -33,7 +33,8 @@ export const Checkout = {
   name: 'Checkout',
   render: () => ({
     components: { CheckoutPage, PageFrame, HoldTimerPill },
-    setup: () => ({ cart: packagesHotelCart, summary }),
+    // Split cart → the hotel is its own section (matches the Tickets + Hotel rail).
+    setup: () => ({ cart: packagesHotelCartSplit, summary }),
     template: frame(`
       <checkout-page mode="ticketing" :cart="cart" :summary="summary" />
       <hold-timer-pill :seconds="352" running label="Seats held" sub="Finish before the timer ends" />`),

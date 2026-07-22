@@ -9,9 +9,12 @@ import { computed } from 'vue'
 const props = defineProps({
   title: { type: String, default: 'How many tickets do you need?' },
   subtitle: { type: String, default: 'You will be seated together.' },
+  icon: { type: String, default: 'confirmation_number' }, // header glyph
   max: { type: Number, default: 8 },       // highest quantity shown
   available: { type: Number, default: 6 }, // quantities above this are disabled
   selected: { type: Number, default: null },
+  // Show the highest option as "{max}+" (an open-ended cap, e.g. "8+").
+  capPlus: { type: Boolean, default: false },
   skipLabel: { type: String, default: "Skip, I don't need event tickets" },
   showSkip: { type: Boolean, default: true },
 })
@@ -22,7 +25,7 @@ const options = computed(() => Array.from({ length: props.max }, (_, i) => i + 1
 <template>
   <div class="tqd">
     <header class="tqd__head">
-      <span class="tqd__glyph"><q-icon name="confirmation_number" size="24px" /></span>
+      <span class="tqd__glyph"><q-icon :name="icon" size="24px" /></span>
       <button class="tqd__close" aria-label="Close" @click="emit('close')"><q-icon name="close" size="22px" /></button>
     </header>
 
@@ -34,7 +37,7 @@ const options = computed(() => Array.from({ length: props.max }, (_, i) => i + 1
         v-for="n in options" :key="n" type="button" class="tqd__opt"
         :class="{ 'is-selected': selected === n }" :disabled="n > available"
         @click="emit('select', n)"
-      >{{ n }}</button>
+      >{{ capPlus && n === max ? n + '+' : n }}</button>
     </div>
 
     <footer v-if="showSkip" class="tqd__foot">

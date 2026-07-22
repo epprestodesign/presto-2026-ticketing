@@ -12,13 +12,43 @@ booking**, checkout, and confirmation.
 - **Shape:** uniform **4px** radius system (pills reserved for chips / rounded buttons)
 - **Color system:** Tailwind-based 3-tier tokens (primitives → semantic → Quasar bridge)
 
+## 🎯 The three experiences
+Three primary links, all deployed from this repo. Start here:
+
+### 1 · Storybook — the design system
+**https://epprestodesign.github.io/presto-2026-ticketing/**
+The full **Quasar + Vue 3 design system**: every component, foundation token, and
+experience-flow story — Ticket Map, Package Details, Browse/Hotel Details,
+Checkout, Confirmation, and the App Shell **Stepper**. This is the source of truth
+that both prototypes below are built from (zero forks — they import the live
+library via `@lib`).
+
+### 2 · Hotel + Tickets Journey — clickable prototype
+**https://epprestodesign.github.io/presto-2026-ticketing/experience/**
+A stepper-guided, end-to-end booking journey — **Stays → Tickets → Review**. Leads
+with a landing page, then browse hotels → hotel details → the SeatGeek-style Ticket
+Map (with a "how many tickets?" prompt) → a **Tickets + Hotel** checkout →
+confirmation. Includes a nav cart with a Clear-Cart confirmation, deep-linkable
+steps/sections (`?screen=…&tab=…`), and a "skip tickets → hotel-only checkout"
+path. Source: [`experience/`](experience/).
+
+### 3 · Hotel + Packages Journey — clickable prototype
+**https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/**
+The same guided flow with **experience packages** in place of tickets —
+**Stays → Packages → Review**. Browse hotels → hotel details → Browse Packages →
+Package Details → a **Packages + Hotel** checkout → confirmation. "Select a package"
+deep-links to the Packages tab; "skip → hotel-only checkout" is supported too.
+Source: [`experience-packages/`](experience-packages/).
+
 ## 🔗 Hosted on GitHub Pages
 Everything below deploys automatically on every push to `main`.
 
 | Surface | What it is | Link |
 | --- | --- | --- |
 | **Storybook** | The full design system + experience flows | **https://epprestodesign.github.io/presto-2026-ticketing/** |
-| **Experience Hub** | Landing directory linking the prototypes | https://epprestodesign.github.io/presto-2026-ticketing/hub/ |
+| **Hotel + Tickets Journey** | Stepper-guided **hotel + event tickets** prototype | https://epprestodesign.github.io/presto-2026-ticketing/experience/ |
+| **Hotel + Packages Journey** | Stepper-guided **hotel + experience packages** prototype | https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/ |
+| **Experience Hub** | Landing directory linking every prototype | https://epprestodesign.github.io/presto-2026-ticketing/hub/ |
 | **Booking Journey** | Clickable end-to-end **hotel booking** prototype | https://epprestodesign.github.io/presto-2026-ticketing/prototype/ |
 | **Ticket + Hotel Bundle** | Clickable **ticket + hotel bundle** prototype | https://epprestodesign.github.io/presto-2026-ticketing/bundle/ |
 | **Imagery Library** | Gallery of the hosted stadium + hotel photography | https://epprestodesign.github.io/presto-2026-ticketing/library/ |
@@ -54,6 +84,15 @@ Clickable, end-to-end journeys built entirely from the real library components
 **[Experience Hub](https://epprestodesign.github.io/presto-2026-ticketing/hub/)**
 and from Storybook's **Getting Started → Introduction** page.
 
+- **▶ Hotel + Tickets Journey — https://epprestodesign.github.io/presto-2026-ticketing/experience/**
+  Stepper-guided **Stays → Tickets → Review**: landing → Browse Hotels → Hotel
+  Details → Ticket Map → Tickets + Hotel checkout → confirmation. Nav via each
+  page's own CTAs + a clickable stepper; deep-linkable steps/tabs. Source:
+  [`experience/`](experience/).
+- **▶ Hotel + Packages Journey — https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/**
+  The same flow with **experience packages** — **Stays → Packages → Review**:
+  Browse Packages → Package Details → Packages + Hotel checkout. Source:
+  [`experience-packages/`](experience-packages/).
 - **▶ Booking Journey — https://epprestodesign.github.io/presto-2026-ticketing/prototype/**
   All three modes: **Book Reservation**, **Group Block**, **Multiple
   Reservations**. Search hotels on a live Google map, filter, pick rooms,
