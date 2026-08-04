@@ -182,6 +182,8 @@ const hasHotels = computed(() => props.hotels.length > 0)
 .extra { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
 .extra--on { background: var(--ds-color-surface, #fff); box-shadow: 0 0 0 1px var(--ds-color-border-brand, #0b2545) inset; }
 .extra__price { font-weight: 700; white-space: nowrap; }
+@media (max-width: 860px) {
   .room { grid-template-columns: auto 1fr; }
   .room__img, .room__price { grid-column: 2; text-align: left; }
+}
 </style>
