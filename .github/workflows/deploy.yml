@@ -120,6 +120,18 @@ jobs:
       - name: Nest Option B prototype under Storybook
         run: cp -r option-b/dist storybook-static/option-b
 
+      # Option C — the one-click package grid built from the Aug 4 feedback:
+      # a 6-tile board straight to checkout, no filter rail and no modal → /option-c/.
+      - name: Build Option C prototype (one-click grid)
+        working-directory: option-c
+        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/option-c/
+        env:
+          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
+      - name: Nest Option C prototype under Storybook
+        run: cp -r option-c/dist storybook-static/option-c
+
       # The experience directory / hub landing page → /presto-2026-ticketing/hub/.
       - name: Nest hub directory page
         run: mkdir -p storybook-static/hub && cp hub/index.html storybook-static/hub/index.html

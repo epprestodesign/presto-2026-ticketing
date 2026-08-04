@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { mergeConfig } from 'vite'
 import { quasar } from '@quasar/vite-plugin'
+import remarkGfm from 'remark-gfm'
 
 const quasarVariables = fileURLToPath(
   new URL('../src/css/quasar.variables.scss', import.meta.url)
@@ -18,8 +19,26 @@ const config = {
     // Option B — the v2 prototype. Its components are documented under the
     // "Option B" category; the shared overview doc lives with v1.
     '../option-b/stories/**/*.stories.@(js|jsx|ts|tsx)',
+    // Option C — the one-click grid built from the Aug 4 feedback. It carries its
+    // OWN overview doc (unlike Option B), because what it removes from Option A
+    // is the substance of it and needs explaining next to the components.
+    '../option-c/stories/**/*.mdx',
+    '../option-c/stories/**/*.stories.@(js|jsx|ts|tsx)',
   ],
-  addons: ['@storybook/addon-themes', '@storybook/addon-docs'],
+  addons: [
+    '@storybook/addon-themes',
+    {
+      name: '@storybook/addon-docs',
+      options: {
+        // GitHub-Flavoured Markdown. Without it MDX has no table support, so every
+        // markdown table in every doc rendered as a paragraph of literal `|`
+        // characters — Introduction, Architecture & Conventions, User Journey and
+        // Aug 4 Changes were all affected. Tables are how those pages carry most of
+        // their comparisons, so this is not cosmetic.
+        mdxPluginOptions: { mdxCompileOptions: { remarkPlugins: [remarkGfm] } },
+      },
+    },
+  ],
   // Serve ./public verbatim (mounted at site root) so the imagery gallery under
   // public/library/ deploys to a stable Pages URL: /presto-2026-ticketing/library/.
   staticDirs: ['../public'],
