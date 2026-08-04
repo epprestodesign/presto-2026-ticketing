@@ -15,6 +15,9 @@ const config = {
     // mike-edits-aug-4/ — the app stays self-contained, the library stays clean.
     '../mike-edits-aug-4/stories/**/*.mdx',
     '../mike-edits-aug-4/stories/**/*.stories.@(js|jsx|ts|tsx)',
+    // Option B — the v2 prototype. Its components are documented under the
+    // "Option B" category; the shared overview doc lives with v1.
+    '../option-b/stories/**/*.stories.@(js|jsx|ts|tsx)',
   ],
   addons: ['@storybook/addon-themes', '@storybook/addon-docs'],
   // Serve ./public verbatim (mounted at site root) so the imagery gallery under

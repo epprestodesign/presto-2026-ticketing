@@ -48,7 +48,8 @@ Everything below deploys automatically on every push to `main`.
 | **Storybook** | The full design system + experience flows | **https://epprestodesign.github.io/presto-2026-ticketing/** |
 | **Hotel + Tickets Journey** | Stepper-guided **hotel + event tickets** prototype | https://epprestodesign.github.io/presto-2026-ticketing/experience/ |
 | **Hotel + Packages Journey** | Stepper-guided **hotel + experience packages** prototype | https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/ |
-| **Mike Edits Aug 4** | Working copy of the Hotel + Packages journey (forked 2026-08-04) | https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/ |
+| **Aug 4 - Option A** | Working copy of the Hotel + Packages journey (forked 2026-08-04) | https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/ |
+| **Aug 4 - Option B** | The v2 take on that journey — hotel-first flow | https://epprestodesign.github.io/presto-2026-ticketing/option-b/ |
 | **Aug 4 Changes (docs)** | Storybook category documenting every component in that prototype | https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs |
 | **Experience Hub** | Landing directory linking every prototype | https://epprestodesign.github.io/presto-2026-ticketing/hub/ |
 | **Booking Journey** | Clickable end-to-end **hotel booking** prototype | https://epprestodesign.github.io/presto-2026-ticketing/prototype/ |
@@ -58,7 +59,7 @@ Everything below deploys automatically on every push to `main`.
 
 ## 📚 Aug 4 Changes — documented in Storybook
 
-Every component built for the **Mike Edits Aug 4** prototype is documented in its own
+Every component built for the **Aug 4** prototypes (Option A and Option B) is documented in its own
 Storybook category, with an overview doc covering the flow, the live pricing model and
 how the prototype overrides library components without editing them.
 
@@ -116,7 +117,7 @@ and from Storybook's **Getting Started → Introduction** page.
   The same flow with **experience packages** — **Stays → Packages → Review**:
   Browse Packages → Package Details → Packages + Hotel checkout. Source:
   [`experience-packages/`](experience-packages/).
-- **▶ Mike Edits Aug 4 — https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/**
+- **▶ Aug 4 - Option A — https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/**
   A duplicate of the Hotel + Packages journey, forked **2026-08-04** as a sandbox
   for Mike's edits; starts identical and diverges from there, leaving the original
   untouched. Source: [`mike-edits-aug-4/`](mike-edits-aug-4/).

@@ -1,7 +1,11 @@
-# Aug 4 - Option A — Hotel + Packages journey (working copy)
+# Aug 4 - Option B — Hotel-first journey (v2 working copy)
 
-A **duplicate of [`/experience-packages`](../experience-packages)** forked on
-**August 4, 2026** as a sandbox for Mike's edits. Identical starting point — the same
+A **duplicate of [`/mike-edits-aug-4`](../mike-edits-aug-4)**, taken on
+**August 4, 2026** to carry a round of feedback as a second option. It starts as an
+exact copy of v1 and diverges from there, so the two can be compared side by side —
+v1 on port **6400**, this one on **6500**.
+
+Its ancestor is [`/experience-packages`](../experience-packages). Identical starting point — the same
 stepper-guided, end-to-end clickable prototype pairing a **hotel** stay with an
 **experience package** — but it evolves independently, so changes here never touch
 the original. Like [`/prototype`](../prototype) and [`/bundle`](../bundle), it's a
@@ -9,12 +13,13 @@ self-contained Vite app importing the **real library components** via the `@lib`
 alias — nothing is copied or forked from the library, no library changes.
 
 Deployed as a Storybook sub-page at
-`https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/`
-(local dev on port **6400**).
+`https://epprestodesign.github.io/presto-2026-ticketing/option-b/`
+(local dev on port **6500**).
 
 ## Documented in Storybook
 
-Every component here is documented under the **Aug 4 Changes** category:
+Every component here is documented under the **Option B** category; the shared
+overview for both v1 and v2 lives in the **Aug 4 Changes / Overview** doc:
 
 **▶ https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs**
 
@@ -154,9 +159,9 @@ to Landing.
 
 ```bash
 # from the repo root (deps already installed there)
-cd mike-edits-aug-4
-node ../node_modules/vite/bin/vite.js --port 6400
-# → http://localhost:6400
+cd option-b
+node ../node_modules/vite/bin/vite.js --port 6500
+# → http://localhost:6500
 ```
 
 Deep-link any screen for demos/screenshots:

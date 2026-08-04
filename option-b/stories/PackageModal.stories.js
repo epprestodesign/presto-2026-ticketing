@@ -1,4 +1,4 @@
-// Aug 4 Changes / Option A / Package Details / Package Modal
+// Aug 4 Changes / Option B / Package Details / Package Modal
 //
 // The full-screen sheet that replaced the Package Details PAGE. Two columns: the
 // package and its booking summary on the left, every choice on the right.
@@ -7,7 +7,7 @@ import { PACKAGES, packageNames, byName, pkgOnly, pkgSoldOut } from './_fixtures
 import { journey } from '../src/store.js'
 
 const meta = {
-  title: 'Aug 4 Changes/Option A/Package Details/Package Modal',
+  title: 'Aug 4 Changes/Option B/Package Details/Package Modal',
   component: PackageQuickViewDialog,
   parameters: {
     layout: 'fullscreen',

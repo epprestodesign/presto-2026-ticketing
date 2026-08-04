@@ -56,7 +56,15 @@ const stepPhoto = (d) => {
 }
 
 // --- Hotels & rooms -----------------------------------------------------------
-const hotelOptions = computed(() => hotelOptionsFor(p.value))
+// Option B: the hotel is chosen in step 2, so the modal narrows to THAT hotel and
+// gets on with the room choice instead of re-offering the whole list. Without a
+// step-2 choice (a cold deep link) it falls back to all of the package's hotels.
+const all = computed(() => hotelOptionsFor(p.value))
+const hotelOptions = computed(() => {
+  const picked = all.value.find((h) => h.id === journey.hotelId)
+  return picked ? [picked] : all.value
+})
+const lockedHotel = computed(() => (all.value.find((h) => h.id === journey.hotelId) ? hotelOptions.value[0] : null))
 const hasStay = computed(() => hotelOptions.value.length > 0)
 
 // Which hotel's rooms are expanded. Defaults to the package's own hotel.
@@ -66,15 +74,22 @@ const activeHotel = computed(
         hotelOptions.value.find((h) => h.included) || hotelOptions.value[0] || null
 )
 watch(activeHotel, (h) => { if (h && !openHotelId.value) openHotelId.value = h.id }, { immediate: true })
+// A locked hotel stays open — collapsing it would hide the only room list.
+watch(lockedHotel, (h) => { if (h) openHotelId.value = h.id }, { immediate: true })
 
 const rooms = computed(() => (activeHotel.value ? roomsFor(activeHotel.value, p.value.nights || 1) : []))
 const room = computed(() => resolveRoomType(rooms.value, journey.roomTypeId))
 const extra = computed(() => ROOM_EXTRAS.find((e) => e.id === journey.extraId) || ROOM_EXTRAS[0])
 
 const toggleHotel = (h) => {
+  // A locked hotel can't be collapsed — its rooms are the point of this section.
+  if (lockedHotel.value) { setRoom(h.id); return }
   openHotelId.value = openHotelId.value === h.id ? null : h.id
   setRoom(h.id)
 }
+
+/** Back to step 2 to pick a different hotel. */
+const changeHotel = () => { emit('close'); nav('hotels') }
 const chooseRoom = (r) => { setRoom(r.hotelId); setRoomType(r.typeId) }
 
 // Party size vs. what the room sleeps — a nudge, not a blocker.
@@ -159,7 +174,8 @@ onUnmounted(closePackage)
             </div>
             <div v-if="hasStay" class="pqv__gitem">
               <q-icon name="hotel" size="24px" />
-              <span>{{ nights }} night{{ nights === 1 ? '' : 's' }} · {{ hotelOptions.length }} hotels</span>
+              <span v-if="lockedHotel">{{ nights }} night{{ nights === 1 ? '' : 's' }} · {{ lockedHotel.name }}</span>
+              <span v-else>{{ nights }} night{{ nights === 1 ? '' : 's' }} · {{ hotelOptions.length }} hotels</span>
             </div>
             <div v-for="e in (p.experiences || [])" :key="e.label || e" class="pqv__gitem">
               <q-icon :name="e.icon || 'auto_awesome'" size="24px" />
@@ -190,12 +206,19 @@ onUnmounted(closePackage)
              with no stay simply starts at the tier picker. -->
         <div class="pqv__col pqv__col--stay">
           <HotelRoomPicker
+            :title="lockedHotel ? 'Choose your room' : 'Choose your hotel & room'"
+            :subtitle="lockedHotel ? `Your stay at ${lockedHotel.name} is included with this package — pick the room you want.` : ''"
+
             v-if="hasStay"
             :hotels="hotelOptions" :nights="nights" :guests="guests"
             :open-hotel-id="openHotelId" :room-type-id="journey.roomTypeId" :extra-id="journey.extraId"
             @toggle-hotel="toggleHotel" @choose-room="chooseRoom"
             @open-hotel="openHotelInNewTab" @set-extra="setExtra"
-          />
+          >
+            <template #sub-action>
+              <button v-if="lockedHotel" type="button" class="pqv__changehotel" @click="changeHotel">Change hotel</button>
+            </template>
+          </HotelRoomPicker>
 
           <TierPicker
             :model-value="tier.id" :guests="guests"

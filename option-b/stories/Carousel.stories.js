@@ -1,9 +1,9 @@
-// Aug 4 Changes / Option A / Foundations / Carousel
+// Aug 4 Changes / Option B / Foundations / Carousel
 import Carousel from '../src/components/Carousel.vue'
 import { canvas } from './_fixtures.js'
 
 const meta = {
-  title: 'Aug 4 Changes/Option A/Foundations/Carousel',
+  title: 'Aug 4 Changes/Option B/Foundations/Carousel',
   component: Carousel,
   decorators: [canvas('620px')],
   parameters: {

@@ -4,8 +4,12 @@ import { Meta } from '@storybook/addon-docs/blocks'
 
 # Aug 4 Changes
 
-Everything on this page belongs to the **Mike Edits Aug 4** prototype — a working
-copy of the Hotel + Packages experience, forked on **August 4, 2026**.
+The single overview for the **August 4 prototype work**. Two versions are in play —
+**Aug 4 - Option A** and **Aug 4 - Option B**, a duplicate carrying a round of
+feedback — and everything about both is documented on this page. Component stories sit under **Option A** and **Option B** in this same category.
+
+Both are working copies of the Hotel + Packages experience, forked on
+**August 4, 2026**; neither modifies the design system.
 
 <div style={{
   display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center',
@@ -29,12 +33,19 @@ copy of the Hotel + Packages experience, forked on **August 4, 2026**.
   >Live prototype ↗</a>
 </div>
 
-| | |
-| --- | --- |
-| **Live** | https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/ |
-| **Local dev** | http://localhost:6400 — `cd mike-edits-aug-4 && node ../node_modules/vite/bin/vite.js --port 6400` |
-| **Source** | `mike-edits-aug-4/` |
-| **Forked from** | [`/experience-packages`](https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/) |
+### The two versions
+
+| | Aug 4 - Option A | Aug 4 - Option B |
+| --- | --- | --- |
+| **Live** | [/mike-edits-aug-4/](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/) | [/option-b/](https://epprestodesign.github.io/presto-2026-ticketing/option-b/) |
+| **Local dev** | http://localhost:6400 | http://localhost:6500 |
+| **Source** | `mike-edits-aug-4/` | `option-b/` |
+| **Stories** | *Aug 4 Changes / Option A* | *Aug 4 Changes / Option B* |
+| **Status** | the Aug 4 build | duplicate of v1, carrying feedback |
+
+Both forked from
+[`/experience-packages`](https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/).
+Run either with `cd <folder> && node ../node_modules/vite/bin/vite.js --port <port>`.
 
 **Deep links into the published prototype:**
 [Landing](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=landing) ·
@@ -98,6 +109,8 @@ rendering the wrong thing.
 
 ## What's documented here
 
+**Option A** and **Option B** each carry the same set:
+
 - **Package Details** — the modal and every block inside it, plus the browse row.
 - **Booking Widget** — the forked widget (Guests dropdown, gameday dates).
-- **Foundations** — the reusable carousel the prototype uses in three places.
+- **Foundations** — the reusable carousel used in three places.
