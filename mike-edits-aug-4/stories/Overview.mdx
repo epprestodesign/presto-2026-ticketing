@@ -1,0 +1,103 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Aug 4 Changes/Overview" />
+
+# Aug 4 Changes
+
+Everything on this page belongs to the **Mike Edits Aug 4** prototype — a working
+copy of the Hotel + Packages experience, forked on **August 4, 2026**.
+
+<div style={{
+  display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center',
+  margin: '24px 0 32px', padding: '20px 24px', borderRadius: '12px',
+  background: 'var(--ds-color-surface-sunken, #f1f2f4)',
+}}>
+  <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+    <strong style={{ display: 'block', fontSize: '1.0625rem' }}>▶ Open the prototype</strong>
+    <span style={{ color: 'var(--ds-color-text-subtle, #5b6472)' }}>
+      The full click-through: Landing → Packages → package modal → Checkout.
+    </span>
+  </div>
+  <a
+    href="https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/"
+    target="_blank" rel="noreferrer"
+    style={{
+      display: 'inline-block', padding: '12px 22px', borderRadius: '8px',
+      background: 'var(--ds-color-background-brand-bold, #0b2545)', color: '#fff',
+      fontWeight: 700, textDecoration: 'none',
+    }}
+  >Live prototype ↗</a>
+</div>
+
+| | |
+| --- | --- |
+| **Live** | https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/ |
+| **Local dev** | http://localhost:6400 — `cd mike-edits-aug-4 && node ../node_modules/vite/bin/vite.js --port 6400` |
+| **Source** | `mike-edits-aug-4/` |
+| **Forked from** | [`/experience-packages`](https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/) |
+
+**Deep links into the published prototype:**
+[Landing](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=landing) ·
+[Browse Packages](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=packages) ·
+[Package modal](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=packages&pkg=grid-0-legends-tour) ·
+[Checkout](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=checkout) ·
+[Confirmation](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=confirmation)
+
+These components live in the prototype, **not** in the design system. Storybook
+documents them here so the work is reviewable in one place before any of it is
+promoted into `src/`.
+
+## What changed
+
+**The event.** Pittsburgh Steelers at New England Patriots · Sun, Sep 20, 2026 ·
+1:00 PM · Gillette Stadium, replacing the library's Patriots v Bills sample
+throughout — hero imagery, browse headers, packages, checkout and confirmation.
+
+**The flow.** Packages now lead, and the Package Details *page* is gone:
+
+```
+Landing ──▶ Browse Packages ──▶ [package modal] ──▶ Checkout ──▶ Confirmation
+                                      │
+                                      └─▶ Hotel Details (new tab, read-only)
+```
+
+The stepper is two stages, **Packages · Review**. Browse Hotels and Hotel Details
+sit outside the journey — Hotel Details opens in its own tab as an informational
+reference with every booking CTA suppressed.
+
+**Two shapes of package.** Of nine SKUs, five include a stay and four are
+package-only. A row shows its rooms line only when there is one.
+
+## Live pricing
+
+Nothing about a package is fixed any more. Tier, party size, hotel, room type and
+paid extras all re-price it, following the library's own convention:
+
+```
+components = tier.price × guests  +  room.nightly × nights  +  experience value
+package    = round(components × (1 − bundle discount rate))
+total      = package + paid extras          ← add-ons sit outside the bundle
+```
+
+So *Legends Stadium Tour* is **$604** in Upper Level for two, **$1,074** in Club
+Level for two, and **$2,929** in Club Level for eight. The same numbers flow to the
+cart, checkout and confirmation.
+
+## How the library stays untouched
+
+The prototype never edits `src/`. Two mechanisms in `mike-edits-aug-4/vite.config.js`
+do the work, in this app's build only:
+
+| Mechanism | Used for |
+| --- | --- |
+| **`resolveId` overrides** | Redirect a library file to a local fork wherever it's imported — `BookingWidget`, `PackageResultCard`, `PackageQuickViewDialog`, and the shared hero image. |
+| **Source patches** | Surgical find/replace on read, for the handful of spots that aren't prop-driven: the Browse Hotels event header, the "Who's Attending?" heading, two-way Guests on the packages page, `maximized` + slide-up on the dialog, and a scroll-snap fix in the room carousel. |
+
+A patch that no longer matches **fails the build loudly** rather than silently
+rendering the wrong thing.
+
+## What's documented here
+
+- **Package Details** — the modal and every block inside it, plus the browse row.
+- **Booking Widget** — the forked widget (Guests dropdown, gameday dates).
+- **Foundations** — the reusable carousel the prototype uses in three places.

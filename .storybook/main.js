@@ -11,6 +11,10 @@ const config = {
   stories: [
     '../src/**/*.mdx',
     '../src/**/*.stories.@(js|jsx|ts|tsx)',
+    // The "Aug 4 Changes" prototype documents its own components from inside
+    // mike-edits-aug-4/ — the app stays self-contained, the library stays clean.
+    '../mike-edits-aug-4/stories/**/*.mdx',
+    '../mike-edits-aug-4/stories/**/*.stories.@(js|jsx|ts|tsx)',
   ],
   addons: ['@storybook/addon-themes', '@storybook/addon-docs'],
   // Serve ./public verbatim (mounted at site root) so the imagery gallery under
@@ -28,6 +32,13 @@ const config = {
     // existing Vue plugin and slots in after it.
     return mergeConfig(baseConfig, {
       plugins: [quasar({ sassVariables: quasarVariables })],
+      resolve: {
+        alias: {
+          // The Aug 4 prototype's components import library code via `@lib`,
+          // the same alias its own vite.config.js defines.
+          '@lib': fileURLToPath(new URL('../src', import.meta.url)),
+        },
+      },
     })
   },
 }
