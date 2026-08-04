@@ -1,5 +1,5 @@
 <script setup>
-// PackageResultCard — FORK for the "Mike Edits Aug 4" prototype.
+// PackageResultCard — FORK for the "Aug 4 — Option B" prototype.
 //
 // Same props/emits as the library card, rebuilt to the Browse Hotels **group
 // card** layout: photo left, then ONE content region — stacked details (name,

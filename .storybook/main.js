@@ -12,9 +12,9 @@ const config = {
     '../src/**/*.mdx',
     '../src/**/*.stories.@(js|jsx|ts|tsx)',
     // The "Aug 4 Changes" prototype documents its own components from inside
-    // mike-edits-aug-4/ — the app stays self-contained, the library stays clean.
-    '../mike-edits-aug-4/stories/**/*.mdx',
-    '../mike-edits-aug-4/stories/**/*.stories.@(js|jsx|ts|tsx)',
+    // option-a/ — the app stays self-contained, the library stays clean.
+    '../option-a/stories/**/*.mdx',
+    '../option-a/stories/**/*.stories.@(js|jsx|ts|tsx)',
     // Option B — the v2 prototype. Its components are documented under the
     // "Option B" category; the shared overview doc lives with v1.
     '../option-b/stories/**/*.stories.@(js|jsx|ts|tsx)',

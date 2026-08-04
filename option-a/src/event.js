@@ -1,4 +1,4 @@
-// The canonical event for this prototype — Mike Edits Aug 4.
+// The canonical event for this prototype — Aug 4 Option A.
 //
 // The library ships with "New England Patriots v Buffalo Bills · Sat, Dec 6, 2026"
 // as its sample event, hardcoded or defaulted in a dozen places. This app pins a

@@ -23,7 +23,7 @@ Both are working copies of the Hotel + Packages experience, forked on
     </span>
   </div>
   <a
-    href="https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/"
+    href="https://epprestodesign.github.io/presto-2026-ticketing/option-a/"
     target="_blank" rel="noreferrer"
     style={{
       display: 'inline-block', padding: '12px 22px', borderRadius: '8px',
@@ -37,9 +37,9 @@ Both are working copies of the Hotel + Packages experience, forked on
 
 | | Aug 4 - Option A | Aug 4 - Option B |
 | --- | --- | --- |
-| **Live** | [/mike-edits-aug-4/](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/) | [/option-b/](https://epprestodesign.github.io/presto-2026-ticketing/option-b/) |
+| **Live** | [/option-a/](https://epprestodesign.github.io/presto-2026-ticketing/option-a/) | [/option-b/](https://epprestodesign.github.io/presto-2026-ticketing/option-b/) |
 | **Local dev** | http://localhost:6400 | http://localhost:6500 |
-| **Source** | `mike-edits-aug-4/` | `option-b/` |
+| **Source** | `option-a/` | `option-b/` |
 | **Stories** | *Aug 4 Changes / Option A* | *Aug 4 Changes / Option B* |
 | **Status** | the Aug 4 build | duplicate of v1, carrying feedback |
 
@@ -48,11 +48,11 @@ Both forked from
 Run either with `cd <folder> && node ../node_modules/vite/bin/vite.js --port <port>`.
 
 **Deep links into the published prototype:**
-[Landing](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=landing) ·
-[Browse Packages](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=packages) ·
-[Package modal](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=packages&pkg=grid-0-legends-tour) ·
-[Checkout](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=checkout) ·
-[Confirmation](https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/?screen=confirmation)
+[Landing](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=landing) ·
+[Browse Packages](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=packages) ·
+[Package modal](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=packages&pkg=grid-0-legends-tour) ·
+[Checkout](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=checkout) ·
+[Confirmation](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=confirmation)
 
 These components live in the prototype, **not** in the design system. Storybook
 documents them here so the work is reviewable in one place before any of it is
@@ -96,7 +96,7 @@ cart, checkout and confirmation.
 
 ## How the library stays untouched
 
-The prototype never edits `src/`. Two mechanisms in `mike-edits-aug-4/vite.config.js`
+The prototype never edits `src/`. Two mechanisms in `option-a/vite.config.js`
 do the work, in this app's build only:
 
 | Mechanism | Used for |

@@ -1,6 +1,6 @@
 # Aug 4 - Option B — Hotel-first journey (v2 working copy)
 
-A **duplicate of [`/mike-edits-aug-4`](../mike-edits-aug-4)**, taken on
+A **duplicate of [`/option-a`](../option-a)**, taken on
 **August 4, 2026** to carry a round of feedback as a second option. It starts as an
 exact copy of v1 and diverges from there, so the two can be compared side by side —
 v1 on port **6400**, this one on **6500**.
