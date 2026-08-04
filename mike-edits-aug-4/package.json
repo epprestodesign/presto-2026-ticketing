@@ -1,0 +1,11 @@
+{
+  "name": "presto-mike-edits-aug-4",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 6400 --host",
+    "build": "vite build",
+    "preview": "vite preview --port 6400"
+  }
+}

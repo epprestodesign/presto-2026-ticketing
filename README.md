@@ -48,11 +48,34 @@ Everything below deploys automatically on every push to `main`.
 | **Storybook** | The full design system + experience flows | **https://epprestodesign.github.io/presto-2026-ticketing/** |
 | **Hotel + Tickets Journey** | Stepper-guided **hotel + event tickets** prototype | https://epprestodesign.github.io/presto-2026-ticketing/experience/ |
 | **Hotel + Packages Journey** | Stepper-guided **hotel + experience packages** prototype | https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/ |
+| **Mike Edits Aug 4** | Working copy of the Hotel + Packages journey (forked 2026-08-04) | https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/ |
+| **Aug 4 Changes (docs)** | Storybook category documenting every component in that prototype | https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs |
 | **Experience Hub** | Landing directory linking every prototype | https://epprestodesign.github.io/presto-2026-ticketing/hub/ |
 | **Booking Journey** | Clickable end-to-end **hotel booking** prototype | https://epprestodesign.github.io/presto-2026-ticketing/prototype/ |
 | **Ticket + Hotel Bundle** | Clickable **ticket + hotel bundle** prototype | https://epprestodesign.github.io/presto-2026-ticketing/bundle/ |
 | **Imagery Library** | Gallery of the hosted stadium + hotel photography | https://epprestodesign.github.io/presto-2026-ticketing/library/ |
 | **Imagery Host** | Separate Pages repo serving the runtime image manifest | https://epprestodesign.github.io/presto-ds-imagery/ |
+
+## 📚 Aug 4 Changes — documented in Storybook
+
+Every component built for the **Mike Edits Aug 4** prototype is documented in its own
+Storybook category, with an overview doc covering the flow, the live pricing model and
+how the prototype overrides library components without editing them.
+
+**▶ https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs**
+
+| Story | What it documents |
+| --- | --- |
+| [Overview](https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs) | What changed, the packages-first flow, the pricing formula, the override/patch mechanism, and a link to the live prototype |
+| [Package Details / Package Modal](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-package-modal--playground) | The full-screen two-column sheet that replaced the Package Details page |
+| [Package Details / Package Result Card](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-package-result-card--playground) | The Browse Packages row + inline hotel-availability panel |
+| [Package Details / Tier Picker](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-tier-picker--playground) | Ticket tiers with per-ticket and party pricing |
+| [Package Details / Hotel &amp; Room Selection](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-hotel-room-selection--playground) | The package's hotels, their room types, amenities and paid extras |
+| [Package Details / Booking Summary](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-booking-summary--playground) | Party size, line items, bundle savings, total and Reserve |
+| [Package Details / Hotel Availability](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-hotel-availability--playground) | The hotel carousel inside a package row |
+| [Package Details / Detail Blocks](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-detail-blocks--inclusions) | Itemised inclusions, gameday timeline, policy accordion |
+| [Booking Widget](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-booking-widget--guests-dropdown) | The forked widget — Guests dropdown, gameday dates — beside the library original |
+| [Foundations / Carousel](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-foundations-carousel--overflowing) | The reusable scroll-snap track used in three places |
 
 ## What's new
 
@@ -93,6 +116,10 @@ and from Storybook's **Getting Started → Introduction** page.
   The same flow with **experience packages** — **Stays → Packages → Review**:
   Browse Packages → Package Details → Packages + Hotel checkout. Source:
   [`experience-packages/`](experience-packages/).
+- **▶ Mike Edits Aug 4 — https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/**
+  A duplicate of the Hotel + Packages journey, forked **2026-08-04** as a sandbox
+  for Mike's edits; starts identical and diverges from there, leaving the original
+  untouched. Source: [`mike-edits-aug-4/`](mike-edits-aug-4/).
 - **▶ Booking Journey — https://epprestodesign.github.io/presto-2026-ticketing/prototype/**
   All three modes: **Book Reservation**, **Group Block**, **Multiple
   Reservations**. Search hotels on a live Google map, filter, pick rooms,
