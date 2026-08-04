@@ -12,25 +12,28 @@ Both are working copies of the Hotel + Packages experience, forked on
 **August 4, 2026**; neither modifies the design system.
 
 <div style={{
-  display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center',
-  margin: '24px 0 32px', padding: '20px 24px', borderRadius: '12px',
-  background: 'var(--ds-color-surface-sunken, #f1f2f4)',
+  display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px',
+  margin: '24px 0 28px',
 }}>
-  <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-    <strong style={{ display: 'block', fontSize: '1.0625rem' }}>▶ Open the prototype</strong>
-    <span style={{ color: 'var(--ds-color-text-subtle, #5b6472)' }}>
-      The full click-through: Landing → Packages → package modal → Checkout.
-    </span>
-  </div>
-  <a
-    href="https://epprestodesign.github.io/presto-2026-ticketing/option-a/"
-    target="_blank" rel="noreferrer"
-    style={{
-      display: 'inline-block', padding: '12px 22px', borderRadius: '8px',
-      background: 'var(--ds-color-background-brand-bold, #0b2545)', color: '#fff',
-      fontWeight: 700, textDecoration: 'none',
-    }}
-  >Live prototype ↗</a>
+  <a href="https://epprestodesign.github.io/presto-2026-ticketing/option-a/" target="_blank" rel="noreferrer"
+     style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #0F766E, #01113E)', color: '#fff', borderRadius: '12px', padding: '20px 22px', textDecoration: 'none', minHeight: '150px' }}>
+    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8 }}>Option A</div>
+    <div style={{ fontSize: '1.125rem', fontWeight: 800, marginTop: '4px', color: '#fff' }}>Packages first</div>
+    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>
+      Landing → Browse Packages → the full-screen package modal (tier · hotel · room · extras) → checkout.
+    </div>
+    <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
+  </a>
+
+  <a href="https://epprestodesign.github.io/presto-2026-ticketing/option-b/" target="_blank" rel="noreferrer"
+     style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #0F766E, #01113E)', color: '#fff', borderRadius: '12px', padding: '20px 22px', textDecoration: 'none', minHeight: '150px' }}>
+    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8 }}>Option B</div>
+    <div style={{ fontSize: '1.125rem', fontWeight: 800, marginTop: '4px', color: '#fff' }}>Hotel first</div>
+    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>
+      RSVP → two hotels → packages at that hotel, its room, or skip the stay. Three paths, one checkout.
+    </div>
+    <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
+  </a>
 </div>
 
 ### The two versions
@@ -47,12 +50,20 @@ Both forked from
 [`/experience-packages`](https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/).
 Run either with `cd <folder> && node ../node_modules/vite/bin/vite.js --port <port>`.
 
-**Deep links into the published prototype:**
+**Deep links — Option A (packages first):**
 [Landing](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=landing) ·
 [Browse Packages](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=packages) ·
 [Package modal](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=packages&pkg=grid-0-legends-tour) ·
 [Checkout](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=checkout) ·
 [Confirmation](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=confirmation)
+
+**Deep links — Option B (hotel first):**
+[Landing](https://epprestodesign.github.io/presto-2026-ticketing/option-b/?screen=landing) ·
+[Hotel selection](https://epprestodesign.github.io/presto-2026-ticketing/option-b/?screen=hotels) ·
+[Packages at a hotel](https://epprestodesign.github.io/presto-2026-ticketing/option-b/?screen=packages&hotelId=courtyard&room=courtyard) ·
+[Skip the hotel](https://epprestodesign.github.io/presto-2026-ticketing/option-b/?screen=packages&noHotel=1) ·
+[Hotel details](https://epprestodesign.github.io/presto-2026-ticketing/option-b/?screen=hotelDetails&hotelId=westin) ·
+[Checkout](https://epprestodesign.github.io/presto-2026-ticketing/option-b/?screen=checkout)
 
 These components live in the prototype, **not** in the design system. Storybook
 documents them here so the work is reviewable in one place before any of it is
@@ -64,7 +75,10 @@ promoted into `src/`.
 1:00 PM · Gillette Stadium, replacing the library's Patriots v Bills sample
 throughout — hero imagery, browse headers, packages, checkout and confirmation.
 
-**The flow.** Packages now lead, and the Package Details *page* is gone:
+**The flow.** Both versions drop the Package Details *page* — everything about a
+package lives in a full-screen modal. Where they differ is what you decide first.
+
+**Option A — packages first:**
 
 ```
 Landing ──▶ Browse Packages ──▶ [package modal] ──▶ Checkout ──▶ Confirmation
@@ -72,9 +86,22 @@ Landing ──▶ Browse Packages ──▶ [package modal] ──▶ Checkout �
                                       └─▶ Hotel Details (new tab, read-only)
 ```
 
-The stepper is two stages, **Packages · Review**. Browse Hotels and Hotel Details
-sit outside the journey — Hotel Details opens in its own tab as an informational
-reference with every booking CTA suppressed.
+Stepper: **Packages · Review**. Browse Hotels sits outside the journey; Hotel
+Details opens in a new tab as a read-only reference with every booking CTA
+suppressed.
+
+**Option B — hotel first:**
+
+```
+                    ┌─ Select a package ─▶ Packages (scoped to that hotel) ─┐
+RSVP ──▶ Hotels ────┼─ hotel NAME ───────▶ Hotel Details (one room) ────────┼─▶ Checkout ──▶ Confirmation
+                    └─ Skip / no hotel ──▶ Packages (tickets only) ─────────┘
+```
+
+Stepper: **Hotel · Package · Book**. Step 2 uses the Browse Hotels results layout
+trimmed to the two hotels this event holds, with a compact event bar in place of
+the page hero so both cards clear the fold.
+
 
 **Two shapes of package.** Of nine SKUs, five include a stay and four are
 package-only. A row shows its rooms line only when there is one.

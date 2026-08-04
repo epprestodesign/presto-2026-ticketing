@@ -12,6 +12,24 @@ booking**, checkout, and confirmation.
 - **Shape:** uniform **4px** radius system (pills reserved for chips / rounded buttons)
 - **Color system:** Tailwind-based 3-tier tokens (primitives → semantic → Quasar bridge)
 
+## 🎯 Start here
+The primary links, all deployed from this repo.
+
+### ⭐ Aug 4 — Option A & Option B
+The current work: two takes on the same brief, built side by side so they can be
+compared. Both drop the Package Details page for a full-screen package modal with
+live pricing, and neither modifies the design system.
+
+| | Flow | Live |
+| --- | --- | --- |
+| **Option A** — packages first | Landing → Browse Packages → package modal → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-a/** |
+| **Option B** — hotel first | RSVP → two hotels → package *or* room *or* skip the stay → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-b/** |
+
+Every component behind both is documented in Storybook under **Aug 4 Changes**:
+**https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs**
+
+Source: [`option-a/`](option-a/) · [`option-b/`](option-b/)
+
 ## 🎯 The three experiences
 Three primary links, all deployed from this repo. Start here:
 
@@ -118,9 +136,13 @@ and from Storybook's **Getting Started → Introduction** page.
   Browse Packages → Package Details → Packages + Hotel checkout. Source:
   [`experience-packages/`](experience-packages/).
 - **▶ Aug 4 - Option A — https://epprestodesign.github.io/presto-2026-ticketing/option-a/**
-  A duplicate of the Hotel + Packages journey, forked **2026-08-04** as a sandbox
-  for Mike's edits; starts identical and diverges from there, leaving the original
-  untouched. Source: [`option-a/`](option-a/).
+  **Packages first.** Landing → Browse Packages → a full-screen package modal
+  (ticket tier · hotel · room · paid extras, all re-pricing live) → checkout.
+  Source: [`option-a/`](option-a/).
+- **▶ Aug 4 - Option B — https://epprestodesign.github.io/presto-2026-ticketing/option-b/**
+  **Hotel first.** RSVP → two hotels → either packages scoped to that hotel, its
+  own room on the details page, or skip the stay for tickets-only packages. All
+  three paths converge on the same checkout. Source: [`option-b/`](option-b/).
 - **▶ Booking Journey — https://epprestodesign.github.io/presto-2026-ticketing/prototype/**
   All three modes: **Book Reservation**, **Group Block**, **Multiple
   Reservations**. Search hotels on a live Google map, filter, pick rooms,
