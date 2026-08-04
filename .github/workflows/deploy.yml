@@ -108,6 +108,18 @@ jobs:
       - name: Nest Mike Edits Aug 4 prototype under Storybook
         run: cp -r mike-edits-aug-4/dist storybook-static/mike-edits-aug-4
 
+      # Option B — the v2 prototype, a duplicate of Mike Edits Aug 4 carrying a
+      # round of feedback → /option-b/.
+      - name: Build Option B prototype (v2)
+        working-directory: option-b
+        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/option-b/
+        env:
+          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
+      - name: Nest Option B prototype under Storybook
+        run: cp -r option-b/dist storybook-static/option-b
+
       # The experience directory / hub landing page → /presto-2026-ticketing/hub/.
       - name: Nest hub directory page
         run: mkdir -p storybook-static/hub && cp hub/index.html storybook-static/hub/index.html

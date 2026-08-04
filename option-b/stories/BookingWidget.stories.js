@@ -1,10 +1,10 @@
-// Aug 4 Changes / Option A / Booking Widget
+// Aug 4 Changes / Option B / Booking Widget
 import BookingWidget from '../src/components/BookingWidget.vue'
 import LibraryBookingWidget from '@lib/components/BookingWidget.vue'
 import { canvas } from './_fixtures.js'
 
 const meta = {
-  title: 'Aug 4 Changes/Option A/Booking Widget',
+  title: 'Aug 4 Changes/Option B/Booking Widget',
   component: BookingWidget,
   decorators: [canvas('1100px')],
   parameters: {

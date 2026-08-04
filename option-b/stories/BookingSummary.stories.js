@@ -1,10 +1,10 @@
-// Aug 4 Changes / Option A / Package Details / Booking Summary
+// Aug 4 Changes / Option B / Package Details / Booking Summary
 import BookingSummary from '../src/components/package/BookingSummary.vue'
 import { pkgWithHotel, pkgOnly, hotels, rooms, price, TIERS, ROOM_EXTRAS, canvas } from './_fixtures.js'
 import { STAY_LABEL } from '../src/event.js'
 
 const meta = {
-  title: 'Aug 4 Changes/Option A/Package Details/Booking Summary',
+  title: 'Aug 4 Changes/Option B/Package Details/Booking Summary',
   component: BookingSummary,
   decorators: [canvas('420px')],
   parameters: {

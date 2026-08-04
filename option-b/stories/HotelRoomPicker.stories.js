@@ -1,10 +1,10 @@
-// Aug 4 Changes / Option A / Package Details / Hotel & Room Selection
+// Aug 4 Changes / Option B / Package Details / Hotel & Room Selection
 import { ref } from 'vue'
 import HotelRoomPicker from '../src/components/package/HotelRoomPicker.vue'
 import { hotels, ROOM_EXTRAS, canvas } from './_fixtures.js'
 
 const meta = {
-  title: 'Aug 4 Changes/Option A/Package Details/Hotel & Room Selection',
+  title: 'Aug 4 Changes/Option B/Package Details/Hotel & Room Selection',
   component: HotelRoomPicker,
   decorators: [canvas('760px')],
   parameters: {

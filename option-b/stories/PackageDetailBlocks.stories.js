@@ -1,4 +1,4 @@
-// Aug 4 Changes / Option A / Package Details / Inclusions · Timeline · Policies
+// Aug 4 Changes / Option B / Package Details / Inclusions · Timeline · Policies
 //
 // The three written blocks that fill out the right column — they're what lets a
 // package-only SKU hold two columns without a hotels section.
@@ -8,7 +8,7 @@ import PackagePolicies from '../src/components/package/PackagePolicies.vue'
 import { pkgWithHotel, pkgOnly, inclusionsFor, canvas } from './_fixtures.js'
 
 export default {
-  title: 'Aug 4 Changes/Option A/Package Details/Detail Blocks',
+  title: 'Aug 4 Changes/Option B/Package Details/Detail Blocks',
   decorators: [canvas('700px')],
   parameters: {
     docs: {

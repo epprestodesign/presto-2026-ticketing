@@ -1,10 +1,10 @@
-// Aug 4 Changes / Option A / Package Details / Tier Picker
+// Aug 4 Changes / Option B / Package Details / Tier Picker
 import { ref } from 'vue'
 import TierPicker from '../src/components/package/TierPicker.vue'
 import { TIERS, canvas } from './_fixtures.js'
 
 const meta = {
-  title: 'Aug 4 Changes/Option A/Package Details/Tier Picker',
+  title: 'Aug 4 Changes/Option B/Package Details/Tier Picker',
   component: TierPicker,
   decorators: [canvas('620px')],
   parameters: {

@@ -1,9 +1,9 @@
-// Aug 4 Changes / Option A / Package Details / Hotel Availability
+// Aug 4 Changes / Option B / Package Details / Hotel Availability
 import HotelAvailability from '../src/components/HotelAvailability.vue'
 import { hotels, canvas } from './_fixtures.js'
 
 const meta = {
-  title: 'Aug 4 Changes/Option A/Package Details/Hotel Availability',
+  title: 'Aug 4 Changes/Option B/Package Details/Hotel Availability',
   component: HotelAvailability,
   decorators: [canvas('980px')],
   parameters: {

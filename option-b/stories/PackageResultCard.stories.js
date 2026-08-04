@@ -1,9 +1,9 @@
-// Aug 4 Changes / Option A / Package Details / Package Result Card
+// Aug 4 Changes / Option B / Package Details / Package Result Card
 import PackageResultCard from '../src/components/PackageResultCard.vue'
 import { PACKAGES, packageNames, byName, pkgOnly, pkgSoldOut, canvas } from './_fixtures.js'
 
 const meta = {
-  title: 'Aug 4 Changes/Option A/Package Details/Package Result Card',
+  title: 'Aug 4 Changes/Option B/Package Details/Package Result Card',
   component: PackageResultCard,
   decorators: [canvas('1100px')],
   parameters: {
