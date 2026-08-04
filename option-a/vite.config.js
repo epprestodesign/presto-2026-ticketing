@@ -47,7 +47,7 @@ const OVERRIDES = {
 }
 
 const overrideLibraryComponents = () => ({
-  name: 'mike-edits-local-overrides',
+  name: 'option-a-local-overrides',
   enforce: 'pre',
   async resolveId(source, importer, options) {
     if (!importer || source.includes('\0')) return null
@@ -127,7 +127,7 @@ const PATCHES = [
 ]
 
 const patchLibrarySources = () => ({
-  name: 'mike-edits-source-patches',
+  name: 'option-a-source-patches',
   enforce: 'pre',
   transform(code, id) {
     // Patch the whole SFC on its main request only; plugin-vue's `?vue&type=…`
@@ -140,8 +140,8 @@ const patchLibrarySources = () => ({
     for (const [from, to] of patch.edits) {
       if (!out.includes(from)) {
         throw new Error(
-          `[mike-edits] ${patch.file} no longer contains:\n  ${from}\n` +
-          `The library changed — update PATCHES in mike-edits-aug-4/vite.config.js.`
+          `[option-a] ${patch.file} no longer contains:\n  ${from}\n` +
+          `The library changed — update PATCHES in option-a/vite.config.js.`
         )
       }
       out = out.split(from).join(to)
@@ -151,8 +151,8 @@ const patchLibrarySources = () => ({
 })
 
 // When deployed as a Storybook sub-page on GitHub Pages the app is served from
-// `/presto-2026-ticketing/mike-edits-aug-4/`; local dev serves from `/`. The
-// deploy workflow passes `--base=/presto-2026-ticketing/mike-edits-aug-4/`.
+// `/presto-2026-ticketing/option-a/`; local dev serves from `/`. The
+// deploy workflow passes `--base=/presto-2026-ticketing/option-a/`.
 const envDir = fileURLToPath(new URL('./', import.meta.url))
 
 export default defineConfig(({ mode }) => {

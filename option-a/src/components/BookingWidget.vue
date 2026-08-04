@@ -1,5 +1,5 @@
 <script setup>
-// BookingWidget — LOCAL FORK for the "Mike Edits Aug 4" prototype only.
+// BookingWidget — LOCAL FORK for the "Aug 4 — Option A" prototype only.
 //
 // Identical to the library widget (@lib/components/BookingWidget.vue) except the
 // Travelers field: where the library opens an adults/children/rooms popover, this

@@ -1,5 +1,5 @@
 <script setup>
-// PackageQuickViewDialog — FORK for the "Mike Edits Aug 4" prototype.
+// PackageQuickViewDialog — FORK for the "Aug 4 — Option A" prototype.
 //
 // This replaces BOTH the library's condensed quick view AND the Package Details
 // page: everything about a package now lives in one scrollable modal, modelled on

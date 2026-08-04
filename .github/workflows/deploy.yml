@@ -97,18 +97,18 @@ jobs:
         run: cp -r experience-packages/dist storybook-static/experience-packages
 
       # Mike's working copy of the Hotel + Packages experience, forked 2026-08-04
-      # so edits can diverge from the original → /mike-edits-aug-4/.
-      - name: Build Mike Edits Aug 4 prototype (hotel + packages working copy)
-        working-directory: mike-edits-aug-4
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/mike-edits-aug-4/
+      # so edits can diverge from the original → /option-a/.
+      - name: Build Option A prototype (hotel + packages, Aug 4)
+        working-directory: option-a
+        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/option-a/
         env:
           VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
 
-      - name: Nest Mike Edits Aug 4 prototype under Storybook
-        run: cp -r mike-edits-aug-4/dist storybook-static/mike-edits-aug-4
+      - name: Nest Option A prototype under Storybook
+        run: cp -r option-a/dist storybook-static/option-a
 
-      # Option B — the v2 prototype, a duplicate of Mike Edits Aug 4 carrying a
+      # Option B — the v2 prototype, a duplicate of Option A carrying a
       # round of feedback → /option-b/.
       - name: Build Option B prototype (v2)
         working-directory: option-b

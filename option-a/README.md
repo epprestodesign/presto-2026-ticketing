@@ -9,7 +9,7 @@ self-contained Vite app importing the **real library components** via the `@lib`
 alias — nothing is copied or forked from the library, no library changes.
 
 Deployed as a Storybook sub-page at
-`https://epprestodesign.github.io/presto-2026-ticketing/mike-edits-aug-4/`
+`https://epprestodesign.github.io/presto-2026-ticketing/option-a/`
 (local dev on port **6400**).
 
 ## Documented in Storybook
@@ -154,7 +154,7 @@ to Landing.
 
 ```bash
 # from the repo root (deps already installed there)
-cd mike-edits-aug-4
+cd option-a
 node ../node_modules/vite/bin/vite.js --port 6400
 # → http://localhost:6400
 ```
