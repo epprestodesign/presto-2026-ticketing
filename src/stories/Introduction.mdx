@@ -12,9 +12,21 @@ Every example, label, and edge case is written around one real journey: a compan
 or family traveling to a game — searching hotels near the venue, comparing
 rooms, **reserving a single stay**, **holding a room block for a group/company**, or
 **booking several rooms at once**, then paying (when applicable), confirming, and
-managing the booking afterward. The reference event throughout is an **EventPipe
-client-appreciation outing** to **New England Patriots v Buffalo Bills** at
-**Gillette Stadium, Foxborough, MA** (**Sat, Dec 6, 2026**).
+managing the booking afterward. Throughout, the scenario is an **EventPipe
+client-appreciation outing** at **Gillette Stadium, Foxborough, MA**.
+
+Two reference events are in play, and it is worth knowing which you are looking at:
+
+| Event | Used by |
+| --- | --- |
+| **New England Patriots v Buffalo Bills** · Sat, Dec 6, 2026 | The design system itself and the original prototypes — Booking Journey, Ticket + Hotel Bundle, Hotel + Tickets, Hotel + Packages |
+| **Pittsburgh Steelers at New England Patriots** · Sun, Sep 20, 2026 · 1:00 PM | The **Aug 4** prototypes — Options A, B and C |
+
+The Aug 4 options swap the event at their own boundary — each has a local
+`event.js` — so the library keeps its own sample data untouched. A and B also
+patch a couple of library pages that print the event from module constants rather
+than props; Option C renders its own board, so it needs no patch at all. Same
+venue, same journey, same components — only the matchup and date differ.
 
 <div style={{ fontSize: '1.125rem', fontWeight: 700, margin: '28px 0 4px' }}>▶ Try the interactive prototypes</div>
 <div style={{ marginBottom: '16px', maxWidth: '78ch', color: 'var(--ds-color-text-subtle, #5a5f6b)' }}>
@@ -85,6 +97,41 @@ client-appreciation outing** to **New England Patriots v Buffalo Bills** at
     <span style={{ color: 'var(--ds-color-text-subtle, #5a5f6b)' }}> — the one-click package grid built from the Aug 4 feedback. Start here.</span>
   </div>
 </div>
+
+## ⭐ Current work — Option C, the one-click package board
+
+The newest prototype, and the response to the **August 4 feedback** on Options A and B.
+Where those two lead with the library's Browse Packages page — a filter rail plus a
+scrolling list of rows, each opening a configuration modal — Option C replaces the
+landing page outright:
+
+```
+                              ┌─ Ritz-Carlton ─▶ [choose your room]  ─┐
+Package board ──▶ Select ─────┤                                       ├──▶ Checkout ──▶ Confirmation
+   (landing)                  └─ Courtyard ────▶ [confirm package]  ──┘
+      │
+      ├─ dates + guests ─────▶ re-prices all six tiles live
+      └─ hotel NAME ─────────▶ Hotel Details (new tab, read-only)
+```
+
+- **The board is the landing page.** Six tiles — 3 ticket tiers × 2 contracted hotels,
+  one row per property. A tile is a complete SKU; no filtering, no result list.
+- **"Get your ticket free, stay at this hotel."** The price charged is the **room**;
+  tickets are $0 and shown as the saving. Nights multiply the room and nothing else.
+- **One shared control for dates and guests**, above the board, because both re-price
+  all six tiles at once. Occupancy caps tickets per room; a bigger party takes a
+  second room.
+- **Selecting a tile confirms rather than configures.** One dialog, two jobs: the
+  Ritz-Carlton carries five room types so it offers the choice; the Courtyard carries
+  one so it is pure confirmation.
+- **Hotel names open the library's own `Hotel Details / Book Reservation` page**
+  in a new tab, read-only, so the board keeps its dates and party size.
+
+It is also the cleanest example in this repo of a prototype that **touches nothing**:
+zero library component overrides and zero source patches, against four of each in
+Option A. Full detail on the
+[Option C overview](/?path=/docs/aug-4-changes-option-c-overview--docs); the flow for
+all three sits on [Aug 4 Changes](/?path=/docs/aug-4-changes-overview--docs).
 
 > **Building the localized prototype or a full user journey?** Read
 > **Getting Started → User Journey & Build Spec** — it specifies every stage of
