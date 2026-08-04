@@ -4,24 +4,39 @@ import { Meta } from '@storybook/addon-docs/blocks'
 
 # Aug 4 Changes
 
-The single overview for the **August 4 prototype work**. Two versions are in play —
-**Aug 4 - Option A** and **Aug 4 - Option B**, a duplicate carrying a round of
-feedback — and everything about both is documented on this page. Component stories sit under **Option A** and **Option B** in this same category.
+The single overview for the **August 4 prototype work**. Three versions are in play —
+**Option A** and **Option B**, two shapes of the same configure-then-book journey, and
+**Option C**, the one-click grid built in response to the Aug 4 feedback on both.
+Everything about all three is documented on this page. Component stories sit under
+**Option A**, **Option B** and **Option C** in this same category.
 
-Both are working copies of the Hotel + Packages experience, forked on
-**August 4, 2026**; neither modifies the design system.
+All three are working copies of the Hotel + Packages experience, forked on
+**August 4, 2026**; none of them modifies the design system.
+
+> **Start with Option C.** A and B were built before the feedback landed. C is the answer to
+> it: a 6-tile grid, no filtering, no modal, ticket free with the room. A and B are kept
+> because their detailed configure-and-adjust UI is explicitly *"good for later, not the
+> landing page"* — worth having when the package options expand.
 
 <div style={{
   display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px',
   margin: '24px 0 28px',
 }}>
+  <a href="https://epprestodesign.github.io/presto-2026-ticketing/option-c/" target="_blank" rel="noreferrer"
+     style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #0F766E, #01113E)', color: '#fff', borderRadius: '12px', padding: '20px 22px', textDecoration: 'none', minHeight: '150px', outline: '3px solid #0F766E', outlineOffset: '2px' }}>
+    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8 }}>Option C · newest</div>
+    <div style={{ fontSize: '1.125rem', fontWeight: 800, marginTop: '4px', color: '#fff' }}>One-click packages</div>
+    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>A 6-tile grid — 3 ticket tiers × 2 contracted hotels. Pick a tile, set the party size, check out. Ticket free with the room.</div>
+    <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
+  </a>
+
   <a href="https://epprestodesign.github.io/presto-2026-ticketing/option-a/" target="_blank" rel="noreferrer"
      style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #0F766E, #01113E)', color: '#fff', borderRadius: '12px', padding: '20px 22px', textDecoration: 'none', minHeight: '150px' }}>
     <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8 }}>Option A</div>
     <div style={{ fontSize: '1.125rem', fontWeight: 800, marginTop: '4px', color: '#fff' }}>Packages first</div>
-    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>
-      Landing → Browse Packages → the full-screen package modal (tier · hotel · room · extras) → checkout.
-    </div>
+    {/* Keep the copy on one line: loose text on its own lines is parsed as a markdown
+        paragraph and wrapped in `.sbdocs-p`, whose theme color overrides this white. */}
+    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>Landing → Browse Packages → the full-screen package modal (tier · hotel · room · extras) → checkout.</div>
     <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
   </a>
 
@@ -29,26 +44,46 @@ Both are working copies of the Hotel + Packages experience, forked on
      style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #0F766E, #01113E)', color: '#fff', borderRadius: '12px', padding: '20px 22px', textDecoration: 'none', minHeight: '150px' }}>
     <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8 }}>Option B</div>
     <div style={{ fontSize: '1.125rem', fontWeight: 800, marginTop: '4px', color: '#fff' }}>Hotel first</div>
-    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>
-      RSVP → two hotels → packages at that hotel, its room, or skip the stay. Three paths, one checkout.
-    </div>
+    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>RSVP → two hotels → packages at that hotel, its room, or skip the stay. Three paths, one checkout.</div>
     <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
   </a>
 </div>
 
-### The two versions
+### The three versions
 
-| | Aug 4 - Option A | Aug 4 - Option B |
-| --- | --- | --- |
-| **Live** | [/option-a/](https://epprestodesign.github.io/presto-2026-ticketing/option-a/) | [/option-b/](https://epprestodesign.github.io/presto-2026-ticketing/option-b/) |
-| **Local dev** | http://localhost:6400 | http://localhost:6500 |
-| **Source** | `option-a/` | `option-b/` |
-| **Stories** | *Aug 4 Changes / Option A* | *Aug 4 Changes / Option B* |
-| **Status** | the Aug 4 build | duplicate of v1, carrying feedback |
+| | Option A | Option B | Option C |
+| --- | --- | --- | --- |
+| **Shape** | Packages first | Hotel first | One-click grid |
+| **Live** | [/option-a/](https://epprestodesign.github.io/presto-2026-ticketing/option-a/) | [/option-b/](https://epprestodesign.github.io/presto-2026-ticketing/option-b/) | [/option-c/](https://epprestodesign.github.io/presto-2026-ticketing/option-c/) |
+| **Local dev** | http://localhost:6400 | http://localhost:6500 | http://localhost:6600 |
+| **Source** | `option-a/` | `option-b/` | `option-c/` |
+| **Stories** | *Aug 4 Changes / Option A* | *Aug 4 Changes / Option B* | *Aug 4 Changes / Option C* |
+| **Screens** | landing → packages → checkout | RSVP → hotels → packages → checkout | **grid → checkout** |
+| **Filtering** | filter rail | filter rail | none |
+| **Configuration** | full-screen modal | full-screen modal | none — the tile is the SKU |
+| **Status** | the Aug 4 build | duplicate of A, carrying feedback | the Aug 4 **feedback response** |
 
-Both forked from
-[`/experience-packages`](https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/).
-Run either with `cd <folder> && node ../node_modules/vite/bin/vite.js --port <port>`.
+A and B forked from
+[`/experience-packages`](https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/);
+C forked from A. Run any of them with
+`cd <folder> && node ../node_modules/vite/bin/vite.js --port <port>`.
+
+### Why Option C exists
+
+The Aug 4 feedback asked for a grid over a scrolling list, packages above the fold, and a pure
+one-click purchase with no filtering and no options — with the party size, capped by room
+occupancy, as the only variable. Option A is the closer of the two starting points (it at least
+opens on packages), but both render the library's Browse Packages page: a filter rail plus a
+scrolling list, each row opening a configuration modal. Option C replaces that landing page
+outright and keeps the rest of the journey.
+
+Full detail is on the [Option C overview](?path=/docs/aug-4-changes-option-c-overview--docs).
+
+**Deep links — Option C (one-click grid):**
+[The board](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=packages) ·
+[Checkout · Club Level at the Ritz](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=checkout&pkg=club-ritz&guests=4) ·
+[Checkout · Mezzanine at the Courtyard](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=checkout&pkg=mezz-courtyard&guests=2) ·
+[Confirmation](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=confirmation&pkg=club-ritz)
 
 **Deep links — Option A (packages first):**
 [Landing](https://epprestodesign.github.io/presto-2026-ticketing/option-a/?screen=landing) ·

@@ -159,6 +159,16 @@ const preview = {
             'Book Reservation', 'Group Block',
             'Tickets Only', 'Tickets + Hotel', 'Packages Only', 'Packages + Hotel',
           ],
+          // The Aug 4 prototype work. Ordered explicitly rather than left to the
+          // '*' bucket below: alphabetically "Overview" sorts last, which buries
+          // the page that explains what A, B and C are. Newest option first —
+          // Option C is the response to the Aug 4 feedback, so it leads.
+          'Aug 4 Changes', [
+            'Overview',
+            'Option C', ['Overview', 'Package Grid', 'Package Tile', 'Package Confirm Dialog', 'Event Hero', 'Booking Widget', 'Event Header Bar', 'Hotel Details'],
+            'Option A', ['Booking Widget', 'Package Details', 'Foundations'],
+            'Option B', ['Booking Widget', 'Package Details', 'Foundations'],
+          ],
           '*',
           'Manage Booking', [
             'Account',
