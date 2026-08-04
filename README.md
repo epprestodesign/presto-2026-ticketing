@@ -27,15 +27,51 @@ free with the room.
 
 | | Flow | Live |
 | --- | --- | --- |
-| **⭐ Option C** — one-click grid | 6-tile grid → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-c/** |
+| **⭐ Option C** — one-click grid | 6-tile board → confirm → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-c/** |
 | **Option A** — packages first | Landing → Browse Packages → package modal → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-a/** |
 | **Option B** — hotel first | RSVP → two hotels → package *or* room *or* skip the stay → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-b/** |
 
-Option C's board is **3 ticket tiers × 2 contracted hotels**, ordered so each row
-is one property. A tile is a complete SKU: the price charged is the room, the
-tickets are $0, and the guests stepper — capped at the room's occupancy — is the
-only variable on the page. A and B are kept because their detailed
-configure-and-adjust UI is explicitly *"good for later, not the landing page"*.
+#### The Option C workflow
+
+```
+                              ┌─ Ritz-Carlton ─▶ [choose your room]  ─┐
+Package board ──▶ Select ─────┤                                       ├──▶ Checkout ──▶ Confirmation
+   (landing)                  └─ Courtyard ────▶ [confirm package]  ──┘
+      │
+      ├─ dates + guests ─────▶ re-prices all six tiles live
+      └─ hotel NAME ─────────▶ Hotel Details (new tab, read-only)
+```
+
+- **The board is the landing page** — no hero-then-search step, so packages are
+  the first thing on screen. Six tiles: 3 ticket tiers × 2 contracted hotels,
+  ordered so each row is one property.
+- **"Get your ticket free, stay at this hotel."** The price charged is the room;
+  tickets are $0 and shown as the saving. Nights multiply the room and nothing
+  else, so a longer stay never costs you the free tickets.
+- **One shared control for dates and guests**, above the board, because both
+  re-price all six tiles at once. Occupancy caps tickets per *room*; a party
+  larger than one room books a second rather than being refused.
+- **Selecting a tile confirms rather than configures.** One dialog, two jobs: the
+  Ritz-Carlton carries five contracted room types so it offers the choice; the
+  Courtyard carries one so it is pure confirmation of the final package.
+- **Hotel names open the library's own `Hotel Details / Book Reservation` page**
+  in a new tab, read-only, so the board keeps its dates and party size.
+
+```
+rooms   = ceil(guests / room occupancy)
+price   = nightly × nights × rooms          ← what's charged
+saving  = ticket face value × guests        ← "N tickets free"
+```
+
+| | Club Level | Lower Level | Mezzanine |
+| --- | --- | --- | --- |
+| **The Ritz-Carlton** · Carlton Suite · sleeps 4 | $809 | $729 | $639 |
+| **Courtyard by Marriott** · Double Queen · sleeps 4 | $479 | $399 | $309 |
+
+*One night, two guests. The board re-prices from the dates and party size above it.*
+
+A and B are kept because their detailed configure-and-adjust UI is explicitly
+*"good for later, not the landing page"*.
 
 Every component behind all three is documented in Storybook under **Aug 4 Changes**:
 **https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs**
@@ -107,7 +143,11 @@ substance of it.
 | [Option C / Overview](https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-option-c-overview--docs) | The one-click grid: what the Aug 4 feedback asked for, how each point is answered, the free-ticket pricing model, and what C removes from A |
 | [Option C / Package Grid](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-package-grid--six-tiles) | The 6-tile board — 3 ticket tiers × 2 contracted hotels, one row per property |
 | [Option C / Package Tile](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-package-tile--premium-stay) | One complete SKU: room priced, tickets free, guests capped at occupancy |
-| [Option C / Event Header Bar](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-event-header-bar--default) | The ~90px event strip that keeps the first row of tiles above the fold |
+| [Option C / Package Confirm Dialog](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-package-confirm-dialog--choose-your-room) | The two modes side by side: choose-your-room at the Ritz, confirm-only at the Courtyard |
+| [Option C / Event Hero](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-event-hero--default) | The branded event hero, with the search card tucked onto it |
+| [Option C / Booking Widget](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-booking-widget--core-widget) | Dates + guests, no Search button — with Option A's original beside it for comparison |
+| [Option C / Event Header Bar](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-event-header-bar--default) | The ~90px alternative to the hero, kept for the above-the-fold trade-off |
+| [Option C / Hotel Details](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-hotel-details--ritz-carlton) | The library's Hotel Details page template, in read-only mode |
 | [Package Details / Package Modal](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-package-modal--playground) | The full-screen two-column sheet that replaced the Package Details page |
 | [Package Details / Package Result Card](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-package-result-card--playground) | The Browse Packages row + inline hotel-availability panel |
 | [Package Details / Tier Picker](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-tier-picker--playground) | Ticket tiers with per-ticket and party pricing |
@@ -158,11 +198,13 @@ and from Storybook's **Getting Started → Introduction** page.
   Browse Packages → Package Details → Packages + Hotel checkout. Source:
   [`experience-packages/`](experience-packages/).
 - **▶ Aug 4 - Option C — https://epprestodesign.github.io/presto-2026-ticketing/option-c/** ⭐
-  **One-click grid.** A 6-tile board — 3 ticket tiers × 2 contracted hotels — sitting
-  directly under a compact event strip, then straight to checkout. No filter rail, no
-  result list, no modal: a tile is a complete SKU. The price charged is the room; the
-  tickets are $0 and shown as the saving; the guests stepper, capped at the room's
-  occupancy, is the only variable. Source: [`option-c/`](option-c/).
+  **One-click grid.** A 6-tile board — 3 ticket tiers × 2 contracted hotels — is the
+  landing page. No filter rail, no result list, no configuration modal: a tile is a
+  complete SKU. Dates and guests sit in one shared control above the board and re-price
+  all six tiles at once. Selecting a tile raises a confirm dialog — which offers the
+  room types at The Ritz-Carlton and simply confirms the package at the Courtyard —
+  then checkout. Hotel names open the library's Hotel Details page in a new tab,
+  read-only. Source: [`option-c/`](option-c/).
 - **▶ Aug 4 - Option A — https://epprestodesign.github.io/presto-2026-ticketing/option-a/**
   **Packages first.** Landing → Browse Packages → a full-screen package modal
   (ticket tier · hotel · room · paid extras, all re-pricing live) → checkout.

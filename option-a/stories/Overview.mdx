@@ -58,9 +58,12 @@ All three are working copies of the Hotel + Packages experience, forked on
 | **Local dev** | http://localhost:6400 | http://localhost:6500 | http://localhost:6600 |
 | **Source** | `option-a/` | `option-b/` | `option-c/` |
 | **Stories** | *Aug 4 Changes / Option A* | *Aug 4 Changes / Option B* | *Aug 4 Changes / Option C* |
-| **Screens** | landing → packages → checkout | RSVP → hotels → packages → checkout | **grid → checkout** |
+| **Screens** | landing → packages → checkout | RSVP → hotels → packages → checkout | **board → confirm → checkout** |
+| **Landing page** | hero + booking widget | hero + RSVP | **the package board itself** |
 | **Filtering** | filter rail | filter rail | none |
-| **Configuration** | full-screen modal | full-screen modal | none — the tile is the SKU |
+| **Configuration** | full-screen modal (tier · hotel · room · extras) | full-screen modal | a confirm dialog; room choice at the premium hotel only |
+| **Party size** | on the package row | on the package row | one shared control above the board |
+| **Dates drive price** | no | no | **yes** — nights multiply every room rate |
 | **Status** | the Aug 4 build | duplicate of A, carrying feedback | the Aug 4 **feedback response** |
 
 A and B forked from
@@ -79,10 +82,16 @@ outright and keeps the rest of the journey.
 
 Full detail is on the [Option C overview](?path=/docs/aug-4-changes-option-c-overview--docs).
 
-**Deep links — Option C (one-click grid):**
+**Deep links — Option C (one-click grid).** Every step is shareable, including the
+stay itself, because dates and party size change every price on the board:
+
 [The board](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=packages) ·
-[Checkout · Club Level at the Ritz](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=checkout&pkg=club-ritz&guests=4) ·
-[Checkout · Mezzanine at the Courtyard](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=checkout&pkg=mezz-courtyard&guests=2) ·
+[3 nights, 6 guests](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=packages&from=2026/09/18&to=2026/09/21&guests=6) ·
+[Choose your room (Ritz)](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=packages&open=club-ritz) ·
+[Confirm only (Courtyard)](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=packages&open=mezz-courtyard) ·
+[A room upgrade picked](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=packages&open=club-ritz&roomType=executive-suite) ·
+[Hotel Details (read-only)](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=hotelDetails&hotel=ritz) ·
+[Checkout](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=checkout&pkg=club-ritz&guests=4) ·
 [Confirmation](https://epprestodesign.github.io/presto-2026-ticketing/option-c/?screen=confirmation&pkg=club-ritz)
 
 **Deep links — Option A (packages first):**
@@ -110,8 +119,38 @@ promoted into `src/`.
 1:00 PM · Gillette Stadium, replacing the library's Patriots v Bills sample
 throughout — hero imagery, browse headers, packages, checkout and confirmation.
 
-**The flow.** Both versions drop the Package Details *page* — everything about a
-package lives in a full-screen modal. Where they differ is what you decide first.
+**The flow.** A and B both drop the Package Details *page* — everything about a
+package lives in a full-screen modal — and differ in what you decide first. C
+drops the modal too, and asks you to decide almost nothing.
+
+**Option C — one-click grid** (the Aug 4 feedback response):
+
+```
+                              ┌─ Ritz-Carlton ─▶ [choose your room]  ─┐
+Package board ──▶ Select ─────┤                                       ├──▶ Checkout ──▶ Confirmation
+   (landing)                  └─ Courtyard ────▶ [confirm package]  ──┘
+      │
+      ├─ dates + guests ─────▶ re-prices all six tiles live
+      └─ hotel NAME ─────────▶ Hotel Details (new tab, read-only)
+```
+
+The board **is** the landing page — no hero-then-search step, so packages are the
+first thing on screen. Six tiles: 3 ticket tiers × 2 contracted hotels, one row
+per property.
+
+Selecting a tile raises **one dialog that does one of two jobs**, decided by the
+hotel: the Ritz-Carlton carries five contracted room types so it offers the
+choice; the Courtyard carries one so it is pure confirmation of the final
+package. Either way it *confirms* rather than *configures* — the tier, the hotel
+and the free-ticket model stay baked into the tile.
+
+Dates and guests live in one booking widget above the board (Option A's widget
+fork, minus the Search button) because both re-price all six tiles at once.
+Nights multiply the room and nothing else; occupancy caps tickets per room, and a
+larger party books a second room rather than being refused.
+
+Stepper: **Packages · Review**, hidden on the board itself — before anything is
+selected it is a progress bar for progress not yet made.
 
 **Option A — packages first:**
 
@@ -143,8 +182,9 @@ package-only. A row shows its rooms line only when there is one.
 
 ## Live pricing
 
-Nothing about a package is fixed any more. Tier, party size, hotel, room type and
-paid extras all re-price it, following the library's own convention:
+**Options A and B — the bundle model.** Nothing about a package is fixed. Tier,
+party size, hotel, room type and paid extras all re-price it, following the
+library's own convention:
 
 ```
 components = tier.price × guests  +  room.nightly × nights  +  experience value
@@ -156,10 +196,32 @@ So *Legends Stadium Tour* is **$604** in Upper Level for two, **$1,074** in Club
 Level for two, and **$2,929** in Club Level for eight. The same numbers flow to the
 cart, checkout and confirmation.
 
+**Option C — the free-ticket model.** The pitch is inverted: you are not buying a
+discounted bundle, you are buying a **room** and the tickets come with it.
+
+```
+rooms   = ceil(guests / room occupancy)     one room only sleeps so many
+price   = nightly × nights × rooms          ← what's charged
+value   = price + ticket face × guests      ← struck through
+saving  = ticket face × guests              ← "N tickets free"
+```
+
+Nights multiply the room and **nothing else**, so a three-night stay triples the
+price and leaves the saving untouched. The nightly rate is the contracted rate
+plus a tier uplift of roughly half the ticket's face value — which is why the
+same hotel costs more with a Club Level ticket than a Mezzanine one.
+
+| | Club Level | Lower Level | Mezzanine |
+| --- | --- | --- | --- |
+| **The Ritz-Carlton** · Carlton Suite · sleeps 4 | $809 | $729 | $639 |
+| **Courtyard by Marriott** · Double Queen · sleeps 4 | $479 | $399 | $309 |
+
+*One night, two guests. The board re-prices from the dates and party size above it.*
+
 ## How the library stays untouched
 
-The prototype never edits `src/`. Two mechanisms in `option-a/vite.config.js`
-do the work, in this app's build only:
+No prototype here edits `src/`. Options A and B use two mechanisms in their
+`vite.config.js`, in that app's build only:
 
 | Mechanism | Used for |
 | --- | --- |
@@ -169,6 +231,24 @@ do the work, in this app's build only:
 A patch that no longer matches **fails the build loudly** rather than silently
 rendering the wrong thing.
 
+**Option C needs neither.** Its `OVERRIDES` and `PATCHES` are both empty:
+
+| | Option A | Option C |
+| --- | --- | --- |
+| Library component overrides | 4 | **0** |
+| Library source patches | 4 | **0** |
+
+A and B render the library's Browse Packages *page* and have to reshape its
+parts. Option C renders its own board out of its own components, so there is no
+library page to bend — and its build cannot break when the library moves. The
+library components it does mount (`GlobalNav`, `AppStepper`, `DateRangeCalendar`,
+`HotelDetailPage`, `CheckoutPage`, `ConfirmationPage`) are all used as shipped.
+
+That last one matters: **every hotel-details link in Option C opens the library's
+own `Hotel Details / Book Reservation` page template**, in a new tab, read-only —
+the template's Reserve Room CTAs, back-to-results link and search band suppressed,
+with a banner saying why.
+
 ## What's documented here
 
 **Option A** and **Option B** each carry the same set:
@@ -176,3 +256,24 @@ rendering the wrong thing.
 - **Package Details** — the modal and every block inside it, plus the browse row.
 - **Booking Widget** — the forked widget (Guests dropdown, gameday dates).
 - **Foundations** — the reusable carousel used in three places.
+
+**Option C** carries its own set, plus its own overview doc — because what it
+*removes* from Option A is the substance of it:
+
+| Story | What it documents |
+| --- | --- |
+| [Overview](?path=/docs/aug-4-changes-option-c-overview--docs) | Each feedback point and how it's answered, the free-ticket pricing model, and what C removes from A |
+| [Package Grid](?path=/story/aug-4-changes-option-c-package-grid--six-tiles) | The 6-tile board, plus 3-night and large-party states and a 9-tile density study |
+| [Package Tile](?path=/story/aug-4-changes-option-c-package-tile--premium-stay) | One complete SKU — room priced, tickets free, rooms derived from occupancy |
+| [Package Confirm Dialog](?path=/story/aug-4-changes-option-c-package-confirm-dialog--choose-your-room) | The two modes side by side: choose-your-room at the Ritz, confirm-only at the Courtyard |
+| [Event Hero](?path=/story/aug-4-changes-option-c-event-hero--default) | The branded hero, with the search card tucked onto it |
+| [Booking Widget](?path=/story/aug-4-changes-option-c-booking-widget--core-widget) | Dates + guests, no Search button — with Option A's original beside it for comparison |
+| [Event Header Bar](?path=/story/aug-4-changes-option-c-event-header-bar--default) | The ~90px alternative to the hero, kept for the above-the-fold trade-off |
+| [Hotel Details](?path=/story/aug-4-changes-option-c-hotel-details--ritz-carlton) | The library page template in read-only mode |
+
+### One open trade-off
+
+The 300px branded hero pushes the first tile row just below the fold on a laptop,
+which pulls against the feedback's *"packages visible without scrolling"*.
+`EventHeaderBar` (~90px, no artwork) is kept and documented as the alternative —
+swapping them is one line in `PackageGridScreen.vue`. Worth a decision at review.
