@@ -12,6 +12,10 @@ Deployed as a Storybook sub-page at
 `https://epprestodesign.github.io/presto-2026-ticketing/option-a/`
 (local dev on port **6400**).
 
+
+**The pair:** this is one of two Aug 4 takes on the same brief. The other is **[Option B](../option-b)** (hotel-first) — live at https://epprestodesign.github.io/presto-2026-ticketing/option-b/ . Both are documented together under **Aug 4 Changes** in Storybook:
+https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs
+
 ## Documented in Storybook
 
 Every component here is documented under the **Aug 4 Changes** category:
