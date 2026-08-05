@@ -15,11 +15,12 @@ Deployed at `https://epprestodesign.github.io/presto-2026-ticketing/option-d/`
 
 ```
 Packages ─── Select & Check Out ────────────▶ Checkout ──▶ Confirmation
-(landing)                                        ▲
- two tiles,                                      │
+(landing)                                        ▲  ▲
+ two tiles,                                      │  │
  one per hotel ─ View package details ──▶ Package details ─ Select ─┘
-      │                                    the library's template
-      └─ hotel NAME ──▶ Hotel Details (new tab, informational only)
+      │                                    the library's template  │
+      └─ hotel NAME ──▶ Hotel Details ─ Select package ────────────┘
+                        (new tab)
 ```
 
 **The packages page is the landing page**, and it can also be the last page before
@@ -33,8 +34,9 @@ opened or chosen.
 inclusions, policies — and that page's Select CTA continues to the same place. The detail
 page is a *longer route through* the decision, not a gate in front of it.
 
-Hotel details is **not** a step either. It opens in its own tab from any mention of a hotel,
-so the screen behind it keeps its state.
+Hotel details is still **not a step** — it opens in its own tab from any mention of a
+hotel, so the screen behind it keeps its state. It is no longer a *dead end*, though: its
+room card selects the package too, and selecting there continues in that tab.
 
 ## What the feedback asked for
 
@@ -59,6 +61,8 @@ so the screen behind it keeps its state.
 | Prefer the party-size selector **on the card**, not at page level | Moved onto both cards, directly above the price. Still one number — see below. |
 | Don't make me open a second page to select and check out | `Select & Check Out` on the card goes straight to Review. |
 | Keep the drill-in for when I *do* want the detail | `View package details` sits beside it, and that page is unchanged. |
+| On a hotel page, make "Price Details" a **Select package** action | The room card now selects that hotel's package, with the same experience the package cards give. |
+| Same on **both** hotel pages | One card, driven by the active hotel — Westin and Ritz-Carlton behave identically. |
 
 ## Why the party size is on the card
 
@@ -93,6 +97,39 @@ So the direct route is now the filled CTA, and the drill-in is the outline butto
 it. Both call the same `selectPackage()`, because they are the same act. What the detail
 page loses is only its monopoly; someone who wants the gallery and the policies still gets
 them, and still selects from there.
+
+## Why the hotel page can select a package
+
+"Room types at this property" used to end in a `Price Details` link and nothing else — the
+template's per-room *Reserve Room* CTA was suppressed, because the booking decision
+belonged to the other tab. That made the page a dead end: you could read everything about a
+hotel and still have to go back to act on it.
+
+The room card now selects that hotel's package, carrying the package cards' footer
+verbatim — the same party-size select bound to the same store value, the same price block,
+a primary CTA, and `Price details` demoted to the secondary link beside it.
+
+Four decisions inside that:
+
+| | |
+| --- | --- |
+| **Where it lands** | This tab goes to checkout. The tab it was opened from stays on the board, untouched — you end up where you were reading, and nothing you left is lost. |
+| **Which price** | The **package total, all in** — what checkout charges. A `$578` button landing on a `$3,091` checkout would read as a bait-and-switch. The room rate survives as a sub-line. |
+| **Party size** | The same control as the cards, bound to the same value, so it re-prices here and on the board alike. |
+| **Price details** | Kept, and rewritten to break down the *package* — the four inclusions, then the bundle discount. The library's `PriceDetailsDialog` itemises a **room**, and would have totalled a different number than the button above it. |
+
+### What is still the library's
+
+The section around the card — heading, subtitle, rules — is still `RoomsCarousel`. Only its
+grid of room cards is suppressed, and Option D's card is **teleported into `#hdp-rooms`** in
+its place, so the Rooms tab still scrolls to the right section.
+
+The card itself had to be Option D's. The template's `RoomCardReserve` is room-shaped all
+the way through — `$X USD / room / night`, `$Y USD total`, `N rooms · incl. taxes & fees`,
+`Reserve Room` — and pushing package numbers through those labels produces sentences that
+are untrue (`$773 USD / room / night` for a per-person figure). It also has no party-size
+control and no way to relabel its CTA without editing the library, which no prototype here
+does. The breakdown modal is still built on the library's `DsModal`.
 
 ## Why there is no search band
 
@@ -155,7 +192,9 @@ package template, unmodified.
 | [`src/screens/PackagesScreen.vue`](src/screens/PackagesScreen.vue) | Screen 1 — the two tiles, and the landing page |
 | [`src/screens/PackageDetailsScreen.vue`](src/screens/PackageDetailsScreen.vue) | Screen 2 — the library package template |
 | [`src/components/PackageCard.vue`](src/components/PackageCard.vue) | One package card |
-| [`src/screens/HotelDetailsScreen.vue`](src/screens/HotelDetailsScreen.vue) | Read-only hotel reference view |
+| [`src/screens/HotelDetailsScreen.vue`](src/screens/HotelDetailsScreen.vue) | Hotel reference view — off-flow, but it can select the package |
+| [`src/components/RoomPackageCard.vue`](src/components/RoomPackageCard.vue) | The room card on that page, carrying the package cards' footer |
+| [`src/components/PackagePriceDialog.vue`](src/components/PackagePriceDialog.vue) | Its `Price details` breakdown, on the library's `DsModal` |
 | [`src/store.js`](src/store.js) | Screens, the selection, and the one variable |
 
 ## Run it
@@ -172,7 +211,8 @@ No install needed — deps resolve up the tree to the repo's `node_modules`.
 - [Screen 2 · package template](https://epprestodesign.github.io/presto-2026-ticketing/option-d/?screen=packageDetails&pkg=ritz-package)
 - [Screen 2 · on the Packages tab](https://epprestodesign.github.io/presto-2026-ticketing/option-d/?screen=packageDetails&pkg=ritz-package&tab=packages)
 - [Screen 3 · checkout](https://epprestodesign.github.io/presto-2026-ticketing/option-d/?screen=checkout&pkg=ritz-package&people=4)
-- [Hotel details · The Westin](https://epprestodesign.github.io/presto-2026-ticketing/option-d/?screen=hotelDetails&hotel=westin) — informational only
+- [Hotel details · The Westin](https://epprestodesign.github.io/presto-2026-ticketing/option-d/?screen=hotelDetails&hotel=westin) — off-flow, and it can select the package
+- [Hotel details · The Ritz-Carlton, Rooms tab](https://epprestodesign.github.io/presto-2026-ticketing/option-d/?screen=hotelDetails&hotel=ritz&tab=rooms&people=4) — straight to the room card
 
 ## Still open
 
