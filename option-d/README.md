@@ -14,33 +14,37 @@ Deployed at `https://epprestodesign.github.io/presto-2026-ticketing/option-d/`
 ## The flow
 
 ```
-Packages ──▶ Package details ──▶ Checkout ──▶ Confirmation
-(landing)      the library's
- two tiles,     package template
- one per hotel        │
-      │               └─ Select ──▶ Checkout
+Packages ─── Select & Check Out ────────────▶ Checkout ──▶ Confirmation
+(landing)                                        ▲
+ two tiles,                                      │
+ one per hotel ─ View package details ──▶ Package details ─ Select ─┘
+      │                                    the library's template
       └─ hotel NAME ──▶ Hotel Details (new tab, informational only)
 ```
 
-**The packages page is the landing page.** There is no headcount screen in front of it —
-the party size lives in its header, beside the prices it drives — and no stepper above it,
-because a progress bar over a landing page is orientation for progress not yet made. The
-stepper appears once a package is opened.
+**The packages page is the landing page**, and it can also be the last page before
+checkout. There is no headcount screen in front of it — the party size sits on each card,
+above the price it drives — and no stepper above it, because a progress bar over a landing
+page is orientation for progress not yet made. The stepper appears once a package has been
+opened or chosen.
 
-**"View Package"** on a card opens the library's own `PackageDetailPage`, and that page's
-Select CTA is what continues to checkout. The card is a summary; the template page is the
-detail, and the decision.
+**Two ways out of a card.** `Select & Check Out` goes straight to Review.
+`View package details` opens the library's own `PackageDetailPage` — gallery, full
+inclusions, policies — and that page's Select CTA continues to the same place. The detail
+page is a *longer route through* the decision, not a gate in front of it.
 
-Hotel details is **not** a step. It opens in its own tab from any mention of a hotel, so
-the screen behind it keeps its state.
+Hotel details is **not** a step either. It opens in its own tab from any mention of a hotel,
+so the screen behind it keeps its state.
 
 ## What the feedback asked for
+
+### August 5, morning
 
 | Feedback | How Option D answers it |
 | --- | --- |
 | Landing looks too much like Presto | No hero, no search band — the landing page is the package pair under a compact event strip. |
 | Remove the check-in/check-out/guests bar | No booking widget on any screen. The stay is fixed. |
-| A simple "how many people are coming" prompt | A party-size control in the packages header, beside the prices it drives. |
+| A simple "how many people are coming" prompt | A party-size control on each package card, above the price it drives. |
 | Pre-invited for two days — keep it minimal | A fixed two-night stay; nothing offers to change it. |
 | Packages page above the fold | A ~90px event strip, then the tiles. It is now screen **1**. |
 | Two tiles side by side only, one per hotel | Exactly two, in a fixed 2-column track. |
@@ -48,14 +52,56 @@ the screen behind it keeps its state.
 | Name each by hotel | **Westin Package** · **Ritz-Carlton Package** |
 | Each includes two tickets, transportation, etc. | Tickets scale with headcount; transportation and hospitality on both. |
 
+### August 5, afternoon
+
+| Feedback | How Option D answers it |
+| --- | --- |
+| Prefer the party-size selector **on the card**, not at page level | Moved onto both cards, directly above the price. Still one number — see below. |
+| Don't make me open a second page to select and check out | `Select & Check Out` on the card goes straight to Review. |
+| Keep the drill-in for when I *do* want the detail | `View package details` sits beside it, and that page is unchanged. |
+
+## Why the party size is on the card
+
+It was in the page header on the argument that one number pricing two cards should be
+stated once. That is true and it was still the wrong place: you adjusted at the top of the
+page and the effect happened 400px below, on both tiles at once. Cause and effect were on
+different parts of the screen.
+
+There is still exactly **one** party size. Both controls bind to the same store value
+(`:people` in, `update:people` out — no local copy), so setting it on either card re-prices
+both. Two controls, one number: a mirror, not a fork.
+
+The duplication the header was avoiding — two cards appearing to disagree — is handled by
+saying what the number bought *on that card*:
+
+```
+Westin      7 people →  7 tickets · 4 rooms   (Deluxe King sleeps 2)
+Ritz        7 people →  7 tickets · 2 rooms   (Carlton Suite sleeps 4)
+```
+
+Same party, different room counts, because occupancy differs. That line sits under the
+control that caused it, which is the one place it explains the price.
+
+## Why the card can check out
+
+The card used to only open the detail page: the decision belonged to the template, and the
+card was a summary of it. That reads well for a guest still choosing, and badly for a guest
+who has already chosen — they had to load a second screen to press a second button that
+took them where the first one implied.
+
+So the direct route is now the filled CTA, and the drill-in is the outline button beside
+it. Both call the same `selectPackage()`, because they are the same act. What the detail
+page loses is only its monopoly; someone who wants the gallery and the policies still gets
+them, and still selects from there.
+
 ## Why there is no search band
 
 A booking widget — even trimmed to one field — reads as **search**: it implies something to
 search for, and results that might come back empty. This flow has neither. The party is
 already invited, the dates are set, and there are exactly two options waiting.
 
-So the check-in/check-out/guests bar wasn't shrunk, it was removed. What survives is a
-single party-size control in the packages header, beside the two prices it drives.
+So the check-in/check-out/guests bar wasn't shrunk, it was removed. What survives of it is
+a single party-size select on each card, sitting on the thing it prices.
 
 ## Why both cards say the same words
 
@@ -94,7 +140,7 @@ Prototype economics, deterministic so demos never drift.
 | Ticket tier | a choice, 3 ways | fixed — one tier |
 | Dates | a picker; nights drive price | **fixed** two nights, no picker |
 | Room choice | 5 room types at the premium hotel | one room per hotel |
-| Confirm dialog | choose-your-room / confirm | none — the package template page is the decision |
+| Confirm dialog | choose-your-room / confirm | none — the card checks out, and the detail page is optional |
 | Library overrides + patches | 0 + 0 | **0 + 0** |
 
 Library components mounted: `GlobalNav`, `AppStepper`, **`PackageDetailPage`**,

@@ -18,7 +18,7 @@ group.
     {/* Keep the copy on one line: loose text on its own lines is parsed as a markdown
         paragraph and wrapped in `.sbdocs-p`, whose theme color overrides this white. */}
     <div style={{ fontSize: '1.125rem', fontWeight: 800, marginTop: '4px', color: '#fff' }}>Two hotels, one package</div>
-    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>Two identical packages, one per hotel — the board is the landing page. View the package, then check out. No dates, no tiers, no filters.</div>
+    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>Two identical packages, one per hotel — the board is the landing page. Set your party size on a card and check out from it, or drill into the detail page first. No dates, no tiers, no filters.</div>
     <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
   </a>
 </div>
@@ -26,25 +26,40 @@ group.
 ## The flow
 
 ```
-Packages ──▶ Package details ──▶ Checkout ──▶ Confirmation
-(landing)      the library's
- two tiles,     package template
- one per hotel        │
-      │               └─ Select ──▶ Checkout
+Packages ─── Select & Check Out ────────────▶ Checkout ──▶ Confirmation
+(landing)                                        ▲
+ two tiles,                                      │
+ one per hotel ─ View package details ──▶ Package details ─ Select ─┘
+      │                                    the library's template
       └─ hotel NAME ──▶ Hotel Details (new tab, informational only)
 ```
 
-**The packages page is the landing page.** There is no headcount screen in front of it —
-the party size lives in its header, beside the prices it drives — and no stepper above it,
-because a progress bar over a landing page is orientation for progress not yet made. The
-stepper appears once a package is opened.
+**The packages page is the landing page**, and it can also be the last page before
+checkout. There is no headcount screen in front of it — the party size sits on each card,
+above the price it drives — and no stepper above it, because a progress bar over a landing
+page is orientation for progress not yet made. The stepper appears once a package has been
+opened or chosen.
 
-**"View Package"** on a card opens the library's own `PackageDetailPage`, and that page's
-Select CTA is what continues to checkout. The card is a summary; the template page is the
-detail, and the decision.
+**Two ways out of a card.** `Select & Check Out` goes straight to Review.
+`View package details` opens the library's own `PackageDetailPage`, and that page's Select
+CTA continues to the same place — a longer route through the decision, not a gate in front
+of it.
 
 Hotel details is **not** a step. It opens in its own tab from any mention of a hotel, so
 the screen behind it keeps its state.
+
+## The Aug 5 afternoon revision
+
+| Feedback | Answer |
+| --- | --- |
+| Party size belongs **on the card**, not at page level | Moved onto both cards, above the price. Still one number — both controls bind to the same store value, so setting it on either re-prices both. |
+| Don't make me open a second page to select and check out | `Select & Check Out` on the card goes straight to Review. |
+| Keep the drill-in for when I *do* want the detail | `View package details` beside it, and that page is unchanged. |
+
+Each card also states what the party size bought *there* — `7 tickets · 4 rooms` at the
+Westin against `7 tickets · 2 rooms` at the Ritz — because occupancy differs, so the same
+party is a different room count on each. That is the line that keeps the two cards from
+looking like they disagree now that both carry the control.
 
 ## What the feedback asked for
 
@@ -52,7 +67,7 @@ the screen behind it keeps its state.
 | --- | --- |
 | Landing looks too much like Presto | No hero, no search band — the landing page is the package pair under a compact event strip. |
 | Remove the check-in/check-out/guests bar | No booking widget on any screen. The stay is fixed. |
-| A simple "how many people are coming" prompt | A party-size control in the packages header, beside the prices it drives. |
+| A simple "how many people are coming" prompt | A party-size control on each package card, above the price it drives. |
 | Pre-invited for two days — keep it minimal | The stay is a fixed two nights; nothing offers to change it. |
 | Packages page above the fold | A ~90px event strip, then the tiles. It is now screen **1**. |
 | Two tiles side by side only, one per hotel | Exactly two, in a fixed 2-column track. |
@@ -67,8 +82,8 @@ search for, and results that might come back empty. This flow has neither. The p
 already invited, the dates are already set, and there are exactly two options waiting.
 
 So the check-in/check-out/guests bar wasn't shrunk, it was removed. What survives of it is
-a single party-size control in the packages header, sitting beside the two prices it
-drives rather than gating the page in front of them.
+a single party-size select, sitting on the card it prices rather than gating the page in
+front of it.
 
 ## Why both cards say the same words
 
