@@ -159,10 +159,16 @@ const preview = {
             'Book Reservation', 'Group Block',
             'Tickets Only', 'Tickets + Hotel', 'Packages Only', 'Packages + Hotel',
           ],
-          // The Aug 4 prototype work. Ordered explicitly rather than left to the
-          // '*' bucket below: alphabetically "Overview" sorts last, which buries
-          // the page that explains what A, B and C are. Newest option first —
-          // Option C is the response to the Aug 4 feedback, so it leads.
+          // The Aug prototype rounds, newest first, and ordered explicitly rather
+          // than left to the '*' bucket below — alphabetically "Overview" sorts
+          // last, which buries the page that explains what each option is.
+          //
+          // Aug 5 leads: Option D is the current direction, and a reviewer opening
+          // Storybook cold should land on the newest round, not the previous one.
+          'Aug 5 Changes', [
+            'Option D', ['Overview', 'Package Pair', 'Package Details', 'Hotel Details'],
+          ],
+          // Aug 4 — Option C is that round's answer, so it leads its own block.
           'Aug 4 Changes', [
             'Overview',
             'Option C', ['Overview', 'Package Grid', 'Package Tile', 'Package Confirm Dialog', 'Event Hero', 'Booking Widget', 'Event Header Bar', 'Hotel Details'],

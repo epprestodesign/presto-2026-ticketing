@@ -20,13 +20,13 @@ Two reference events are in play, and it is worth knowing which you are looking 
 | Event | Used by |
 | --- | --- |
 | **New England Patriots v Buffalo Bills** · Sat, Dec 6, 2026 | The design system itself and the original prototypes — Booking Journey, Ticket + Hotel Bundle, Hotel + Tickets, Hotel + Packages |
-| **Pittsburgh Steelers at New England Patriots** · Sun, Sep 20, 2026 · 1:00 PM | The **Aug 4** prototypes — Options A, B and C |
+| **Pittsburgh Steelers at New England Patriots** · Sun, Sep 20, 2026 · 1:00 PM | The **Aug 4** prototypes (Options A, B, C) and the **Aug 5** one (Option D) |
 
-The Aug 4 options swap the event at their own boundary — each has a local
-`event.js` — so the library keeps its own sample data untouched. A and B also
-patch a couple of library pages that print the event from module constants rather
-than props; Option C renders its own board, so it needs no patch at all. Same
-venue, same journey, same components — only the matchup and date differ.
+These options swap the event at their own boundary — each has a local `event.js` — so the
+library keeps its own sample data untouched. A and B also patch a couple of library pages
+that print the event from module constants rather than props; C and D render their own
+screens, so they need no patch at all. Same venue, same journey, same components — only
+the matchup and date differ.
 
 <div style={{ fontSize: '1.125rem', fontWeight: 700, margin: '28px 0 4px' }}>▶ Try the interactive prototypes</div>
 <div style={{ marginBottom: '16px', maxWidth: '78ch', color: 'var(--ds-color-text-subtle, #5a5f6b)' }}>
@@ -59,9 +59,17 @@ venue, same journey, same components — only the matchup and date differ.
     <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
   </a>
 
+  <a href="https://epprestodesign.github.io/presto-2026-ticketing/option-d/" target="_blank" rel="noopener"
+     style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #7C3AED, #01113E)', color: '#fff', borderRadius: '12px', padding: '18px 20px', textDecoration: 'none', minHeight: '150px', outline: '3px solid #7C3AED', outlineOffset: '2px' }}>
+    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8 }}>Aug 5 · Option D · newest</div>
+    <div style={{ fontSize: '1.0625rem', fontWeight: 800, marginTop: '4px', color: '#fff' }}>Two hotels, one package</div>
+    <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>Two identical packages, one per hotel — the pair IS the landing page. View the package, then check out. No dates, no tiers, no filters.</div>
+    <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
+  </a>
+
   <a href="https://epprestodesign.github.io/presto-2026-ticketing/option-c/" target="_blank" rel="noopener"
-     style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #0F766E, #01113E)', color: '#fff', borderRadius: '12px', padding: '18px 20px', textDecoration: 'none', minHeight: '150px', outline: '3px solid #0F766E', outlineOffset: '2px' }}>
-    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8 }}>Aug 4 · Option C · newest</div>
+     style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(160deg, #0F766E, #01113E)', color: '#fff', borderRadius: '12px', padding: '18px 20px', textDecoration: 'none', minHeight: '150px' }}>
+    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8 }}>Aug 4 · Option C</div>
     <div style={{ fontSize: '1.0625rem', fontWeight: 800, marginTop: '4px', color: '#fff' }}>One-click packages</div>
     <div style={{ fontSize: '0.875rem', marginTop: '6px', color: '#fff', opacity: 0.92, flex: 1 }}>A 6-tile grid — 3 ticket tiers × 2 contracted hotels. Pick a tile, set the party size, check out. Ticket free with the room.</div>
     <div style={{ fontWeight: 700, marginTop: '12px', color: '#fff' }}>Launch ↗</div>
@@ -93,17 +101,53 @@ venue, same journey, same components — only the matchup and date differ.
     <span style={{ color: 'var(--ds-color-text-subtle, #5a5f6b)' }}> — what Options A, B and C change, and every component behind them.</span>
   </div>
   <div style={{ marginTop: '6px' }}>
+    <a href="/?path=/docs/aug-5-changes-option-d-overview--docs" style={{ fontWeight: 700 }}>→ Aug 5 · Option D</a>
+    <span style={{ color: 'var(--ds-color-text-subtle, #5a5f6b)' }}> — two hotels, one package. The current direction. Start here.</span>
+  </div>
+  <div style={{ marginTop: '6px' }}>
     <a href="/?path=/docs/aug-4-changes-option-c-overview--docs" style={{ fontWeight: 700 }}>→ Aug 4 · Option C</a>
-    <span style={{ color: 'var(--ds-color-text-subtle, #5a5f6b)' }}> — the one-click package grid built from the Aug 4 feedback. Start here.</span>
+    <span style={{ color: 'var(--ds-color-text-subtle, #5a5f6b)' }}> — the one-click package grid built from the Aug 4 feedback.</span>
   </div>
 </div>
 
-## ⭐ Current work — Option C, the one-click package board
+## ⭐ Current work — Option D, two hotels and one package
 
-The newest prototype, and the response to the **August 4 feedback** on Options A and B.
-Where those two lead with the library's Browse Packages page — a filter rail plus a
-scrolling list of rows, each opening a configuration modal — Option C replaces the
-landing page outright:
+The newest prototype, and the response to the **August 5 feedback** on Option C. Where C
+gives you a six-tile board to compare, D cuts to the single decision a pre-invited group
+actually has — *where do you want to stay?*
+
+```
+Packages ──▶ Package details ──▶ Checkout ──▶ Confirmation
+(landing)     the library's
+ two tiles,    package template
+ one per hotel       │
+      │              └─ Select ──▶ Checkout
+      └─ hotel NAME ──▶ Hotel Details (new tab, informational)
+```
+
+- **The package pair IS the landing page.** No hero, no search band, no headcount gate —
+  two tiles under a compact event strip, above the fold.
+- **Both packages are identical.** Same Club Level tickets, transportation, hospitality
+  and two nights. Only the hotel differs, so they're named for it: **Westin Package** and
+  **Ritz-Carlton Package**.
+- **One variable: how many people are coming.** A party-size control in the header, beside
+  the two prices it drives. No dates — the party is invited for a fixed two-day window.
+- **"View Package"** opens the library's own `PackageDetailPage`, with the packages section
+  pulled to the top; its Select CTA continues to checkout.
+- **Hotel names open the library's `Hotel Details` page** in a new tab, read-only.
+
+One thing worth watching: occupancy means the cheaper hotel isn't always the cheaper
+package. The Westin's Deluxe King sleeps 2 and the Ritz's Carlton Suite sleeps 4, so a
+party of four needs two rooms at one and one at the other. Each card states its own room
+count rather than letting the price move unexplained.
+
+Full detail on the [Option D overview](/?path=/docs/aug-5-changes-option-d-overview--docs).
+
+## Option C — the one-click package board
+
+The **August 4** feedback response, and still deployed unchanged. Where Options A and B
+lead with the library's Browse Packages page — a filter rail plus a scrolling list of
+rows, each opening a configuration modal — Option C replaces the landing page outright:
 
 ```
                               ┌─ Ritz-Carlton ─▶ [choose your room]  ─┐
@@ -127,11 +171,11 @@ Package board ──▶ Select ─────┤                               
 - **Hotel names open the library's own `Hotel Details / Book Reservation` page**
   in a new tab, read-only, so the board keeps its dates and party size.
 
-It is also the cleanest example in this repo of a prototype that **touches nothing**:
-zero library component overrides and zero source patches, against four of each in
-Option A. Full detail on the
-[Option C overview](/?path=/docs/aug-4-changes-option-c-overview--docs); the flow for
-all three sits on [Aug 4 Changes](/?path=/docs/aug-4-changes-overview--docs).
+C and D are both examples of a prototype that **touches nothing** — zero library component
+overrides and zero source patches, against four of each in Option A. Full detail on the
+[Option C overview](/?path=/docs/aug-4-changes-option-c-overview--docs); the flow for A, B
+and C sits on [Aug 4 Changes](/?path=/docs/aug-4-changes-overview--docs), and D has its own
+[Aug 5 Changes](/?path=/docs/aug-5-changes-option-d-overview--docs) category.
 
 > **Building the localized prototype or a full user journey?** Read
 > **Getting Started → User Journey & Build Spec** — it specifies every stage of

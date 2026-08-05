@@ -15,21 +15,58 @@ booking**, checkout, and confirmation.
 ## 🎯 Start here
 The primary links, all deployed from this repo.
 
-### ⭐ Aug 4 — Options A, B & C
-The current work: three takes on the same brief, built side by side so they can be
+### ⭐ Options A, B, C & D
+The current work: four takes on the same brief, built side by side so they can be
 compared. None of them modifies the design system.
 
-**Start with Option C.** A and B were built first — two shapes of the same
-configure-then-book journey, both dropping the Package Details page for a
-full-screen package modal. Option C is the response to the Aug 4 feedback on
-both: a grid instead of a scrolling list, no filtering, no modal, and the ticket
-free with the room.
+**Start with Option D** — the **Aug 5** feedback response and the current
+direction. A, B and C came out of the **Aug 4** round: A and B are two shapes of
+the same configure-then-book journey, and C answered that round with a one-click
+grid. D answers the feedback on C by cutting to the single decision a pre-invited
+group actually has — *where do you want to stay?*
 
-| | Flow | Live |
-| --- | --- | --- |
-| **⭐ Option C** — one-click grid | 6-tile board → confirm → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-c/** |
-| **Option A** — packages first | Landing → Browse Packages → package modal → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-a/** |
-| **Option B** — hotel first | RSVP → two hotels → package *or* room *or* skip the stay → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-b/** |
+| | Round | Flow | Live |
+| --- | --- | --- | --- |
+| **⭐ Option D** — two hotels, one package | Aug 5 | 2-package pair (landing) → package template → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-d/** |
+| **Option C** — one-click grid | Aug 4 | 6-tile board → confirm → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-c/** |
+| **Option A** — packages first | Aug 4 | Landing → Browse Packages → package modal → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-a/** |
+| **Option B** — hotel first | Aug 4 | RSVP → two hotels → package *or* room *or* skip the stay → checkout | **https://epprestodesign.github.io/presto-2026-ticketing/option-b/** |
+
+#### The Option D workflow
+
+```
+Packages ──▶ Package details ──▶ Checkout ──▶ Confirmation
+(landing)      library template
+ two tiles,     packages pulled to the top
+ one per hotel        │
+      │               └─ Select ──▶ Checkout
+      └─ hotel NAME ──▶ Hotel Details (new tab, informational)
+```
+
+- **The package pair IS the landing page** — no hero, no search band, no headcount
+  gate. Two tiles under a compact event strip, above the fold.
+- **Both packages are identical**: the same Club Level tickets, transportation,
+  hospitality and two nights. Only the hotel differs, so they're named for it —
+  **Westin Package** and **Ritz-Carlton Package**.
+- **One variable: how many people are coming.** A party-size control in the header,
+  beside the two prices it drives. No dates — the party is invited for a fixed
+  two-day window.
+- **"View Package"** opens the library's own `PackageDetailPage` (with the packages
+  section pulled to the top); its Select CTA continues to checkout.
+
+```
+rooms      = ceil(people / room occupancy)
+components = ticket face × people  +  nightly × 2 nights × rooms
+             +  transportation × rooms  +  hospitality × people
+package    = round(components × (1 − 12% bundle discount))
+```
+
+Occupancy is the thing to watch: the Westin's Deluxe King sleeps 2 and the Ritz's
+Carlton Suite sleeps 4, so a party of four needs two rooms at one and one at the
+other — the cheaper hotel isn't always the cheaper package.
+
+Source: [`option-d/`](option-d/) · full detail in
+[option-d/README.md](option-d/README.md).
 
 #### The Option C workflow
 
@@ -73,11 +110,13 @@ saving  = ticket face value × guests        ← "N tickets free"
 A and B are kept because their detailed configure-and-adjust UI is explicitly
 *"good for later, not the landing page"*.
 
-Every component behind all three is documented in Storybook under **Aug 4 Changes**:
+Every component is documented in Storybook. A, B and C sit under **Aug 4 Changes**:
 **https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs**
-· [Option C overview](https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-option-c-overview--docs)
+· [Option C overview](https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-option-c-overview--docs).
+D has its own **Aug 5 Changes** category:
+**[Option D overview](https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-5-changes-option-d-overview--docs)**
 
-Source: [`option-c/`](option-c/) · [`option-a/`](option-a/) · [`option-b/`](option-b/)
+Source: [`option-d/`](option-d/) · [`option-c/`](option-c/) · [`option-a/`](option-a/) · [`option-b/`](option-b/)
 
 ## 🎯 The three experiences
 Three primary links, all deployed from this repo. Start here:
@@ -115,7 +154,8 @@ Everything below deploys automatically on every push to `main`.
 | **Storybook** | The full design system + experience flows | **https://epprestodesign.github.io/presto-2026-ticketing/** |
 | **Hotel + Tickets Journey** | Stepper-guided **hotel + event tickets** prototype | https://epprestodesign.github.io/presto-2026-ticketing/experience/ |
 | **Hotel + Packages Journey** | Stepper-guided **hotel + experience packages** prototype | https://epprestodesign.github.io/presto-2026-ticketing/experience-packages/ |
-| **Aug 4 - Option C** | ⭐ The one-click package grid — the Aug 4 feedback response | https://epprestodesign.github.io/presto-2026-ticketing/option-c/ |
+| **Aug 5 - Option D** | ⭐ Two hotels, one package — the Aug 5 feedback response | https://epprestodesign.github.io/presto-2026-ticketing/option-d/ |
+| **Aug 4 - Option C** | The one-click package grid — the Aug 4 feedback response | https://epprestodesign.github.io/presto-2026-ticketing/option-c/ |
 | **Aug 4 - Option A** | Working copy of the Hotel + Packages journey (forked 2026-08-04) | https://epprestodesign.github.io/presto-2026-ticketing/option-a/ |
 | **Aug 4 - Option B** | The v2 take on that journey — hotel-first flow | https://epprestodesign.github.io/presto-2026-ticketing/option-b/ |
 | **Aug 4 Changes (docs)** | Storybook category documenting every component in that prototype | https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs |
@@ -135,6 +175,9 @@ Option C carries its **own** overview doc as well, because what it *removes* fro
 the filter rail, the modal, all four library overrides and all four source patches — is the
 substance of it.
 
+**Option D** is the Aug 5 round and has its own top-level **Aug 5 Changes** category, so the
+two rounds stay separable in review.
+
 **▶ https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs**
 
 | Story | What it documents |
@@ -148,6 +191,10 @@ substance of it.
 | [Option C / Booking Widget](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-booking-widget--core-widget) | Dates + guests, no Search button — with Option A's original beside it for comparison |
 | [Option C / Event Header Bar](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-event-header-bar--default) | The ~90px alternative to the hero, kept for the above-the-fold trade-off |
 | [Option C / Hotel Details](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-option-c-hotel-details--ritz-carlton) | The library's Hotel Details page template, in read-only mode |
+| [Option D / Overview](https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-5-changes-option-d-overview--docs) | Each Aug 5 feedback point and how it's answered, the pricing model, and what D removes from C |
+| [Option D / Package Pair](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-5-changes-option-d-package-pair--two-hotels) | The two tiles — identical contents, named for their hotel |
+| [Option D / Package Details](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-5-changes-option-d-package-details--ritz-carlton) | The library package template, with its packages section pulled to the top |
+| [Option D / Hotel Details](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-5-changes-option-d-hotel-details--westin) | The library hotel template in read-only mode |
 | [Package Details / Package Modal](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-package-modal--playground) | The full-screen two-column sheet that replaced the Package Details page |
 | [Package Details / Package Result Card](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-package-result-card--playground) | The Browse Packages row + inline hotel-availability panel |
 | [Package Details / Tier Picker](https://epprestodesign.github.io/presto-2026-ticketing/?path=/story/aug-4-changes-package-details-tier-picker--playground) | Ticket tiers with per-ticket and party pricing |
@@ -197,7 +244,14 @@ and from Storybook's **Getting Started → Introduction** page.
   The same flow with **experience packages** — **Stays → Packages → Review**:
   Browse Packages → Package Details → Packages + Hotel checkout. Source:
   [`experience-packages/`](experience-packages/).
-- **▶ Aug 4 - Option C — https://epprestodesign.github.io/presto-2026-ticketing/option-c/** ⭐
+- **▶ Aug 5 - Option D — https://epprestodesign.github.io/presto-2026-ticketing/option-d/** ⭐
+  **Two hotels, one package.** The package pair is the landing page: two identical
+  packages — same Club Level tickets, transportation, hospitality and two nights —
+  differing only by hotel, and named for it. One variable, the party size, sits in the
+  header. "View Package" opens the library's own package template, and its Select CTA
+  continues to checkout. Hotel names open the library's Hotel Details page in a new tab,
+  read-only. Source: [`option-d/`](option-d/).
+- **▶ Aug 4 - Option C — https://epprestodesign.github.io/presto-2026-ticketing/option-c/**
   **One-click grid.** A 6-tile board — 3 ticket tiers × 2 contracted hotels — is the
   landing page. No filter rail, no result list, no configuration modal: a tile is a
   complete SKU. Dates and guests sit in one shared control above the board and re-price

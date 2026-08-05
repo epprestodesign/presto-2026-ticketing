@@ -24,6 +24,10 @@ const config = {
     // is the substance of it and needs explaining next to the components.
     '../option-c/stories/**/*.mdx',
     '../option-c/stories/**/*.stories.@(js|jsx|ts|tsx)',
+    // Option D — the Aug 5 feedback response. Its own top-level category, because
+    // it answers a different round of feedback than A, B and C.
+    '../option-d/stories/**/*.mdx',
+    '../option-d/stories/**/*.stories.@(js|jsx|ts|tsx)',
   ],
   addons: [
     '@storybook/addon-themes',

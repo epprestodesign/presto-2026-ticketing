@@ -17,6 +17,11 @@ Deployed as a Storybook sub-page at
 response to it. All three are documented under **Aug 4 Changes** in Storybook:
 https://epprestodesign.github.io/presto-2026-ticketing/?path=/docs/aug-4-changes-overview--docs
 
+**There is a newer round.** [Option D](../option-d) (port 6700) is the **Aug 5** feedback
+response and the current direction — two identical packages, one per hotel, with the pair
+as the landing page. Option C is kept unchanged; the Aug 5 feedback said to keep the
+current concept as-is.
+
 ## What the feedback asked for
 
 | Feedback | How Option C answers it |
