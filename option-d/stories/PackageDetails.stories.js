@@ -10,14 +10,16 @@ const meta = {
     docs: {
       description: {
         component:
-          'Screen 2 — the package template page, opened by **View Package** on a card.\n\n' +
+          'Screen 2 — the package template page, opened by **View package details** on a card.\n\n' +
           "It is the library's own `PackageDetailPage` — gallery, value props, what's included, " +
           'the packages tab, policies — the same template `/experience-packages` uses. Nothing ' +
           'hand-rolled.\n\n' +
-          '**This is where the booking decision happens.** The cards on screen 1 no longer go ' +
-          'straight to checkout; they hand off here, and this page\'s Select CTA continues to ' +
-          'checkout. So the card is a summary and this is the detail, which is what "View ' +
-          'Package" promises.\n\n' +
+          '**This page is optional.** The Aug 5 afternoon feedback was that a guest already ' +
+          'decided on a package should not have to load a second screen to press a second ' +
+          'button — so the cards on screen 1 now check out directly, and this page is the ' +
+          "drill-in for anyone who wants to read first. Its Select CTA calls the same " +
+          '`selectPackage()` the card does: a longer route through the same decision, not a ' +
+          'different one.\n\n' +
           'The template renders a grid of packages on its Packages tab. Option D has only two — ' +
           'the same two from screen 1 — and the one that was clicked leads. That is deliberate: ' +
           'someone who came in to read the detail should be able to switch without going back a ' +

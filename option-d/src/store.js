@@ -1,7 +1,8 @@
 // Option D journey store — the pre-invited group flow (Aug 5 feedback).
 //
-//   packages       → two tiles, one per hotel — this is the LANDING page
-//   packageDetails → the library's package template, opened by "View Package"
+//   packages       → two tiles, one per hotel — this is the LANDING page, and it
+//                    can go straight to checkout
+//   packageDetails → the library's package template, an OPTIONAL drill-in
 //   checkout ─ confirmation
 //
 // Plus one OPTIONAL reference view (hotelDetails), which is never a step: it
@@ -14,9 +15,9 @@
 // derivation, the `from`/`to` URL params — and leaves exactly one variable.
 //
 // The separate "How many people are coming?" landing screen is gone too: the
-// packages page IS the landing page now, and the headcount lives in its header.
-// A screen that asks one question before showing anything is a gate; asking it
-// beside the thing it prices is not.
+// packages page IS the landing page now, and the headcount lives on the cards
+// themselves. A screen that asks one question before showing anything is a gate;
+// asking it on the card whose price it changes is not.
 import { reactive, computed } from 'vue'
 import { packagesFor, hotelById, HOTELS, NIGHTS } from './packages.js'
 
@@ -26,7 +27,10 @@ const FLOW = ['packages', 'packageDetails', 'checkout', 'confirmation']
 export const STEP_LABELS = ['Package', 'Review']
 // The packages page is stage -1, not 0: it is the landing page, and a progress
 // bar above a landing page is orientation for progress not yet made. The stepper
-// appears once the guest has opened a package.
+// appears once a package has been opened or chosen — so a card that goes straight
+// to checkout lands on "Review" with "Package" behind it, complete and clickable.
+// That is honest: picking on the card IS completing the package step, and the
+// detail page stays one click away for anyone who wants to look after all.
 const SCREEN_STAGE = { packages: -1, packageDetails: 0, checkout: 1, confirmation: 1, hotelDetails: -1 }
 
 // Screens from the other options that don't exist here.
@@ -105,9 +109,13 @@ export function goToStage(stage) {
 }
 
 /**
- * The party size — the only variable in Option D. Set on the landing page, and
- * it prices both packages, sets the ticket count, and decides how many rooms each
- * hotel needs at its occupancy.
+ * The party size — the only variable in Option D. It prices both packages, sets
+ * the ticket count, and decides how many rooms each hotel needs at its occupancy.
+ *
+ * Set from the control on either package card (Aug 5 afternoon feedback — it used
+ * to live in the packages header). Both cards read this one value and write back
+ * through here, so the two controls are a mirror of a single number, never two
+ * numbers that could drift apart.
  */
 export function setPeople(n) {
   journey.people = Math.min(Math.max(1, n || 1), MAX_PEOPLE)
@@ -115,11 +123,11 @@ export function setPeople(n) {
 }
 
 /**
- * "View Package" on a card — open the package template page for it.
+ * "View package details" on a card — open the package template page for it.
  *
- * The card is a summary; this is the detail. Selecting from the detail page is
- * what continues to checkout (see selectPackage), so the card no longer books
- * anything on its own.
+ * The optional drill-in, not the way through. A guest who wants the gallery, the
+ * full inclusion list and the policies reads them here and selects from this
+ * page's own CTA; a guest who has already decided never has to load it.
  */
 export function viewPackage(pkg) {
   if (!pkg) return
@@ -128,7 +136,14 @@ export function viewPackage(pkg) {
   nav('packageDetails')
 }
 
-/** A package was selected on the detail page — continue to checkout. */
+/**
+ * A package was selected — continue to checkout.
+ *
+ * Called from BOTH places a package can be chosen: the "Select & Check Out" CTA
+ * on a card, and the Select CTA on the detail page. Same function, because they
+ * are the same act — the detail page is a longer route to it, not a different
+ * decision. The card path is why the detail page stopped being mandatory.
+ */
 export function selectPackage(pkg) {
   if (pkg) journey.activePkgId = pkg.id
   nav('checkout')
