@@ -76,8 +76,11 @@ export const TIER = TIERS.find((t) => t.id === 'club') || TIERS[0]
 
 // Flat per-package value for the non-room, non-ticket inclusions. Prototype
 // economics, deterministic so demos never drift.
-const TRANSPORT_VALUE = 180  // round-trip coach, hotel ↔ stadium, both days
-const HOSPITALITY_VALUE = 140 // pregame hospitality tent, per person
+//
+// Exported because the hotel page's package price breakdown itemises them —
+// `extrasTotal` alone can't be split back apart once summed.
+export const TRANSPORT_VALUE = 180  // round-trip coach, hotel ↔ stadium, both days
+export const HOSPITALITY_VALUE = 140 // pregame hospitality tent, per person
 
 /** The inclusion list both packages carry, rendered on the tile and at checkout. */
 export const inclusionsFor = (people) => [

@@ -27,11 +27,12 @@ group.
 
 ```
 Packages ─── Select & Check Out ────────────▶ Checkout ──▶ Confirmation
-(landing)                                        ▲
- two tiles,                                      │
+(landing)                                        ▲  ▲
+ two tiles,                                      │  │
  one per hotel ─ View package details ──▶ Package details ─ Select ─┘
-      │                                    the library's template
-      └─ hotel NAME ──▶ Hotel Details (new tab, informational only)
+      │                                    the library's template  │
+      └─ hotel NAME ──▶ Hotel Details ─ Select package ────────────┘
+                        (new tab)
 ```
 
 **The packages page is the landing page**, and it can also be the last page before
@@ -45,8 +46,9 @@ opened or chosen.
 CTA continues to the same place — a longer route through the decision, not a gate in front
 of it.
 
-Hotel details is **not** a step. It opens in its own tab from any mention of a hotel, so
-the screen behind it keeps its state.
+Hotel details is still **not a step** — it opens in its own tab from any mention of a hotel,
+so the screen behind it keeps its state. It is no longer a *dead end*, though: its room card
+selects the package too, and selecting there continues in that tab.
 
 ## The Aug 5 afternoon revision
 
@@ -55,6 +57,12 @@ the screen behind it keeps its state.
 | Party size belongs **on the card**, not at page level | Moved onto both cards, above the price. Still one number — both controls bind to the same store value, so setting it on either re-prices both. |
 | Don't make me open a second page to select and check out | `Select & Check Out` on the card goes straight to Review. |
 | Keep the drill-in for when I *do* want the detail | `View package details` beside it, and that page is unchanged. |
+| On a hotel page, make `Price Details` a **Select package** action | The room card under *Room types at this property* now selects that hotel's package — same party-size control, same price block, same rhythm as the package cards. Both hotels behave identically. |
+
+On the hotel page the headline is the **package total, all in** rather than the room rate,
+because that is what checkout charges — a `$578` button landing on a `$3,091` checkout would
+read as a bait-and-switch. `Price details` survives as the secondary link, rewritten to break
+down the *package*: the four inclusions, then the bundle discount.
 
 Each card also states what the party size bought *there* — `7 tickets · 4 rooms` at the
 Westin against `7 tickets · 2 rooms` at the Ritz — because occupancy differs, so the same
@@ -122,7 +130,7 @@ Prototype economics, deterministic so demos never drift.
 | Ticket tier | a choice, 3 ways | fixed — one tier |
 | Dates | a picker; nights drive price | **fixed** two nights, no picker |
 | Room choice | 5 room types at the premium hotel | one room per hotel |
-| Confirm dialog | choose-your-room / confirm | none — the package template page is the decision |
+| Confirm dialog | choose-your-room / confirm | none — the card checks out, and the detail page is optional |
 | Library overrides + patches | 0 + 0 | **0 + 0** |
 
 Like Option C, Option D touches no library file: its `OVERRIDES` and `PATCHES` are both

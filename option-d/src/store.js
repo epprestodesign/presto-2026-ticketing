@@ -149,6 +149,20 @@ export function selectPackage(pkg) {
   nav('checkout')
 }
 
+/**
+ * "Select package" on the hotel details page — book the package for the hotel
+ * being read about.
+ *
+ * The hotel page opens in its own tab, so this navigates THAT tab to checkout
+ * and leaves the tab behind it exactly where it was. Two tabs, one on the
+ * packages board and one on Review, which is how a new tab is expected to
+ * behave: the page you opened is where you finish, and nothing you left is lost.
+ */
+export function selectPackageForHotel(hotelId) {
+  const pkg = packages.value.find((p) => p.hotel.id === hotelId)
+  if (pkg) selectPackage(pkg)
+}
+
 export function setTab(name) { journey.tab = name || 'overview'; writeUrl(journey.screen, false) }
 
 /**
