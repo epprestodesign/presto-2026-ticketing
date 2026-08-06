@@ -21,6 +21,33 @@ const props = defineProps({
     ] },
     { id: 'none', title: 'No protection', desc: 'You could be reimbursed for trip costs (minus the plan price) only if you cancel for a covered reason.' },
   ]) },
+  // Expanded layout (CheckoutPageExpanded): render only "Protect your stay" —
+  // Policies becomes its own numbered section on that page, so keeping it here
+  // too would show the agreement twice. Opt-in; the stepped CheckoutPage still
+  // gets both in one step.
+  hidePolicies: { type: Boolean, default: false },
+  // Expanded layout: the page owns the single submit, so this surface's own
+  // completion CTA is suppressed.
+  flat: { type: Boolean, default: false },
+  // --- Enhanced Booking Protection (ported from presto-2026) -----------------
+  // Opt-in swap for the "Protect your stay" block: instead of the two plan
+  // cards, the Vertical Insure treatment — a covered-reasons grid over an
+  // accept/decline pair with the coverage price and the e-signature notice.
+  //
+  // Opt-in rather than a replacement because the stepped CheckoutPage still
+  // shows the plan cards; only CheckoutPageExpanded asks for this one. The two
+  // designs share `protection`'s selected state, so neither flow changes what
+  // it captures — 'yes'/'no' here, plan id there.
+  enhancedProtection: { type: Boolean, default: false },
+  protectionPrice: { type: Number, default: 20.66 },
+  coveredReasons: { type: Array, default: () => ([
+    { icon: 'monitor_heart', label: 'Injury or Illness' },
+    { icon: 'work', label: 'Job Loss' },
+    { icon: 'thunderstorm', label: 'Severe Weather' },
+    { icon: 'directions_car', label: 'Car Breakdown' },
+    { icon: 'groups', label: 'Family Emergency' },
+    { icon: 'emergency', label: 'Emergency Service Duty' },
+  ]) },
 })
 const emit = defineEmits(['confirm'])
 const money = (n, c = '$') => c + Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -36,7 +63,37 @@ const canConfirm = computed(() => protection.value !== null)
     <section v-if="flow !== 'group'" class="srr__sec srr__sec--first">
       <h4 class="srr__h">Protect your stay</h4>
       <p class="srr__sub">Select an option to continue.</p>
-      <div class="srr__plans">
+
+      <!-- Enhanced Booking Protection (opt-in) — the Vertical Insure treatment:
+           what's covered, then accept or decline. -->
+      <div v-if="enhancedProtection" class="bp">
+        <h5 class="bp__title">Enhanced Booking Protection</h5>
+        <p class="bp__desc">Life is unpredictable. Get back up to 100% of your {{ money(total, currency) }} payment if you're forced to cancel or unable to attend due to unexpected events.</p>
+
+        <div class="bp__reasons">
+          <div v-for="r in coveredReasons" :key="r.label" class="bp__reason">
+            <span class="bp__reason-icon"><q-icon :name="r.icon" size="22px" /></span>
+            <span class="bp__reason-label">{{ r.label }}</span>
+          </div>
+        </div>
+
+        <button type="button" class="bp__opt" :class="{ 'is-sel': protection === 'yes' }" @click="protection = 'yes'">
+          <span class="bp__radio"><span v-if="protection === 'yes'" class="bp__dot" /></span>
+          <span class="bp__opt-main">Yes, make my booking refundable <span class="bp__rec">Recommended</span></span>
+          <span class="bp__opt-price">{{ money(protectionPrice, currency) }}</span>
+        </button>
+
+        <button type="button" class="bp__opt bp__opt--no" :class="{ 'is-sel': protection === 'no' }" @click="protection = 'no'">
+          <span class="bp__radio"><span v-if="protection === 'no'" class="bp__dot" /></span>
+          <span class="bp__opt-main">No, I prefer no refunds or exchanges for any reason</span>
+        </button>
+
+        <div class="bp__rule" />
+        <p class="bp__fine">Accepting coverage constitutes my electronic signature. I confirm that I have read, understand, and agree to the <a class="bp__link" href="#" @click.prevent>insurance notices and disclosures.</a></p>
+      </div>
+
+      <!-- The stepped checkout's plan cards. -->
+      <div v-else class="srr__plans">
         <button v-for="p in protectionPlans" :key="p.id" class="srr__plan" :class="{ 'is-sel': protection === p.id }" @click="protection = p.id">
           <span class="srr__plan-body">
             <span class="srr__plan-title">{{ p.title }}<span v-if="p.recommended" class="srr__rec">Recommended</span></span>
@@ -57,10 +114,10 @@ const canConfirm = computed(() => protection.value !== null)
          first section and drops its top border via srr__sec--first.) -->
 
     <!-- Policies + agreement + completion CTA -->
-    <section class="srr__sec" :class="{ 'srr__sec--first': flow === 'group' }">
+    <section v-if="!hidePolicies" class="srr__sec" :class="{ 'srr__sec--first': flow === 'group' }">
       <h4 class="srr__h">Policies</h4>
       <p class="srr__sub">Review and agree to the policies to complete your booking.</p>
-      <policies-agreement :flow="flow" :hotels="hotels" @submit="emit('confirm')" />
+      <policies-agreement :flow="flow" :hotels="hotels" :hide-cta="flat" @submit="emit('confirm')" />
     </section>
   </div>
 </template>
@@ -97,4 +154,52 @@ const canConfirm = computed(() => protection.value !== null)
 .srr__confirm.is-disabled { background: var(--ds-palette-slate-200); color: var(--ds-color-text-subtlest); pointer-events: none; }
 
 @media (max-width: 560px) { .srr__plans { grid-template-columns: 1fr; } }
+
+/* --- Enhanced Booking Protection (ported from presto-2026) ------------------
+   Only rendered when `enhancedProtection` is set, so these rules never touch
+   the plan-card layout above. */
+.bp { border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); padding: 22px 24px; }
+.bp__title { margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--ds-color-text); }
+.bp__desc { margin: 10px 0 18px; color: var(--ds-color-text-subtle); font-size: 0.9375rem; line-height: 1.5; }
+
+.bp__reasons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.bp__reason { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 12px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md); }
+.bp__reason-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--ds-palette-neutral-900, #18181B); color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+.bp__reason-label { font-weight: 700; font-size: 0.9375rem; color: var(--ds-color-text); text-align: center; line-height: 1.3; }
+
+.bp__opt { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 16px 16px; border: 0; border-radius: var(--ds-radius-md); background: var(--ds-color-surface); cursor: pointer; }
+.bp__opt:first-of-type { margin-top: 22px; }
+.bp__opt--no { background: var(--ds-palette-slate-50, #F8FAFC); margin-top: 6px; }
+.bp__opt.is-sel { box-shadow: inset 0 0 0 2px var(--ds-color-background-brand-bold); }
+.bp__radio { width: 22px; height: 22px; flex: none; border: 2px solid var(--ds-color-border-bold); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.bp__opt.is-sel .bp__radio { border-color: var(--ds-color-background-brand-bold); }
+.bp__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ds-color-background-brand-bold); }
+.bp__opt-main { flex: 1; display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; font-weight: 700; color: var(--ds-color-text); font-size: 1rem; }
+.bp__opt-price { font-weight: 800; font-size: 1.125rem; color: var(--ds-color-text); white-space: nowrap; }
+.bp__rec { display: inline-block; background: var(--ds-palette-green-600); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: var(--ds-radius-pill); }
+
+.bp__rule { height: 1px; background: var(--ds-color-border); margin: 18px 0 16px; }
+.bp__fine { margin: 0; color: var(--ds-color-text-subtle); font-size: 0.875rem; line-height: 1.5; }
+.bp__link { color: var(--ds-color-text-info); text-decoration: underline; }
+
+/* Phones: the covered-reason grid becomes a snap-scrolling row. */
+@media (max-width: 600px) {
+  .bp { padding: 16px; }
+  .bp__title { font-size: 1rem; }
+  .bp__desc { font-size: 0.8125rem; line-height: 1.45; margin: 8px 0 14px; }
+  .bp__reasons {
+    display: flex; grid-template-columns: none; gap: 10px;
+    overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    margin-inline: -4px; padding: 2px 4px 6px;
+  }
+  .bp__reason { flex: 0 0 42%; min-width: 118px; scroll-snap-align: start; padding: 14px 10px; gap: 8px; }
+  .bp__reason-icon { width: 40px; height: 40px; }
+  .bp__reason-label { font-size: 0.8125rem; }
+  .bp__opt { padding: 14px 12px; gap: 12px; }
+  .bp__opt:first-of-type { margin-top: 16px; }
+  .bp__opt-main { font-size: 0.875rem; }
+  .bp__opt-price { font-size: 1rem; }
+  .bp__rec { font-size: 0.6875rem; padding: 2px 8px; }
+  .bp__fine { font-size: 0.75rem; line-height: 1.45; }
+}
 </style>

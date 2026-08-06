@@ -21,6 +21,10 @@ const props = defineProps({
   customFields: { type: Array, default: () => [] },
   // Group flow: render the teams block widget (off → block w/o team holding).
   showTeams: { type: Boolean, default: true },
+  // Expanded layout (CheckoutPageExpanded): hide the per-step "Next" button —
+  // that page submits the whole flow once at the bottom. Opt-in, so the stepped
+  // CheckoutPage is unaffected.
+  flat: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue', 'next'])
 
@@ -50,7 +54,7 @@ const onNext = () => { if (valid.value) emit('next'); else { showErrors.value = 
       @update:model-value="emit('update:modelValue', $event)"
       @update:valid="resValid = $event"
     />
-    <q-btn unelevated no-caps class="step__next" label="Next" @click="onNext" />
+    <q-btn v-if="!flat" unelevated no-caps class="step__next" label="Next" @click="onNext" />
   </div>
 </template>
 

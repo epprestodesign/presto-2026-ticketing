@@ -64,6 +64,13 @@ room card selects the package too, and selecting there continues in that tab.
 | On a hotel page, make "Price Details" a **Select package** action | The room card now selects that hotel's package, with the same experience the package cards give. |
 | Same on **both** hotel pages | One card, driven by the active hotel — Westin and Ritz-Carlton behave identically. |
 
+### August 6
+
+| Feedback | How Option D answers it |
+| --- | --- |
+| "View package details" should show **only the package I picked** | The detail page carries one package, not both. |
+| Checkout should be **one form**, not a Next button revealing each section | Checkout mounts `CheckoutPageExpanded` — every section open, one submit. |
+
 ## Why the party size is on the card
 
 It was in the page header on the argument that one number pricing two cards should be
@@ -97,6 +104,50 @@ So the direct route is now the filled CTA, and the drill-in is the outline butto
 it. Both call the same `selectPackage()`, because they are the same act. What the detail
 page loses is only its monopoly; someone who wants the gallery and the policies still gets
 them, and still selects from there.
+
+## Why the detail page shows one package
+
+It used to hand the template both, with the clicked one leading, so a reader
+could switch without going back a screen. In practice that meant **"View package
+details" opened something other than what was asked for**: you press the button
+on the Westin card and land on a page showing the Westin *and* the Ritz, which
+re-opens a decision you had already made.
+
+The board is where the two are compared — that is its whole job, and it is one
+click away via the template's own back link. This page answers a narrower
+question: *tell me about this one.*
+
+Two consequences worth noting:
+
+- The **About** copy used to open "Both packages carry exactly the same
+  inclusions…", which only parsed with both on the page. It now describes the
+  package you opened and names the other as the alternative waiting on the board.
+- The template's packages-section subtitle ("…Select a package for a quick view")
+  is hidden — with one package there is nothing to select among, so the sentence
+  invited an action the page no longer offers.
+
+## Why checkout is one form
+
+Checkout mounted `CheckoutPage`, whose left column is a stepped accordion: one
+section open, a **Next** button to advance, completed sections collapsing behind
+an *Edit* link. It now mounts **`CheckoutPageExpanded`** — every section open at
+once, all fields in their input state, and a single **Book Now** at the bottom.
+
+```
+1  Enter contact information
+2  Add a payment method
+3  Review your order        (Protect your stay)
+4  Policies
+   [ Book Now ]
+```
+
+The **rail is untouched**: same sticky cart, same in-rail countdown, same order
+summary. Only the left column changed.
+
+`CheckoutPageExpanded` is a library component, ported from presto-2026 (where it
+backs the *Checkout Experience Expanded* category) and extended with this fork's
+`ticketing` mode, which that repo predates. See [Storybook →
+Checkout Experience Expanded](../src/stories/checkout/CheckoutPageExpanded.stories.js).
 
 ## Why the hotel page can select a package
 

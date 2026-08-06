@@ -64,6 +64,18 @@ because that is what checkout charges — a `$578` button landing on a `$3,091` 
 read as a bait-and-switch. `Price details` survives as the secondary link, rewritten to break
 down the *package*: the four inclusions, then the bundle discount.
 
+## The Aug 6 revision
+
+| Feedback | Answer |
+| --- | --- |
+| "View package details" should show **only the package I picked** | The detail page carries one package. It used to show both with the clicked one leading — which meant the button opened something other than what was asked for, re-opening a decision already made. The board is one click away for comparing. |
+| Checkout should be **one form**, not a Next button revealing each section | Checkout mounts `CheckoutPageExpanded`: Contact · Payment · Review your order · Policies, all open, one **Book Now**. The rail is untouched. |
+
+`CheckoutPageExpanded` is a library component, ported from presto-2026 and extended with
+this fork's `ticketing` mode. All six of its flows are documented under
+[Checkout Experience Expanded](?path=/docs/checkout-experience-expanded-overview--docs) —
+**Packages + Hotel** is the one Option D mounts.
+
 Each card also states what the party size bought *there* — `7 tickets · 4 rooms` at the
 Westin against `7 tickets · 2 rooms` at the Ritz — because occupancy differs, so the same
 party is a different room count on each. That is the line that keeps the two cards from

@@ -10,30 +10,34 @@
 // CTA continues to checkout. So the card is a summary and this is the detail,
 // which is what "View Package" promises.
 //
-// The template shows a grid of packages on its Packages tab. Option D has only
-// two, and they are the same two from screen 1 — so opening from the Ritz card
-// still shows both, with the Ritz one first. That is deliberate: someone who
-// clicked in to read the detail should still be able to switch without going
-// back a screen.
+// --- ONE package, not both (Aug 6 feedback) ----------------------------------
+// The template shows a GRID of packages on its Packages tab, and this page used
+// to hand it both of Option D's, with the clicked one leading. The reasoning was
+// that someone reading the detail could switch without going back a screen.
+//
+// In practice that made "View package details" open something other than what
+// was asked for: you press the button on the Westin card and land on a page
+// showing the Westin *and* the Ritz, which re-opens a decision you had already
+// made. The board is where the two are compared — that is its whole job, and it
+// is one click away. This page answers a narrower question: tell me about THIS
+// one.
+//
+// So the page carries only the active package now. Switching still costs exactly
+// one click (the template's own back link, wired to the board below).
 import { computed } from 'vue'
 import PackageDetailPage from '@lib/components/PackageDetailPage.vue'
 import { gallery, experiences, policies } from '@lib/stories/packagedetails/_pd-components-data.js'
-import { packages, journey, activePkg, selectPackage, nav, setTab } from '../store.js'
+import { journey, activePkg, selectPackage, nav, setTab } from '../store.js'
 import { EVENT } from '../event.js'
 import { STAY_LABEL, STAY_SHORT, TIER } from '../packages.js'
 
-// The package clicked leads, so the page opens on what was asked for.
-const ordered = computed(() => {
-  const list = packages.value
-  const active = activePkg.value
-  if (!active) return list
-  return [active, ...list.filter((p) => p.id !== active.id)]
-})
-
-// The template renders PackageCards from this, so each needs the shape a card
-// reads: theme, componentsTotal, packagePrice, savings, quantity.
-const templatePackages = computed(() =>
-  ordered.value.map((p) => ({
+// The template renders PackageCards from this, so it needs the shape a card
+// reads: theme, componentsTotal, packagePrice, savings, quantity. One entry —
+// the package that was opened.
+const templatePackages = computed(() => {
+  const p = activePkg.value
+  if (!p) return []
+  return [{
     ...p,
     theme: `${p.hotel.name} · ${STAY_SHORT}`,
     icon: 'hotel',
@@ -43,15 +47,25 @@ const templatePackages = computed(() =>
       { icon: 'directions_bus', label: 'Round-trip transportation' },
       { icon: 'celebration', label: 'Pregame hospitality' },
     ],
-  }))
-)
+  }]
+})
 
 // Option D's own copy in place of the library sample's.
-const about = [
-  `EventPipe is hosting its top customers at Gillette Stadium for ${EVENT.name} on ${EVENT.dateLabel}. Your party is booked in for ${STAY_SHORT} — ${STAY_LABEL} — and everything around the game is already arranged.`,
-  'Both packages carry exactly the same inclusions: Club Level tickets seated together in one block, round-trip coach transportation between the hotel and the stadium on both days, and pregame hospitality in the EventPipe tent. The only difference between them is which hotel you stay at.',
-  'Rooms are held under the EventPipe block at both properties. Check-in is from 3:00 PM and check-out is by 11:00 AM; the coach runs from each hotel lobby.',
-]
+//
+// The middle paragraph used to open "Both packages carry exactly the same
+// inclusions…", which only parsed when both were on the page. With one package
+// showing, it now describes THIS package and names the other as the alternative
+// waiting on the board — the comparison is still stated, just from the point of
+// view of the package you opened.
+const about = computed(() => {
+  const p = activePkg.value
+  const hotel = p?.hotel?.name || 'your hotel'
+  return [
+    `EventPipe is hosting its top customers at Gillette Stadium for ${EVENT.name} on ${EVENT.dateLabel}. Your party is booked in for ${STAY_SHORT} — ${STAY_LABEL} — and everything around the game is already arranged.`,
+    `This package puts you at ${hotel}. It carries Club Level tickets seated together in one block, round-trip coach transportation between the hotel and the stadium on both days, and pregame hospitality in the EventPipe tent. The alternative package is identical in every one of those respects — the only thing that changes is the hotel, and it is one click back on the packages page.`,
+    `Rooms are held under the EventPipe block at ${hotel}. Check-in is from 3:00 PM and check-out is by 11:00 AM; the coach runs from the hotel lobby.`,
+  ]
+})
 
 const select = (pkg) => selectPackage(pkg)
 </script>
@@ -108,4 +122,11 @@ const select = (pkg) => selectPackage(pkg)
    reorders a tab, and it fails visibly (the wrong tab jumps first) rather than
    silently. */
 .xpd :deep(.dtabs__tab:nth-child(3)) { order: -1; }
+
+/* The template's packages-section subtitle reads "Pre-built ticket + experience
+   bundles, each with an optional hotel stay. Select a package for a quick view."
+   With ONE package on the page (Aug 6 feedback) there is nothing to select
+   among, so the sentence invites an action the page no longer offers. The
+   heading above it still names the section; only the stale instruction goes. */
+.xpd :deep(#pdp-packages .pdp__sub) { display: none; }
 </style>
