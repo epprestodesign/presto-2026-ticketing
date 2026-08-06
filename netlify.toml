@@ -1,0 +1,81 @@
+# Netlify — Storybook at the root, every prototype nested beneath it.
+#
+# One command builds the lot (see scripts/build-site.mjs), so what Netlify
+# publishes is byte-identical to what `npm run build:site` produces locally.
+#
+# SITE_BASE is deliberately empty: Netlify serves this at the domain root, so
+# the prototypes' asset paths must be `/option-d/…`, not the
+# `/presto-2026-ticketing/option-d/…` GitHub Pages needed.
+
+[build]
+  command = "npm run build:site"
+  publish = "storybook-static"
+
+[build.environment]
+  # Storybook 10 + Vite 6 want a modern Node; 24 matches what CI has been using.
+  NODE_VERSION = "24"
+  # Public URL of the separately-hosted imagery library (not a secret).
+  VITE_IMAGERY_URL = "https://epprestodesign.github.io/presto-ds-imagery"
+  STORYBOOK_DISABLE_TELEMETRY = "1"
+  SITE_BASE = ""
+  # The prototypes carry no lockfile of their own and resolve deps up the tree;
+  # this keeps pnpm from refusing to link them.
+  NPM_FLAGS = "--shamefully-hoist"
+
+# Deploy previews and branch builds are the same build — only the base differs,
+# and it doesn't: Netlify serves previews from their own root too.
+
+# Each prototype is a single-page app with its own client-side routing (screens
+# are query params, but deep links still hit paths under the app). Serve each
+# app's index.html for anything unresolved beneath it, rather than letting a
+# refresh 404.
+[[redirects]]
+  from = "/prototype/*"
+  to = "/prototype/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/bundle/*"
+  to = "/bundle/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/experience/*"
+  to = "/experience/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/experience-packages/*"
+  to = "/experience-packages/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/option-a/*"
+  to = "/option-a/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/option-b/*"
+  to = "/option-b/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/option-c/*"
+  to = "/option-c/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/option-d/*"
+  to = "/option-d/index.html"
+  status = 200
+
+# Storybook's own assets are content-hashed and safe to cache hard.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

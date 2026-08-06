@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o storybook-static"
+    "build-storybook": "storybook build -o storybook-static",
+    "build:site": "node scripts/build-site.mjs"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.6.2",
