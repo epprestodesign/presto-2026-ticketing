@@ -15,3 +15,6 @@ references/
 
 # Local design doc + audit — never commit
 07072026/
+
+# Local Netlify folder
+.netlify
