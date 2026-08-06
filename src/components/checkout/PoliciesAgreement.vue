@@ -26,6 +26,10 @@ const props = defineProps({
   title: { type: String, default: 'Policies' },
   ctaLabel: { type: String, default: '' },      // overrides the flow default
   agreementText: { type: String, default: '' }, // overrides the single-card default
+  // Expanded checkout (CheckoutPageExpanded): hide this surface's own CTA, since
+  // that page ends in one submit for the whole flow. Opt-in, so every existing
+  // use keeps its button.
+  hideCta: { type: Boolean, default: false },
 })
 const emit = defineEmits(['submit'])
 
@@ -98,7 +102,7 @@ const submit = () => { if (allAgreed.value) emit('submit') }
       <span>{{ singleAgreement }}</span>
     </label>
 
-    <button type="button" class="pol__cta" :class="{ 'pol__cta--ready': allAgreed }" :disabled="!allAgreed" @click="submit">{{ cta }}</button>
+    <button v-if="!hideCta" type="button" class="pol__cta" :class="{ 'pol__cta--ready': allAgreed }" :disabled="!allAgreed" @click="submit">{{ cta }}</button>
   </div>
 </template>
 

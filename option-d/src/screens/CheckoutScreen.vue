@@ -1,12 +1,22 @@
 <script setup>
-// Review · Checkout — the real library CheckoutPage, showing what the guest
+// Review · Checkout — the real library checkout page, showing what the guest
 // configured (Aug 4 rework):
 //   • package + hotel → mode="ticketing", with the room they picked
 //   • package only    → mode="ticketing", no stay in the cart
 //   • ?skip=1 deep link → mode="reservation" (legacy hotel-only checkout)
 // The final "Book Now" CTA advances to Confirmation (App shell click handler).
+//
+// --- ONE form, not a stepper (Aug 6 feedback) --------------------------------
+// This used to mount `CheckoutPage`, whose left column is a stepped accordion:
+// one section open, a "Next" button to advance, completed sections collapsing
+// behind an Edit link. It now mounts `CheckoutPageExpanded` — every section open
+// at once, all fields in their input state, and a single "Book Now" at the
+// bottom.
+//
+// The rail is deliberately untouched: same sticky cart, same in-rail countdown,
+// same order summary. Only the left column changed.
 import { computed } from 'vue'
-import CheckoutPage from '@lib/components/checkout/CheckoutPage.vue'
+import CheckoutPage from '@lib/components/checkout/CheckoutPageExpanded.vue'
 import { hotel, cartFor } from '../fixtures.js'
 import { makeSummary } from '@lib/stories/checkout/_ticketing-checkout-data.js'
 import { configuredPkg as pkg, configuredHotel as room, configuredRoom as roomType, configuredExtra as extra, configuredTier as tier, priced } from '../configured.js'

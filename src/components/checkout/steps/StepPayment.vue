@@ -7,6 +7,10 @@ defineProps({
   modelValue: { type: Object, default: () => ({}) },
   // Optional reassurance line above the card fields (hidden by default).
   reassurance: { type: String, default: '' },
+  // Expanded layout (CheckoutPageExpanded): hide the per-step "Next" button —
+  // that page submits the whole flow once at the bottom. Opt-in, so the stepped
+  // CheckoutPage is unaffected.
+  flat: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue', 'next'])
 </script>
@@ -14,7 +18,7 @@ const emit = defineEmits(['update:modelValue', 'next'])
 <template>
   <div class="step">
     <payment-form :model-value="modelValue" :reassurance="reassurance" @update:model-value="emit('update:modelValue', $event)" />
-    <q-btn unelevated no-caps class="step__next" label="Next" @click="emit('next')" />
+    <q-btn v-if="!flat" unelevated no-caps class="step__next" label="Next" @click="emit('next')" />
   </div>
 </template>
 

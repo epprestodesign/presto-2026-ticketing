@@ -20,10 +20,18 @@ const meta = {
           "drill-in for anyone who wants to read first. Its Select CTA calls the same " +
           '`selectPackage()` the card does: a longer route through the same decision, not a ' +
           'different one.\n\n' +
-          'The template renders a grid of packages on its Packages tab. Option D has only two — ' +
-          'the same two from screen 1 — and the one that was clicked leads. That is deliberate: ' +
-          'someone who came in to read the detail should be able to switch without going back a ' +
-          'screen.',
+          '**One package, not both** (Aug 6). The template renders a grid on its Packages tab, ' +
+          'and this page used to hand it both of Option D\'s with the clicked one leading, so a ' +
+          'reader could switch without going back a screen. In practice that made *View package ' +
+          'details* open something other than what was asked for: press the button on the Westin ' +
+          'card and you landed on a page showing the Westin **and** the Ritz, re-opening a ' +
+          'decision already made. The board is where the two are compared — that is its job, and ' +
+          'it is one click away via the back link.\n\n' +
+          'Two knock-on changes: the **About** copy used to open *"Both packages carry exactly the ' +
+          'same inclusions…"*, which only parsed with both on the page, so it now describes the ' +
+          'package you opened and names the other as the alternative on the board; and the ' +
+          'template\'s packages-section subtitle (*"…Select a package for a quick view"*) is ' +
+          'hidden, since with one package there is nothing to select among.',
       },
     },
   },

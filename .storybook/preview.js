@@ -146,6 +146,15 @@ const preview = {
               'Photo Gallery', 'Detail Tabs', 'Hotel Summary Header', 'Amenities', 'Policies & Property',
             ],
           ],
+          // The fully-unfolded checkout — every step open, one submit. Sits
+          // directly above the stepped flows it varies, matching presto-2026's
+          // own ordering, so the two Storybooks read the same way.
+          'Checkout Experience Expanded', [
+            'Overview', [
+              'Book Reservation', 'Group Block',
+              'Tickets Only', 'Tickets + Hotel', 'Packages Only', 'Packages + Hotel',
+            ],
+          ],
           'Checkout Experience', [
             'Book Reservation', 'Group Block',
             'Tickets Only', 'Tickets + Hotel', 'Packages Only', 'Packages + Hotel',
