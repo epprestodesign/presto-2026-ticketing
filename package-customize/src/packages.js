@@ -329,6 +329,46 @@ export function priceConfiguration(config = {}) {
 }
 
 /**
+ * The itemised lines BEHIND a package total — one row per component, in the
+ * order the customize screen edits them: tickets, the stay, then each extra that
+ * costs something. Extras the guest dropped simply aren't here; the breakdown is
+ * the configuration, not a checklist of what was on offer.
+ *
+ * It lives beside `priceConfiguration()` rather than inside a component because
+ * three surfaces render it — the live rail, the browse-card breakdown and the
+ * room-card breakdown — and each used to carry its own copy of the same five
+ * lines. Identical arithmetic worded three times is a disagreement waiting to
+ * happen: the moment one of them relabels a stay, two surfaces describe the same
+ * price differently. Same reason there is exactly one `priceConfiguration()`.
+ *
+ * The money formatter is passed IN rather than imported. This file is about
+ * arithmetic; how a number is spelled belongs to the screen spelling it.
+ */
+export function breakdownLines(priced, money) {
+  if (!priced) return []
+  return [
+    {
+      key: 'tickets',
+      label: `${priced.tier.name} tickets`,
+      note: `${priced.guests} × ${money(priced.tier.price)}`,
+      value: priced.ticketsTotal,
+    },
+    {
+      key: 'stay',
+      label: `${priced.room.name} · ${STAY_SHORT}`,
+      note: `${priced.rooms} room${priced.rooms === 1 ? '' : 's'} × ${priced.nights} nights × ${money(priced.nightly)}`,
+      value: priced.stayTotal,
+    },
+    ...priced.extras.filter((e) => e.price > 0).map((e) => ({
+      key: e.id,
+      label: e.label,
+      note: `${e.qty} × ${money(e.price)} ${e.unitLabel}`,
+      value: e.total,
+    })),
+  ]
+}
+
+/**
  * A package + a configuration, in the shape a card renders: name, imagery,
  * inclusion list, price. Used for the browse tiles (each on its own preset) and
  * for the library package template on the details screen.

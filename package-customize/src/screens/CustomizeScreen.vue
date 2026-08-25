@@ -16,6 +16,41 @@
 // The price rail is sticky and carries the full itemisation — see PriceRail for
 // why the breakdown is on the page rather than behind a "price details" link.
 //
+// --- Nothing above the heading (Aug 25) --------------------------------------
+// This screen used to open with two bands of chrome before a word of its own: the
+// shell's Package · Customize · Review stepper, and a full-bleed navy event strip
+// repeating the game, the venue and the dates. The review removed both — "I don't
+// like this review thing at the top", "I don't love that... it's a little
+// confusing. We have this other thing on the side here", "once I get here, I don't
+// think I need this at the top. I think I should just be here confirming."
+//
+// The judgement underneath the quotes is that both bands were answering questions
+// the rail already answers, and answering them louder. The rail names the package,
+// dates it, itemises it and prices it, permanently, beside the controls; the strip
+// restated the dates in reverse video, and the stepper narrated a position the
+// heading and the back link already give. Two orientations for the same thing is
+// how a screen becomes "a little confusing".
+//
+// The strip cost more than duplication. It was the highest-contrast element on the
+// page — a full-width block of navy — which meant the loudest thing on a screen
+// whose job is a decision was a restatement of facts the guest had already
+// accepted. Removing it is half of why the checkout CTA now reads as primary: it
+// is the only filled navy surface left. See CheckoutCta.
+//
+// The event strip is KEPT on the browse screen. That is the landing page, where a
+// guest may genuinely not know which game this is; by the time they are here they
+// have opened a package and read its detail page, and the question has been
+// answered twice. (The stepper, by contrast, went from the whole prototype — see
+// App.vue for why removing it from this screen alone would have been worse.)
+//
+// --- One action, stated twice, identically -----------------------------------
+// The CTA is at the foot of the rail and at the foot of the review card, and the
+// two are the same component so they cannot drift into looking like two different
+// actions. Below 1080px the rail stops being a rail, so a fixed bar carries the
+// total and the same action for as long as the guest is on this screen — that
+// viewport is exactly the one where "I might not see it" was true, because the
+// only copy of the CTA was at the bottom of a very long scroll.
+//
 // --- Every alternative is priced ---------------------------------------------
 // Each row shows what selecting it would do to the PACKAGE TOTAL, computed by
 // pricing a hypothetical configuration through the same `priceConfiguration()`
@@ -30,7 +65,7 @@ import DsCard from '@lib/components/DsCard.vue'
 import QuantityStepper from '@lib/components/QuantityStepper.vue'
 import OptionRow from '../components/OptionRow.vue'
 import PriceRail from '../components/PriceRail.vue'
-import EventHeaderBar from '../components/EventHeaderBar.vue'
+import CheckoutCta from '../components/CheckoutCta.vue'
 import {
   journey, priced, basePackage, isCustomized, changesFromPreset, MAX_PEOPLE,
   setGuests, setTier, setHotel, setRoom, setTransport, toggleExtra, resetConfig,
@@ -149,8 +184,6 @@ const showChanges = ref(true)
 
 <template>
 <div class="cst">
-  <event-header-bar :note="`Everything below is yours to change — the price on the right updates as you do.`" />
-
   <div class="cst__inner">
     <header class="cst__head">
       <button type="button" class="cst__back" @click="nav('packageDetails')">
@@ -289,7 +322,7 @@ const showChanges = ref(true)
             This is {{ basePackage.name }} exactly as it was built.
           </p>
 
-          <q-btn unelevated color="primary" class="cst__cta" label="Continue to checkout" @click="checkout" />
+          <checkout-cta class="cst__cta" :total="priced.packagePrice" @click="checkout" />
         </ds-card>
       </div>
 
@@ -299,6 +332,19 @@ const showChanges = ref(true)
           @continue="checkout" @reset="resetConfig"
         />
       </aside>
+    </div>
+  </div>
+
+  <!-- Below 1080px only, where the rail has dropped out of view. It is a bar,
+       not an overlay: it never covers anything (the page reserves its height in
+       padding) and it never interrupts. -->
+  <div class="cst__bar">
+    <div class="cst__barinner">
+      <span class="cst__barprice">
+        <strong>{{ money(priced.packagePrice) }}</strong>
+        <small>package total · {{ priced.guests }} {{ priced.guests === 1 ? 'person' : 'people' }}</small>
+      </span>
+      <checkout-cta class="cst__barcta" compact :total="priced.packagePrice" @click="checkout" />
     </div>
   </div>
 </div>
@@ -346,13 +392,38 @@ const showChanges = ref(true)
 .cst__unchanged { display: flex; align-items: center; gap: 8px; margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--ds-color-border); font-size: .875rem; color: var(--ds-color-text-subtle); }
 .cst__unchanged .q-icon { color: var(--ds-color-text-success, #167a4a); }
 
-.cst__cta { width: 100%; height: 50px; margin-top: 20px; font-weight: 700; }
+.cst__cta { margin-top: 20px; }
+
+/* --- The narrow-viewport action bar ---------------------------------------- */
+/* Hidden by default: on desktop the rail is sticky and its CTA is on screen the
+   whole time, so a second permanent copy would be clutter with nothing to fix. */
+.cst__bar { display: none; }
 
 /* Under 1080px the rail can't hold its width beside the choices, so it stops
    being a rail: it drops below the review card, where the guest has just read
-   the contents and the price is the next thing they want. */
+   the contents and the price is the next thing they want.
+   That is also where "if I didn't know to look for this, I might not see it"
+   was literally true — the CTA was then reachable only at the end of a very long
+   scroll — so this is the viewport that gets the fixed bar. */
 @media (max-width: 1080px) {
   .cst__cols { grid-template-columns: minmax(0, 1fr); }
   .cst__rail :deep(.prail) { position: static; }
+
+  /* Fixed rather than sticky: `position: sticky; bottom: 0` releases as soon as
+     its container's end scrolls into view, which is precisely the bottom of this
+     page — the bar would let go a screen before the guest finished reading. */
+  .cst__bar { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--ds-color-surface, #fff); border-top: 1px solid var(--ds-color-border); box-shadow: 0 -6px 20px rgba(0, 0, 0, .10); }
+  .cst__barinner { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: min(1280px, 92%); margin: 0 auto; padding: 10px 0; }
+  .cst__barprice { display: flex; flex-direction: column; min-width: 0; }
+  .cst__barprice strong { font-size: 1.25rem; font-weight: 800; line-height: 1.15; color: var(--ds-color-text); font-variant-numeric: tabular-nums; }
+  .cst__barprice small { font-size: .75rem; color: var(--ds-color-text-subtle); }
+  .cst__barcta { flex: 0 0 auto; }
+
+  /* The bar reserves its own room rather than floating over the last card. */
+  .cst__inner { padding-bottom: 108px; }
+}
+
+@media (max-width: 480px) {
+  .cst__barprice small { display: none; }
 }
 </style>

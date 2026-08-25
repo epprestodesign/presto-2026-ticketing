@@ -6,10 +6,31 @@
 // confirmation, which are library pages mounted as shipped. So the only CTA still
 // needing interception is CheckoutPageExpanded's "Book Now" — the one button that
 // lives inside a library page and has nowhere else to send the guest.
+//
+// --- No stepper, anywhere (Aug 25) -------------------------------------------
+// This shell used to render the library's `AppStepper` — Package · Customize ·
+// Review — above every screen past the landing page. The Aug 25 review threw it
+// out on the customize screen: "I don't like this review thing at the top", "I
+// don't love that... it's a little confusing. We have this other thing on the side
+// here", "once I get here, I don't think I need this at the top. I think I should
+// just be here confirming."
+//
+// It is removed from the WHOLE prototype, not only from the screen it was
+// criticised on. Deleting it on customize alone was the smaller change and was
+// rejected: the stepper would then appear over the package page, vanish on
+// customize, and reappear over checkout — chrome that flickers in and out reads as
+// a rendering bug, and it would have made the one screen the guest spends longest
+// on the odd one out.
+//
+// Nothing is lost by dropping it. It was never the flow's real orientation: the
+// price rail states which package is being built and what it costs, every screen
+// carries its own named back link ("Back to The Club Weekend"), and the library
+// checkout page brings its own progression. The stepper was a fourth voice
+// describing a four-screen flow — the "other thing on the side" already does the
+// job, which is exactly what the review said.
 import { computed, onMounted, onBeforeUnmount } from 'vue'
 import GlobalNav from '@lib/components/GlobalNav.vue'
-import AppStepper from '@lib/components/AppStepper.vue'
-import { journey, STEP_LABELS, currentStage, showStepper, goToStage, nav, resetJourney } from './store.js'
+import { journey, nav, resetJourney } from './store.js'
 
 import PackagesScreen from './screens/PackagesScreen.vue'
 import PackageDetailsScreen from './screens/PackageDetailsScreen.vue'
@@ -51,14 +72,6 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
 <template>
   <div class="xapp">
     <global-nav brand="EventPipe" :show-cart="false" @manage="resetJourney" />
-    <!-- The stepper starts once a package is opened. The packages page is the
-         landing page, and a progress bar above a landing page is orientation for
-         progress not yet made. Three steps, because Customize is a step: it is
-         where the guest spends the time, and a flow that hid it behind "Package"
-         would understate the one thing this prototype is testing. -->
-    <div v-if="showStepper" class="xapp__stepper">
-      <app-stepper :steps="STEP_LABELS" :current="currentStage" clickable allow-ahead @navigate="goToStage" />
-    </div>
     <main class="xapp__main">
       <component :is="current" />
     </main>

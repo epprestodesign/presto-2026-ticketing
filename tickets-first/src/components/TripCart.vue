@@ -37,7 +37,12 @@ const emit = defineEmits(['checkout', 'edit', 'update:quantity', 'update:vehicle
 // link would repeat the same destination up to four times under Extras.
 const SECTIONS = [
   { id: 'ticket', title: 'Tickets', step: 'tickets', editLabel: 'Change seats' },
-  { id: 'hotel', title: 'Your stay', step: 'hotel', editLabel: 'Change hotel' },
+  // The stay's Edit goes to the property's own DETAIL page, not the list: since
+  // Aug 25 a stay is a property AND a room, and the room is the half more likely
+  // to be second-guessed at the cart. The detail page's own "Back to Hotel
+  // listing" is one click from there, so the property is still reachable —
+  // whereas from the list, the room is two.
+  { id: 'hotel', title: 'Your stay', step: 'hotelDetails', editLabel: 'Change hotel or room' },
   { id: 'experience', title: 'Gameday extras', step: 'extras', editLabel: 'Edit extras' },
 ]
 

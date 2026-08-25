@@ -18,7 +18,7 @@ import { computed } from 'vue'
 import { useQuasar } from 'quasar'
 import TicketTierList from '@lib/components/TicketTierList.vue'
 import EventStrip from '../components/EventStrip.vue'
-import { itemsOf, addTickets, nav, openTrip } from '../store.js'
+import { itemsOf, addTickets, nav } from '../store.js'
 import { EVENT, MAX_TICKETS, tierById } from '../trip.js'
 
 const $q = useQuasar()
@@ -32,7 +32,7 @@ function onContinue({ items = [] } = {}) {
   $q.notify({
     message: `${added} ticket${added === 1 ? '' : 's'} added to your trip.`,
     icon: 'confirmation_number', color: 'grey-9', position: 'bottom', timeout: 3000,
-    actions: [{ label: 'View trip', color: 'white', handler: openTrip }],
+    actions: [{ label: 'View trip', color: 'white', handler: () => nav('trip') }],
   })
   nav('trip')
 }

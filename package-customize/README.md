@@ -12,6 +12,21 @@ alias — nothing is copied or forked from the library, and no library file is c
 Deployed at `https://epprestodesign.github.io/presto-2026-ticketing/package-customize/`
 (local dev on port **7200**).
 
+## Revised after the Aug 25 stakeholder review
+
+The verdict on the screen itself was *"I love this... this is great, perfect"*, so the
+screen is not redesigned. Three targeted notes were acted on:
+
+| The note | What changed |
+| --- | --- |
+| *"I don't like this review thing at the top" · "we have this other thing on the side here" · "once I get here, I don't think I need this at the top. I think I should just be here confirming."* | The **Package · Customize · Review stepper is gone from the whole prototype**, and the **dark event strip is gone from the customize screen**. What is left above the choices is the back link, the heading and the sentence explaining the screen. The rail — the "other thing on the side" — was already doing the job both bands were duplicating. |
+| *"these buttons might need a little bit more of a punch up, because it should just go right to checkout. And if I didn't know to look for this, I might not see it."* | **Continue to checkout is now one component** ([`CheckoutCta.vue`](src/components/CheckoutCta.vue)), carries the package total on its face, and is the only filled-navy surface on the screen. The savings badge that sat between the total and the button moved up beside the discount row; the reset link went quiet and below. Under 1080px, where the rail unsticks, a fixed bar carries the total and the same action. |
+| *"I never want to have this as a pop-up... we almost never are going to want those modal pop-ups, we're always going to want a clean page."* | `PackagePriceDialog.vue` (a `DsModal`) is **deleted**. *Price details* is now a disclosure that unfolds [`PriceBreakdown.vue`](src/components/PriceBreakdown.vue) **inside** the card that owns the price. **Zero `DsModal` and zero `DsSidePanel` usages remain in this folder.** |
+
+Everything the prototype was testing is untouched: five customization axes, one
+`priceConfiguration()`, per-row deltas against the package total, the once-rounded
+discount, and the expanded library checkout.
+
 ## The flow
 
 ```
@@ -28,9 +43,18 @@ Packages ──▶ Package details ──▶ CUSTOMIZE ──▶ Checkout ──
                           (new tab)                        in that tab
 ```
 
-Three stages on the stepper — **Package · Customize · Review** — because Customize is
-where the guest spends the time. Folding it under "Package" would understate the one thing
-this prototype is testing.
+**There is no stepper over any of it.** The Aug 25 review removed it from the customize
+screen; it came out of the whole prototype rather than that one screen, because chrome that
+appears over the package page, vanishes on customize and reappears over checkout reads as a
+rendering bug — and it would have made the screen the guest spends longest on the odd one
+out. Nothing was lost: the rail names and prices the package, every screen carries its own
+named back link (*"Back to The Club Weekend"*), and the library checkout page brings its own
+progression. The stepper was a fourth voice describing a four-screen flow.
+
+The **event strip is kept on the browse board only**. That is the landing page, where a
+guest may genuinely not know which game this is; by the time they reach customize they have
+opened a package and read its detail page, and a full-width navy restatement of answered
+facts was both a duplicate and the loudest thing on a screen whose job is a decision.
 
 ## What it inherits, and what it deliberately reverses
 
@@ -223,16 +247,64 @@ these axes are independent, and the interesting comparisons run **across** them 
 room upgrade worth more than the ticket upgrade?* Stepping through them would hide exactly
 the comparison the screen exists for.
 
-The price rail is **sticky and fully itemised on the page**, not behind a *Price details*
-link. The sibling prototypes put the breakdown in a modal, which is right for a number
-that isn't moving. Here the price is the feedback loop, and a total that moves while its
-explanation is hidden tells the guest *that* something changed without telling them
-*what*. Toggling an extra visibly adds or removes its own row.
+The price rail is **sticky and fully itemised on the page**, and always has been — the
+price here is the feedback loop, and a total that moves while its explanation is hidden
+tells the guest *that* something changed without telling them *what*. Toggling an extra
+visibly adds or removes its own row. (As of Aug 25 nothing anywhere in this prototype is
+behind a dialog; see *No pop-ups* below.)
+
+**Nothing sits above the heading.** No stepper, no event strip — see the flow section. The
+screen opens on the back link, the title and one sentence, and then it is choices and
+consequences.
+
+**The rail's foot is a commit block.** Total, per person, then the CTA, uninterrupted: the
+savings badge that used to break that run has moved up beside the discount row it is
+actually about, and *Reset to the original package* is small, underlined and below the
+button. It is the undo, not the exit; two controls of equal weight pointing opposite ways
+is how a rail stops having a primary action.
+
+**The checkout CTA is one component, stated twice.** [`CheckoutCta.vue`](src/components/CheckoutCta.vue)
+is at the foot of the rail and at the foot of the review card, identical in both, because
+two buttons for the same action that look different read as two different actions. It
+carries the number it commits to (*"Continue to checkout · $6,842 package total, all in"*),
+it is the only filled-navy surface on the screen now that the event strip is gone, and its
+arrow moves on hover. Enlarging the old `q-btn` was rejected on its own: the complaint was
+about *finding* the button, not about hitting it, and what makes it findable is that
+nothing else on the page is shaped like it.
+
+Below **1080px** the rail stops being a rail and drops under the review card — which is
+exactly the viewport where *"I might not see it"* was literally true, since the CTA was then
+reachable only at the end of a very long scroll. That viewport gets a **fixed bottom bar**
+carrying the total and the same action. It is a bar, not an overlay: the page reserves its
+height in padding, so it never covers anything and never interrupts.
 
 Below the choices, a **package summary** restates the configuration in contents rather than
 money — the rail already owns the money — and, when anything has been changed, lists the
 changes from the named package. A guest arrived on a name; a package that no longer matches
 that name should say so before checkout does.
+
+### No pop-ups — the breakdown opens in the surface that owns the price
+
+*Price details* used to open a `DsModal` on the browse tiles and on the hotel tab. It is now
+a disclosure that unfolds [`PriceBreakdown.vue`](src/components/PriceBreakdown.vue) inside
+the card, between the price and the buttons — a few pixels under the number it explains,
+where the dialog used to cover that number up. The panel is tinted rather than bordered: a
+bordered box inside a bordered card is the dialog's frame smuggled back in.
+
+Deleting the breakdown outright was considered, since the customize rail already itemises
+the live configuration permanently and on the page. It was rejected because the rail belongs
+to a price *in motion* and exists on one screen out of five. The two surfaces that keep an
+on-demand breakdown have no rail and no motion — three browse tiles nobody has opened yet,
+and a hotel tab quoting rooms the guest doesn't hold — and making it permanent there would
+triple the height of three tiles to explain numbers nobody has questioned, pushing the
+packages themselves below the fold. **Permanent where the number moves, on-demand and
+in-place where it doesn't.** All three read the same `priceConfiguration()` through the same
+`breakdownLines()` helper, so they cannot word the same price differently.
+
+The open state belongs to each **card**, not to the screen. A single `openId` would have
+made the three tiles mutually exclusive, and reading two breakdowns side by side is the one
+thing a board of three is for — something the modal could not do at all. The cost is that an
+open tile grows the grid row, and that trade was taken deliberately.
 
 ### The hotel tab is a second door onto the same two choices
 
@@ -280,10 +352,15 @@ right place, and the right place is the customize screen.
 
 ## What is the library's, and what isn't
 
-**Mounted as shipped:** `GlobalNav`, `AppStepper`, `PackageDetailPage`, `HotelDetailPage`,
-`CheckoutPageExpanded`, `ConfirmationPage`, `QuantityStepper`, `DsCard`, `DsModal`,
+**Mounted as shipped:** `GlobalNav`, `PackageDetailPage`, `HotelDetailPage`,
+`CheckoutPageExpanded`, `ConfirmationPage`, `QuantityStepper`, `DsCard`,
 `BundleSavingsBadge`, `AvailabilityBadge`. Pricing tiers come from the library's
 `deriveTiers()`; carts and confirmations from its `buildPackageCart()` / `confData()`.
+
+`AppStepper` and `DsModal` were both in this list before Aug 25 and are both gone —
+the stepper with the chrome above the screens, `DsModal` with the price dialog. **This
+folder now contains zero `DsModal` and zero `DsSidePanel` usages**, and none of the library
+pages it mounts brings one in.
 
 **Built here, and why:**
 
@@ -293,7 +370,8 @@ right place, and the right place is the customize screen.
 | [`PriceRail.vue`](src/components/PriceRail.vue) | Nothing in the library itemises a *package configuration* on the page; the cart surfaces are checkout-shaped. Built on `DsCard` + `BundleSavingsBadge`. |
 | [`PackageCard.vue`](src/components/PackageCard.vue) | The library card's guests stepper re-prices with a formula this catalogue doesn't use, and there is no slot for a two-CTA "details vs customize" split. |
 | [`RoomPackageCard.vue`](src/components/RoomPackageCard.vue) | `RoomCardReserve` is room-shaped throughout, with no package total, no delta and no relabelable CTA. Uses the library's `AvailabilityBadge`. |
-| [`PackagePriceDialog.vue`](src/components/PackagePriceDialog.vue) | `PriceDetailsDialog` breaks down a *room*, and would total a different number than the package price above it. Built on `DsModal`. |
+| [`PriceBreakdown.vue`](src/components/PriceBreakdown.vue) | `PriceDetailsDialog` breaks down a *room*, would total a different number than the package price above it — and is a dialog, which Aug 25 ruled out. This is a plain block a card unfolds in place. Replaced `PackagePriceDialog.vue`. |
+| [`CheckoutCta.vue`](src/components/CheckoutCta.vue) | A stock `q-btn` is the same shape and weight as every other button in the flow, which is exactly why the review couldn't find it. Carries the total on its face; one definition so the rail's copy and the review card's copy cannot drift. |
 | the checkout **configuration strip** | `CheckoutPageExpanded` consumes only `summary.total`; its rail is the cart, and `OrderSummary`'s rows never render. Built in `CheckoutScreen.vue` rather than patched into the page. |
 
 Library **overrides: 0. Source patches: 0.** The two places a template needed bending —
@@ -312,6 +390,8 @@ library moves.
 | [`src/screens/PackageDetailsScreen.vue`](src/screens/PackageDetailsScreen.vue) | Screen 2 — the library package template |
 | [`src/screens/CustomizeScreen.vue`](src/screens/CustomizeScreen.vue) | **Screen 3 — the one this prototype exists for** |
 | [`src/screens/HotelDetailsScreen.vue`](src/screens/HotelDetailsScreen.vue) | Off-flow hotel reference, and a second door onto hotel + room |
+| [`src/components/CheckoutCta.vue`](src/components/CheckoutCta.vue) | The one definition of *Continue to checkout* |
+| [`src/components/PriceBreakdown.vue`](src/components/PriceBreakdown.vue) | The on-demand itemisation, rendered in place — no dialog |
 | [`src/configured.js`](src/configured.js) | The configuration reshaped for the library's checkout and confirmation |
 
 ## Run it

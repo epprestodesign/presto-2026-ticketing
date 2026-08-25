@@ -14,6 +14,8 @@
 // ticket exists, which is the reverse of the ticketing-first flows in this repo.
 import { reactive, computed } from 'vue'
 import { HOTELS, getHotel } from './hotels.js'
+import { TICKETS_BY_ID, tierQty } from './tickets.js'
+import { ADD_ONS_BY_ID, addOnQty } from './addons.js'
 
 export const SCREENS = ['landing', 'hotels', 'hotelDetails', 'tickets', 'addons', 'checkout', 'confirmation']
 export const STEP_LABELS = ['Stay', 'Tickets', 'Add-Ons', 'Review']
@@ -32,6 +34,14 @@ const DEFAULT_ROOM = { type: 'Double Queen - 2 Queen', bedConfig: '2 Queen Beds'
 
 export const journey = reactive({
   screen: 'landing',
+  // PARTY SIZE IS THE ONE QUANTITY IN THIS FLOW. It is chosen for the ROOM and
+  // every downstream line follows it: passes, park tickets, breakfasts. Nothing
+  // below carries its own stepper, so nothing below can disagree with it.
+  //
+  // The `tickets` / `addOns` maps below still store a number per line rather
+  // than a boolean, because the cart, the rail and the confirmation all price
+  // off `{ id: qty }`. The difference is that every write goes through
+  // `tierQty` / `addOnQty` — the number is DERIVED, never typed.
   guests: 4,                 // party size — two parents, two athletes
   hotelId: HOTELS[0].id,     // the property open on Details / carried into the cart
   room: { ...DEFAULT_ROOM, nightly: HOTELS[0].fromNightly + 30 },
@@ -93,7 +103,34 @@ export function goToStage(stage) {
 }
 
 // ── Selection ──
-export function setGuests(n) { journey.guests = Math.min(12, Math.max(1, n || 1)) }
+
+// Re-derive EVERY selected line from the current party size, in one pass. This
+// is what makes the party stepper a re-price of the whole trip rather than a
+// number that only affects whatever screen you happen to be looking at: the
+// tickets screen, the add-ons screen, the nav cart, the checkout rail and the
+// confirmation all read these two maps, so they move together or not at all.
+//
+// Lines already at 0 stay at 0 — a party change must never ADD something the
+// guest didn't ask for.
+function repriceForParty() {
+  const g = journey.guests
+  journey.tickets = Object.fromEntries(
+    Object.entries(journey.tickets)
+      .filter(([, q]) => q > 0)
+      .map(([id]) => [id, tierQty(TICKETS_BY_ID[id], g)])
+      .filter(([, q]) => q > 0)
+  )
+  journey.addOns = Object.fromEntries(
+    Object.entries(journey.addOns)
+      .filter(([, q]) => q > 0)
+      .map(([id]) => [id, addOnQty(ADD_ONS_BY_ID[id], g)])
+  )
+}
+
+export function setGuests(n) {
+  journey.guests = Math.min(12, Math.max(1, n || 1))
+  repriceForParty()
+}
 export function setTab(name) { journey.tab = name || 'overview'; writeUrl(journey.screen, false) }
 
 export function openHotel(id, tab = 'overview') {
@@ -110,15 +147,34 @@ export function selectRoom(room) {
   nav('tickets')
 }
 
-export function setTicketQty(id, n) { journey.tickets = { ...journey.tickets, [id]: Math.max(0, n || 0) } }
-export function setAddOnQty(id, n) { journey.addOns = { ...journey.addOns, [id]: Math.max(0, n || 0) } }
+// Tiers and add-ons are toggled IN or OUT; the quantity is never passed in. The
+// old `setTicketQty(id, n)` / `setAddOnQty(id, n)` pair is gone on purpose —
+// while a caller could hand in an arbitrary n, a line could diverge from the
+// party size, which is exactly the thing this round removed.
+export const ticketOn = (id) => (journey.tickets[id] || 0) > 0
+export const addOnOn = (id) => (journey.addOns[id] || 0) > 0
+
+export function toggleTicket(id, on = !ticketOn(id)) {
+  const qty = on ? tierQty(TICKETS_BY_ID[id], journey.guests) : 0
+  const next = { ...journey.tickets }
+  if (qty > 0) next[id] = qty
+  else delete next[id]
+  journey.tickets = next
+}
+export function toggleAddOn(id, on = !addOnOn(id)) {
+  const qty = on ? addOnQty(ADD_ONS_BY_ID[id], journey.guests) : 0
+  const next = { ...journey.addOns }
+  if (qty > 0) next[id] = qty
+  else delete next[id]
+  journey.addOns = next
+}
 export function clearAddOns() { journey.addOns = {} }
 
 export function resetJourney() {
   journey.guests = 4
   journey.hotelId = HOTELS[0].id
   journey.room = { ...DEFAULT_ROOM, nightly: HOTELS[0].fromNightly + 30 }
-  journey.tickets = { weekend: 4 }
+  journey.tickets = { weekend: tierQty(TICKETS_BY_ID.weekend, 4) }
   journey.addOns = {}
   journey.tab = 'overview'
   nav('landing')
@@ -128,14 +184,14 @@ export function resetJourney() {
 // behind `?demo=1` rather than made the default so the honest empty state — the
 // one a first-time guest actually sees — is what the Add-Ons screen ships with.
 export function seedDemoAddOns() {
-  journey.addOns = { disney: journey.guests, character: journey.guests, transfer: 1 }
+  ;['disney', 'character', 'transfer'].forEach((id) => toggleAddOn(id, true))
 }
 
 export function bootstrapFromUrl() {
   if (typeof window === 'undefined') return
   const q = new URLSearchParams(window.location.search)
   const g = parseInt(q.get('guests') || '0', 10)
-  if (g) { setGuests(g); journey.tickets = { weekend: journey.guests } }
+  if (g) { setGuests(g); journey.tickets = { weekend: tierQty(TICKETS_BY_ID.weekend, journey.guests) } }
   const hotel = q.get('hotel')
   if (hotel && getHotel(hotel)) {
     journey.hotelId = hotel

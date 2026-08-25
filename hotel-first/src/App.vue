@@ -60,6 +60,19 @@ watch([() => journey.screen, () => cart.value.items.length], syncBadge, { immedi
 
 // "Clear Cart" is confirmed, not immediate — the cart here holds a room, tickets
 // AND attraction bookings, so an accidental clear costs three decisions.
+//
+// The confirmation is an IN-PAGE BAR, not a dialog (Aug 25). It was a q-dialog
+// until this round, and it went the same way the map's DsModal did: this
+// prototype now has no pop-up layers at all, so the one remaining one would have
+// been the exception that made the rule look accidental. The bar takes the top
+// of the frame, above the stepper, where the guest is already looking after
+// clicking something in the nav — it is unmissable without being modal, and the
+// page underneath stays readable, which for a "you are about to delete a room,
+// four passes and three bookings" question is the useful part.
+//
+// The rejected alternative was clearing immediately with an Undo toast. Undo is
+// the right pattern when the action is cheap to redo; re-picking a property, a
+// room, five tiers and three add-ons is not.
 const confirmClearOpen = ref(false)
 function confirmClear() {
   confirmClearOpen.value = false
@@ -145,6 +158,21 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
          bound here — a stray one would land on the frame's root element as an
          attribute rather than doing anything. -->
     <page-frame v-else brand="Presto" cart-mode="ticketing" :cart="cart" :show-cart="true">
+      <!-- Clear Cart confirmation — an in-page bar, never a pop-up. -->
+      <div v-if="confirmClearOpen" class="hfapp__confirm" role="alertdialog" aria-labelledby="hfclear-title">
+        <div class="hfapp__confirm-inner">
+          <q-icon name="warning" size="22px" class="hfapp__confirm-icon" />
+          <div class="hfapp__confirm-text">
+            <strong id="hfclear-title">Clear cart &amp; start over?</strong>
+            <span>This removes your room, your tournament passes and any Orlando add-ons, and returns you to the start. This can't be undone.</span>
+          </div>
+          <div class="hfapp__confirm-actions">
+            <button type="button" class="hfapp__confirm-btn" @click="confirmClearOpen = false">Keep cart</button>
+            <button type="button" class="hfapp__confirm-btn hfapp__confirm-btn--danger" @click="confirmClear">Clear cart &amp; start over</button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="showStepper" class="hfapp__stepper">
         <app-stepper :steps="STEP_LABELS" :current="currentStage" clickable allow-ahead @navigate="goToStage" />
       </div>
@@ -152,18 +180,6 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
         <component :is="current" />
       </main>
     </page-frame>
-
-    <!-- Clear Cart confirmation — the DS "Cancel reservation" danger dialog. -->
-    <q-dialog v-model="confirmClearOpen" persistent>
-      <q-card class="ds-dialog">
-        <h2 class="ds-dialog__title">Clear cart &amp; start over?</h2>
-        <p class="ds-dialog__body">This removes your room, your tournament passes and any Orlando add-ons, and returns you to the start. This <strong>can't be undone</strong>.</p>
-        <div class="ds-dialog__actions">
-          <q-btn unelevated no-caps class="ds-dialog__btn ds-btn--secondary" label="Keep cart" v-close-popup />
-          <q-btn unelevated no-caps class="ds-dialog__btn ds-btn--danger" label="Clear cart & start over" @click="confirmClear" />
-        </div>
-      </q-card>
-    </q-dialog>
   </div>
 </template>
 
@@ -179,4 +195,15 @@ body { background: var(--ds-palette-slate-100, #f1f2f4); }
 .gnav-wrap { background: var(--ds-color-surface); border-bottom: 1px solid var(--ds-color-border); }
 .gnav { max-width: min(1440px, 92%) !important; margin-inline: auto !important; padding-inline: 0 !important; background: transparent !important; border-bottom: 0 !important; }
 .gnav__brand { cursor: pointer; }
+
+/* The clear-cart confirmation bar — full-bleed under the nav, in the page. */
+.hfapp__confirm { background: var(--ds-color-background-danger, #fdecec); border-bottom: 1px solid var(--ds-color-border-danger, #e5b4b4); }
+.hfapp__confirm-inner { max-width: min(1440px, 92%); margin-inline: auto; padding: 14px 0; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.hfapp__confirm-icon { color: var(--ds-color-text-danger, #a1242b); flex: none; }
+.hfapp__confirm-text { flex: 1; min-width: 240px; display: flex; flex-direction: column; }
+.hfapp__confirm-text strong { color: var(--ds-color-text-danger, #a1242b); font-size: 0.9375rem; }
+.hfapp__confirm-text span { color: var(--ds-color-text, #1a1a1a); font-size: 0.875rem; }
+.hfapp__confirm-actions { display: flex; gap: 10px; flex: none; }
+.hfapp__confirm-btn { height: 40px; padding: 0 16px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button); background: var(--ds-color-surface); color: var(--ds-color-text); font: inherit; font-weight: 700; font-size: 0.875rem; cursor: pointer; }
+.hfapp__confirm-btn--danger { background: var(--ds-color-background-danger-bold, #a1242b); border-color: var(--ds-color-background-danger-bold, #a1242b); color: #fff; }
 </style>

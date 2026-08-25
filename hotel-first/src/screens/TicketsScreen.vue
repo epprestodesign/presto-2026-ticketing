@@ -8,20 +8,22 @@
 // day misses the only two minutes their athlete is on the mat. So the schedule is
 // on the page beside the passes, not buried in a description.
 //
-// The card itself is the library's TicketCategoryCard, unmodified — the colour
-// swatch, availability badge and stepper are exactly the ones the seat-map flows
-// use, so a limited tier and a sold-out tier read identically across the repo.
+// The second structural change is quantity. A tier is now IN or OUT: the party
+// size chosen for the room decides how many, and no row carries a stepper. If
+// you select two people, every line on this page says two — see TicketTierCard,
+// which is the library's TicketCategoryCard grammar with its stepper removed
+// (the library card can't do that, and the library is read-only here).
 //
 // Skipping is a first-class path. Hotel-first means the room can be the whole
 // purchase: plenty of grandparents book a bed and watch the livestream.
 import { computed } from 'vue'
-import TicketCategoryCard from '@lib/components/TicketCategoryCard.vue'
-import QuantityStepper from '@lib/components/QuantityStepper.vue'
+import TicketTierCard from '../components/TicketTierCard.vue'
+import PartySizeField from '../components/PartySizeField.vue'
 import epLogoWhite from '@lib/assets/eventpipe logos/eventpipe-logo-fff.svg'
 import heroBg from '../../../background-img/defaultBackgroundImage.png'
 import { EVENT, COMP_DAYS } from '../event.js'
 import { ticketCategories, ticketLines, ticketCount, ticketSubtotal } from '../tickets.js'
-import { journey, activeHotel, setGuests, setTicketQty, nav } from '../store.js'
+import { journey, activeHotel, setGuests, toggleTicket, ticketOn, nav } from '../store.js'
 
 const heroStyle = { backgroundImage: `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url(${heroBg})` }
 
@@ -33,13 +35,10 @@ const subtotal = computed(() => ticketSubtotal(journey.tickets))
 const money = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0)
 
 // The party size is the same number the room was booked for, so it is shown here
-// rather than asked again — and it seeds the weekend pass, which is the pass
-// nearly every family buys. Changing it re-seeds only that tier: the day passes
-// and the athlete credential are per-person decisions, not per-party ones.
-function onGuests(n) {
-  setGuests(n)
-  if ((journey.tickets.weekend || 0) > 0) setTicketQty('weekend', journey.guests)
-}
+// rather than asked again. Changing it now re-prices EVERY selected line at once
+// — passes here, and the Orlando add-ons a screen later — because a party of two
+// that has to correct six separate quantities is a party of two that will get
+// one of them wrong. `setGuests` does the whole re-derive (see store.js).
 
 // Skipping clears any seeded pass — a cart that still holds four weekend passes
 // after the guest said "just the room" is the prototype not listening.
@@ -78,26 +77,24 @@ function skipTickets() {
             </li>
           </ol>
 
-          <div class="tix__party">
-            <div class="tix__party-text">
-              <span class="tix__party-label"><q-icon name="group" size="18px" /> Your party</span>
-              <span class="tix__party-note">Matches the {{ journey.room.type }} you reserved · re-seeds the weekend pass</span>
-            </div>
-            <quantity-stepper :model-value="journey.guests" :min="1" :max="12" @update:model-value="onGuests" />
-          </div>
+          <party-size-field
+            :guests="journey.guests"
+            :note="`Matches the ${journey.room.type} you reserved — every pass and add-on is priced for this many people.`"
+            @update:guests="setGuests"
+          />
 
           <div class="tix__list">
-            <ticket-category-card
+            <ticket-tier-card
               v-for="c in categories" :key="c.id"
-              :category="c" :max="12"
-              :model-value="journey.tickets[c.id] || 0"
-              @update:model-value="(n) => setTicketQty(c.id, n)"
+              :tier="c" :guests="journey.guests" :selected="ticketOn(c.id)"
+              @toggle="toggleTicket(c.id)"
             />
           </div>
 
           <p class="tix__foot">
             Prototype pricing. Mat assignments and performance times are published two weeks before the event;
-            a weekend pass covers every mat on every day.
+            a weekend pass covers every mat on every day. Quantities follow your party size — change it above
+            and everything on this order re-prices together.
           </p>
         </div>
 
@@ -155,10 +152,6 @@ function skipTickets() {
 .tix__day { background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); padding: 12px 14px; }
 .tix__day-label { display: block; font-weight: 700; color: var(--ds-color-text); font-size: 0.9375rem; }
 .tix__day-note { display: block; margin-top: 2px; font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
-
-.tix__party { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); padding: 14px 16px; }
-.tix__party-label { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--ds-color-text); }
-.tix__party-note { display: block; margin-top: 2px; font-size: 0.8125rem; color: var(--ds-color-text-subtle); }
 
 .tix__list { display: flex; flex-direction: column; gap: 12px; }
 .tix__foot { margin: 4px 0 0; font-size: 0.8125rem; color: var(--ds-color-text-subtle); }

@@ -13,8 +13,16 @@
 // icon that opens a cart you can't edit would undercut the entire prototype, so
 // GlobalNav is mounted with `:show-cart="false"` and the trip lives here instead,
 // where it is a labelled bar rather than a badge someone has to notice.
+//
+// AUG 25: "REVIEW TRIP" GOES TO THE TRIP PAGE. It used to open TripFlyout, a
+// DsSidePanel carrying the same TripItems body the /trip page already carries —
+// which made the fly-out a second copy of a page that existed, reached by a
+// scrim. The round asked for pages rather than overlays, and the redundancy made
+// it an easy call: one cart, one address. The BAR stays, because a docked row is
+// not a pop-up — nothing is covered, nothing has to be dismissed, and it is what
+// replaced the stepper.
 import { computed } from 'vue'
-import { trip, totals, count, isEmpty, itemsOf, openTrip, addMore, nav } from '../store.js'
+import { trip, totals, count, isEmpty, itemsOf, addMore, nav } from '../store.js'
 import { money } from '../trip.js'
 
 const ADD = [
@@ -64,8 +72,8 @@ const onTripPage = computed(() => trip.screen === 'trip')
         <button v-if="onTripPage" type="button" class="tb__cta" :disabled="isEmpty" @click="nav('checkout')">
           Checkout <q-icon name="arrow_forward" size="16px" />
         </button>
-        <button v-else type="button" class="tb__cta" @click="openTrip">
-          {{ isEmpty ? 'View trip' : 'Review trip' }} <q-icon name="expand_more" size="18px" />
+        <button v-else type="button" class="tb__cta" @click="nav('trip')">
+          {{ isEmpty ? 'View trip' : 'Review trip' }} <q-icon name="arrow_forward" size="16px" />
         </button>
       </div>
     </div>

@@ -17,27 +17,50 @@
 // What stays the library's: the section around these cards — title, subtitle,
 // rules — is still `RoomsCarousel`'s. Only its grid of room cards is suppressed,
 // and these are teleported into `#hdp-rooms` in its place. See HotelDetailsScreen.
-import { computed } from 'vue'
+//
+// --- "Price details" opens IN the card (Aug 25) ------------------------------
+// It used to open a `DsModal`, and the review ruled those out: "I never want to
+// have this as a pop-up... we're always going to want a clean page." It is now a
+// disclosure that unfolds inside the card, under the total it explains.
+//
+// The card takes the whole PRICED configuration rather than a handful of numbers
+// off it. It previously received `packagePrice` and `roomsNeeded` as separate
+// props while the screen kept the object they came from; now that the card also
+// renders the breakdown, passing the derived figures as well would have meant two
+// paths to the same number and a real chance of them disagreeing on a card whose
+// entire job is that they don't.
+import { computed, ref } from 'vue'
 import AvailabilityBadge from '@lib/components/AvailabilityBadge.vue'
+import PriceBreakdown from './PriceBreakdown.vue'
 
 const props = defineProps({
   room: { type: Object, required: true },
   hotel: { type: Object, required: true },
-  // The package total if this room were the one in the configuration.
-  packagePrice: { type: Number, required: true },
+  // `priceConfiguration()` for the guest's configuration MOVED to this room —
+  // the package total, its lines and the room count all come off this one object.
+  priced: { type: Object, required: true },
   // Change from what the guest currently holds. 0 when this IS the current room.
   delta: { type: Number, default: 0 },
   selected: { type: Boolean, default: false },
-  // How many of this room the party needs, at its occupancy.
-  roomsNeeded: { type: Number, default: 1 },
 })
-const emit = defineEmits(['select', 'price-details'])
+const emit = defineEmits(['select'])
+
+const packagePrice = computed(() => props.priced.packagePrice)
+// How many of this room the party needs, at its occupancy.
+const roomsNeeded = computed(() => props.priced.rooms)
+
+const showPrice = ref(false)
+const priceContext = computed(() =>
+  `Your package with this room · ${props.priced.guests} ${props.priced.guests === 1 ? 'person' : 'people'} · ${roomsNeeded.value} room${roomsNeeded.value === 1 ? '' : 's'}`
+)
 
 const money = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Math.abs(n || 0))
 
-const nightly = computed(() => props.hotel.nightlyRate + props.room.deltaPerNight)
-const soldOut = computed(() => props.room.roomsLeft < props.roomsNeeded)
+// Off the priced object too, for the same reason: one source, no second path to
+// the same number.
+const nightly = computed(() => props.priced.nightly)
+const soldOut = computed(() => props.room.roomsLeft < roomsNeeded.value)
 
 const deltaLabel = computed(() => {
   if (props.selected) return null
@@ -83,14 +106,27 @@ const deltaLabel = computed(() => {
     </div>
   </div>
 
+  <!-- Between the total and the buttons — a dialog used to cover the number it
+       was itemising, which is a strange way to answer "where does this come
+       from". Id keyed by room: several of these are on the tab at once. -->
+  <div v-if="showPrice" :id="`rpc-breakdown-${room.id}`" class="rpc__breakdown">
+    <price-breakdown :priced="priced" :context="priceContext" />
+  </div>
+
   <div class="rpc__actions">
     <q-btn
       unelevated color="primary" class="rpc__cta"
       :label="selected ? 'Back to your package' : 'Use this room'"
       :disable="soldOut" @click="emit('select', room)"
     />
-    <q-btn flat dense color="primary" class="rpc__link" label="Price details"
-      @click="emit('price-details', room)" />
+    <button
+      type="button" class="rpc__link"
+      :aria-expanded="showPrice" :aria-controls="`rpc-breakdown-${room.id}`"
+      @click="showPrice = !showPrice"
+    >
+      Price details
+      <q-icon :name="showPrice ? 'expand_less' : 'expand_more'" size="16px" />
+    </button>
   </div>
 </article>
 </template>
@@ -120,9 +156,13 @@ const deltaLabel = computed(() => {
 .rpc__delta.is-down { color: var(--ds-color-text-success, #167a4a); }
 .rpc__delta.is-flat { color: var(--ds-color-text-subtle); font-weight: 600; }
 
+/* Tinted, not bordered: a bordered box inside a bordered card is the dialog's
+   frame smuggled back in. */
+.rpc__breakdown { margin: 14px 22px 0; padding: 14px; border-radius: var(--ds-radius-md, 8px); background: var(--ds-color-surface-sunken, #f7f8f9); }
+
 .rpc__actions { display: flex; align-items: center; gap: 10px; padding: 14px 22px 20px; }
 .rpc__cta { flex: 1 1 auto; font-weight: 700; }
-.rpc__link { flex: none; font-weight: 600; }
+.rpc__link { flex: none; display: inline-flex; align-items: center; gap: 2px; padding: 8px 4px; border: 0; background: none; font: inherit; font-size: .875rem; font-weight: 600; color: var(--ds-color-link, #1b4ed8); text-decoration: underline; cursor: pointer; white-space: nowrap; }
 
 @media (max-width: 640px) {
   .rpc__actions { flex-direction: column-reverse; align-items: stretch; }

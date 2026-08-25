@@ -21,6 +21,12 @@ export function readDeepLink() {
   if (tier) out.tier = tier
   const hotel = q.get('hotel')
   if (hotel) out.hotel = hotel
+  // The room the property was booked at. Meaningless without a hotel, and
+  // resolved against that property's own ladder on the way in, so an id from
+  // another property (or a stale one) falls back to the contracted room rather
+  // than pricing nothing.
+  const room = q.get('room')
+  if (room) out.room = room
   const qty = parseInt(q.get('qty') || '', 10)
   if (qty > 0) out.quantity = Math.min(qty, 8)
   const cars = parseInt(q.get('cars') || '', 10)
@@ -37,13 +43,14 @@ export function readDeepLink() {
  * are the flow's own history, and pushing a second history stack behind them
  * makes the browser Back button contradict them.
  */
-export function writeDeepLink({ screen, tier, quantity, hotel, addOns, vehicles }) {
+export function writeDeepLink({ screen, tier, quantity, hotel, room, addOns, vehicles }) {
   if (typeof window === 'undefined' || !window.history) return
   const q = new URLSearchParams()
   q.set('screen', screen)
   if (tier) q.set('tier', tier)
   if (quantity && quantity !== 2) q.set('qty', String(quantity))
   if (hotel) q.set('hotel', hotel)
+  if (hotel && room) q.set('room', room)
   if (addOns?.length) q.set('addons', addOns.join(SEP))
   if (vehicles && vehicles !== 1) q.set('cars', String(vehicles))
   window.history.replaceState({ screen }, '', `${window.location.pathname}?${q.toString()}`)

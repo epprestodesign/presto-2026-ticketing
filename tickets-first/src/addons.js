@@ -115,10 +115,19 @@ export function isOfferable(addOn, { hotel = null } = {}) {
  * instead, so the hotel sub-block and the ticket guarantees are the library's.
  */
 export function buildTripCart({
-  event, tier, quantity = 2, hotel = null, nights = 1,
+  event, tier, quantity = 2, hotel = null, room = null, nights = 1,
   addOns = [], vehicles = 1, section = 'CL10', row = '12',
 }) {
   const items = []
+
+  // The stay is the PROPERTY with the chosen ROOM's name and rate written over
+  // it. Everything downstream — the cart line, hotelCartDetail(), the itinerary,
+  // the checkout rail — already reads `roomType` and `nightlyRate` off a hotel
+  // object, so overlaying the room here means the room reaches all four without
+  // any of them learning a new shape. Falling back to the property's own
+  // contracted room keeps a link that names no room priced exactly as this
+  // prototype priced it before rooms existed.
+  const stay = hotel ? { ...hotel, roomType: room?.name || hotel.roomType, nightlyRate: room?.nightly ?? hotel.nightlyRate } : null
 
   const ticketSubtotal = (tier?.price ?? 0) * quantity
   items.push({
@@ -128,14 +137,21 @@ export function buildTripCart({
     amount: ticketSubtotal, unitPrice: tier?.price ?? 0, qty: quantity, maxQty: 8,
   })
 
-  const hotelTotal = hotel ? hotel.nightlyRate * nights : 0
-  if (hotel) {
+  const hotelTotal = stay ? stay.nightlyRate * nights : 0
+  if (stay) {
     items.push({
       type: 'hotel',
-      label: `${hotel.name} · ${hotel.roomType}`,
-      sublabel: `${nights} night${nights === 1 ? '' : 's'} · ${hotel.distanceMi} mi from the venue`,
-      amount: hotelTotal, image: hotel.image,
-      hotelDetail: hotelCartDetail(hotel, nights),
+      label: `${stay.name} · ${stay.roomType}`,
+      sublabel: `${nights} night${nights === 1 ? '' : 's'} · ${stay.distanceMi} mi from the venue`,
+      amount: hotelTotal, image: stay.image,
+      // hotelCartDetail() is the library's, and its `note` is the one field it
+      // hard-codes ("1 King Bed · Sleeps 2") — true of the fixture it was written
+      // for and false the moment a guest picks the two-queen. Overwritten here
+      // rather than patched there: the library is read-only, and the bed a guest
+      // just chose is the one thing on that block they will check.
+      hotelDetail: room
+        ? { ...hotelCartDetail(stay, nights), note: `${room.bed} · Sleeps ${room.sleeps} · Near Gillette Stadium` }
+        : hotelCartDetail(stay, nights),
     })
   }
 
@@ -173,5 +189,70 @@ export function buildTripCart({
     total: subtotal - credit + fees + taxes,
     savings: credit, currency: 'USD', feeRate: FEE_RATE, taxRate: TAX_RATE,
     ticketDetails: ticketDetails({ section, row }),
+  }
+}
+
+/**
+ * The same trip, reshaped for the CHECKOUT rail — the library's CartReview in
+ * `ticketing` mode, mounted inside CheckoutPageExpanded.
+ *
+ * CartReview does not read a total; it derives its own from the lines it is
+ * given, and the two places its arithmetic differs from this trip's are the two
+ * things this function fixes.
+ *
+ * 1. IT RE-PRICES EDITABLE LINES. Any line carrying a `unitPrice` becomes a
+ *    control — a ticket dropdown that re-prices CartReview's own deep copy of
+ *    the cart. On the review step that is the point; on the payment page it is a
+ *    number the trip never sees, and the cart, the rail and the confirmation
+ *    would stop agreeing halfway through paying. So the checkout lines carry
+ *    amounts only. Editing belongs one screen back, in the one place that owns
+ *    the trip, and the checkout says so with a link rather than a stepper.
+ *
+ * 2. IT CHARGES ITS OWN FEES AND TAXES:
+ *      fees  = round(Σ non-hotel lines × feeRate)
+ *      taxes = round(Σ every line      × taxRate)
+ *    The tax base already agrees — with the credit as a line, Σ every line IS
+ *    the after-credit subtotal this trip taxes. The fee base does not: the
+ *    service fee here is charged on TICKETS ONLY (see FEE_RATE), and CartReview
+ *    would spread it over the extras too. So the rail is handed the rate that
+ *    reproduces this trip's fee from the rail's own base.
+ *
+ *    The two alternatives were both worse. Charging fees on the extras so the
+ *    library's formula happens to fit changes what a guest pays to suit a
+ *    component's arithmetic. Patching CartReview breaks the rule every prototype
+ *    here follows — the library is read-only.
+ */
+export function buildCheckoutCart(cart) {
+  if (!cart) return null
+
+  const items = cart.items.map(({ unitPrice, maxQty, ...line }) => line)
+
+  if (cart.credit > 0) {
+    items.push({
+      // The credit inherits the TYPE of the line above it deliberately.
+      // CartReview starts a new section whenever a line's type maps to a
+      // different section heading, and a deduction is not a section: inheriting
+      // puts it under "Hotel" when it follows the stay and under "Experiences"
+      // when it follows the extras — which is where it was earned either way.
+      type: items[items.length - 1]?.type || 'ticket',
+      label: 'Bundle credit',
+      sublabel: `${Math.round(BUNDLE_CREDIT_RATE * 100)}% off your stay and gameday extras`,
+      amount: -cart.credit,
+    })
+  }
+
+  const feeBase = items.filter((i) => i.type !== 'hotel').reduce((s, i) => s + i.amount, 0)
+
+  return {
+    ...cart,
+    items,
+    feeRate: feeBase ? cart.fees / feeBase : 0,
+    taxRate: TAX_RATE,
+    // The credit is a LINE on this rail, not a badge. `savings` would render a
+    // second "Bundle savings −$54" under a total that has already deducted it.
+    savings: 0,
+    // The rail's hold countdown. Fixed, not derived from the clock, so a demo
+    // opens on the same number every time.
+    heldSeconds: 895,
   }
 }

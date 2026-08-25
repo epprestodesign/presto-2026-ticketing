@@ -9,15 +9,20 @@
 // extras — and two points don't establish a range. Three do, and the range is
 // what tells a guest which end to start customizing from.
 //
-// There is no stepper above this page: a progress bar over a landing page is
-// orientation for progress not yet made. It appears once a package is opened.
+// There is no stepper above this page — or above any other, as of the Aug 25
+// review. See App.vue.
+//
+// The event strip IS kept here, and only here. This is the landing page, where a
+// guest may genuinely not yet know which game they are looking at; by the time
+// they reach the customize screen they have opened a package and read its detail
+// page, and the strip there was restating an answered question in reverse video
+// over the top of the decision. See CustomizeScreen.
 //
 // The party size is NOT on these cards — see PackageCard for why. The board is
 // quoted at a party of four so the three prices mean the same thing.
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import EventHeaderBar from '../components/EventHeaderBar.vue'
 import PackageCard from '../components/PackageCard.vue'
-import PackagePriceDialog from '../components/PackagePriceDialog.vue'
 import { packages, viewPackage, customizePackage, openHotelInNewTab } from '../store.js'
 import { STAY_LABEL, STAY_SHORT, DEFAULT_PARTY } from '../packages.js'
 
@@ -30,12 +35,9 @@ const spread = computed(() => {
   return { low: Math.min(...prices), high: Math.max(...prices) }
 })
 
-// The browse-screen price breakdown. There is no rail here to carry it — that
-// belongs to the customize screen — so it stays behind a link, which is the right
-// shape for a number that isn't moving yet.
-const priceOpen = ref(false)
-const pricePkg = ref(null)
-const openPrice = (pkg) => { pricePkg.value = pkg; priceOpen.value = true }
+// The breakdown behind each tile's price is the CARD's business now, opened and
+// closed inside it — no dialog, and no open-state on this screen, so two tiles
+// can be expanded and read against each other. See PackageCard.
 </script>
 
 <template>
@@ -57,7 +59,7 @@ const openPrice = (pkg) => { pricePkg.value = pkg; priceOpen.value = true }
         <package-card
           v-for="p in packages" :key="p.id" :pkg="p"
           @view="viewPackage(p.id)" @customize="customizePackage(p.id)"
-          @open-hotel="openHotelInNewTab" @price-details="openPrice"
+          @open-hotel="openHotelInNewTab"
         />
       </div>
 
@@ -66,8 +68,6 @@ const openPrice = (pkg) => { pricePkg.value = pkg; priceOpen.value = true }
         your place here.
       </p>
     </div>
-
-    <package-price-dialog v-model="priceOpen" :pkg="pricePkg" @customize="customizePackage" />
   </div>
 </template>
 

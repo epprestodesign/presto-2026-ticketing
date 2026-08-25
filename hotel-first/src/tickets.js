@@ -71,6 +71,27 @@ export const TICKET_TIERS = [
 
 export const TICKETS_BY_ID = Object.fromEntries(TICKET_TIERS.map((t) => [t.id, t]))
 
+// ── PARTY SIZE IS THE QUANTITY ──────────────────────────────────────────────
+// A tier is now an in/out decision, not a number: whatever the party size on the
+// room is, that is how many of the tier get bought. Two people means two passes.
+//
+// The rejected alternative was the per-tier stepper this screen used to carry.
+// It let a family of four leave checkout holding three weekend passes and four
+// park tickets — an order that is internally inconsistent and that nobody in the
+// room could explain at the doors. One number for the whole trip cannot drift.
+//
+// The single honest exception is INVENTORY: the athlete credential is rationed
+// to 6, so a party of 8 gets 6. The card and the cart both say so out loud
+// rather than silently under-buying (see `tierQtyNote`).
+export const tierQty = (t, guests) => (!t || t.count <= 0 ? 0 : Math.min(guests, t.count))
+
+/** The sentence a line prints where its stepper used to be. */
+export function tierQtyNote(t, guests) {
+  const q = tierQty(t, guests)
+  if (q < guests) return `${q} of ${guests} — only ${t.count} credential${t.count === 1 ? '' : 's'} left`
+  return `${q} guest${q === 1 ? '' : 's'} — matches your party`
+}
+
 // A tier is selectable only while it has inventory. TicketCategoryCard reads
 // `soldOut` directly, so derive it here rather than hand-maintaining both.
 export const ticketCategories = () => TICKET_TIERS.map((t) => ({ ...t, soldOut: t.count <= 0 }))

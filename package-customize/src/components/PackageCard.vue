@@ -23,13 +23,33 @@
 // customize and the detail page is where "everything included" is spelled out.
 // "Customize" sits beside it for a guest who already knows this package and only
 // wants to change it — the detail page is a route through, not a toll gate.
-import { computed } from 'vue'
+//
+// --- "Price details" opens IN the card (Aug 25) ------------------------------
+// It used to open a `DsModal`. The review: "I never want to have this as a
+// pop-up... we almost never are going to want those modal pop-ups, we're always
+// going to want a clean page." So the link is now a disclosure and the breakdown
+// unfolds between the price and the buttons, a few pixels under the number it is
+// explaining — where a dialog used to cover that number up.
+//
+// The open state is the CARD's, not the board's. A single `openId` on the screen
+// would have made the three tiles mutually exclusive, and comparing two
+// breakdowns side by side is the one thing a board of three is for; the modal
+// couldn't do it at all. The cost is that an open tile grows the grid row — see
+// PriceBreakdown for why that trade was taken.
+import { computed, ref } from 'vue'
 import BundleSavingsBadge from '@lib/components/BundleSavingsBadge.vue'
+import PriceBreakdown from './PriceBreakdown.vue'
 
 const props = defineProps({
   pkg: { type: Object, required: true },
 })
-const emit = defineEmits(['view', 'customize', 'open-hotel', 'price-details'])
+const emit = defineEmits(['view', 'customize', 'open-hotel'])
+
+const showPrice = ref(false)
+const priceContext = computed(() => {
+  const p = props.pkg
+  return `Priced for ${p.guests} ${p.guests === 1 ? 'person' : 'people'} · ${p.rooms} room${p.rooms === 1 ? '' : 's'} at ${p.hotel.name}`
+})
 
 const money = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: props.pkg.currency || 'USD', maximumFractionDigits: 0 }).format(n || 0)
@@ -87,9 +107,20 @@ const moreCount = computed(() => Math.max(0, props.pkg.inclusions.length - SHOWN
         </small>
       </div>
       <bundle-savings-badge :amount="pkg.savings" size="sm" />
-      <button type="button" class="pc__pricelink" @click="emit('price-details', pkg)">
+      <button
+        type="button" class="pc__pricelink"
+        :aria-expanded="showPrice" :aria-controls="`pc-breakdown-${pkg.id}`"
+        @click="showPrice = !showPrice"
+      >
         Price details
+        <q-icon :name="showPrice ? 'expand_less' : 'expand_more'" size="16px" />
       </button>
+    </div>
+
+    <!-- Id keyed by package: three of these cards are on the board at once, and
+         `aria-controls` has to point at THIS one. -->
+    <div v-if="showPrice" :id="`pc-breakdown-${pkg.id}`" class="pc__breakdown">
+      <price-breakdown :priced="pkg" :context="priceContext" />
     </div>
 
     <div class="pc__actions">
@@ -133,7 +164,12 @@ const moreCount = computed(() => Math.max(0, props.pkg.inclusions.length - SHOWN
 .pc__was { font-size: .875rem; color: var(--ds-color-text-subtle); text-decoration: line-through; }
 .pc__now { font-size: 1.75rem; font-weight: 800; line-height: 1.1; color: var(--ds-color-text); }
 .pc__per { font-size: .8125rem; color: var(--ds-color-text-subtle); }
-.pc__pricelink { margin-left: auto; padding: 0; border: 0; background: none; font: inherit; font-size: .8125rem; font-weight: 600; color: var(--ds-color-link, #1b4ed8); text-decoration: underline; cursor: pointer; }
+.pc__pricelink { display: inline-flex; align-items: center; gap: 2px; margin-left: auto; padding: 0; border: 0; background: none; font: inherit; font-size: .8125rem; font-weight: 600; color: var(--ds-color-link, #1b4ed8); text-decoration: underline; cursor: pointer; }
+
+/* Tinted rather than bordered: a box with a border inside a bordered card is the
+   dialog's frame smuggled back in. The tint says "this belongs to the price above
+   it" without drawing a second card. */
+.pc__breakdown { margin-top: 12px; padding: 14px 14px 12px; border-radius: var(--ds-radius-md, 8px); background: var(--ds-color-surface-sunken, #f7f8f9); }
 
 .pc__actions { display: flex; align-items: stretch; gap: 10px; padding-top: 14px; }
 .pc__cta { flex: 1 1 auto; font-weight: 700; }

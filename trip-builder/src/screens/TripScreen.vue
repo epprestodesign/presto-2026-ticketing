@@ -1,6 +1,10 @@
 <script setup>
-// Your trip — the same TripItems body the fly-out carries, given a page and a
-// price rail.
+// Your trip — the cart, given a page and a price rail.
+//
+// Aug 25: this page is now the ONLY trip surface. TripFlyout used to mount the
+// same TripItems body in a DsSidePanel, which meant the cart had two addresses
+// and one of them was a scrim over whatever you were reading. "Review trip" in
+// the bar comes here instead.
 //
 // It is a destination rather than a stage: nothing about it says "step 3 of 4",
 // and every screen can be reached from it in one press. The three entry points
@@ -14,7 +18,7 @@
 import { computed } from 'vue'
 import TripItems from '../components/TripItems.vue'
 import TripTotals from '../components/TripTotals.vue'
-import { isEmpty, count, openStayEditor, nav } from '../store.js'
+import { isEmpty, count, nav } from '../store.js'
 import { EVENT, EVENT_DATE } from '../trip.js'
 
 const summary = computed(() => `${count.value} item${count.value === 1 ? '' : 's'} for ${EVENT.name}`)
@@ -33,7 +37,7 @@ const summary = computed(() => `${count.value} item${count.value === 1 ? '' : 's
 
       <div class="tp__grid" :class="{ 'tp__grid--solo': isEmpty }">
         <div class="tp__main">
-          <trip-items variant="page" @edit-stay="(line) => openStayEditor(line.hotelId, line)" />
+          <trip-items />
         </div>
 
         <aside v-if="!isEmpty" class="tp__rail">
