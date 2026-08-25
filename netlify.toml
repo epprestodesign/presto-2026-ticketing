@@ -69,6 +69,26 @@
   to = "/option-d/index.html"
   status = 200
 
+[[redirects]]
+  from = "/tickets-first/*"
+  to = "/tickets-first/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/hotel-first/*"
+  to = "/hotel-first/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/package-customize/*"
+  to = "/package-customize/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/trip-builder/*"
+  to = "/trip-builder/index.html"
+  status = 200
+
 # Storybook's own assets are content-hashed and safe to cache hard.
 [[headers]]
   for = "/assets/*"

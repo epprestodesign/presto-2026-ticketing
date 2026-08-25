@@ -1,0 +1,216 @@
+// The trip catalogue and its pricing — everything this prototype can put in a
+// cart, and what the cart costs once it's in there.
+//
+// Three catalogues, deliberately kept apart: STAYS, TIERS, ADDONS. They share no
+// SKU, no bundle id, and no ordering. That separation is the whole argument of
+// this prototype — a package would have made one object out of the three, and a
+// guest who wanted to drop the tickets from a package has to leave the flow to do
+// it. Here there is nothing to drop out of.
+//
+// Sourced from the library's own mock layer (contracted hotels, derived ticket
+// tiers, the Ticketmaster fixture) so the numbers match the sibling prototypes.
+// The add-ons are this prototype's, because nothing in the library sells an
+// extra that isn't already welded into a package.
+import { CONTRACTED_HOTELS, walkMinutes, hotelCartDetail, ticketDetails } from '@lib/lib/bundles.js'
+import { deriveTiers } from '@lib/lib/seatmap.js'
+import { fixtureEvents } from '@lib/lib/ticketmaster.js'
+
+// ── The event everything hangs off ──
+export const EVENT = fixtureEvents.find((e) => /gillette|stadium/i.test(e.venue?.name || '')) || fixtureEvents[0]
+export const EVENT_DATE = 'Sat, Dec 6, 2026 · 4:25 PM'
+export const EVENT_VENUE = `${EVENT.venue?.name || 'Gillette Stadium'} · Foxborough, MA`
+
+// The stay window is the event weekend. Nights are chosen, not fixed — but they
+// are chosen from three known dates, not a calendar, because a date picker is a
+// second decision surface and this prototype is about the cart, not the search.
+export const NIGHT_DATES = ['Fri, Dec 5, 2026', 'Sat, Dec 6, 2026', 'Sun, Dec 7, 2026']
+export const CHECK_OUT_DATES = ['Sat, Dec 6, 2026', 'Sun, Dec 7, 2026', 'Mon, Dec 8, 2026']
+export const MAX_NIGHTS = NIGHT_DATES.length
+export const MAX_ROOMS = 4
+
+// ── Stays ──
+// Each contracted property gets the same three room types, derived from its own
+// contracted rate. Same room ladder everywhere on purpose: the guest is choosing
+// a hotel first and a room second, and a different ladder per property would turn
+// the second choice back into a comparison of the first.
+const ROOM_LADDER = [
+  { id: 'standard', delta: 0, sleeps: 2, bed: '1 King Bed' },
+  { id: 'double', name: 'Double Queen', delta: 40, sleeps: 4, bed: '2 Queen Beds' },
+  { id: 'suite', name: 'Two-Room Suite', delta: 130, sleeps: 4, bed: '1 King Bed · separate living room' },
+]
+
+export const STAYS = CONTRACTED_HOTELS.map((h) => ({
+  ...h,
+  walkMin: walkMinutes(h.distanceMi),
+  rooms: ROOM_LADDER.map((r) => ({
+    id: r.id,
+    name: r.name || h.roomType,
+    rate: h.nightlyRate + r.delta,
+    sleeps: r.sleeps,
+    bed: r.bed,
+  })),
+}))
+export const stayById = (id) => STAYS.find((s) => s.id === id) || STAYS[0]
+export const roomById = (hotelId, roomId) => {
+  const stay = stayById(hotelId)
+  return stay.rooms.find((r) => r.id === roomId) || stay.rooms[0]
+}
+
+// ── Tickets ──
+// The library's derived tiers, unchanged, so a ticket costs the same here as it
+// does on the sibling prototypes' ticket screens.
+export const TIERS = deriveTiers(EVENT)
+export const tierById = (id) => TIERS.find((t) => t.id === id) || TIERS[0]
+export const MAX_TICKETS = 12
+
+// ── Add-ons ──
+// Five extras that are genuinely independent purchases: none of them needs a
+// room, and only the shuttle even implies one. A guest who lives twenty minutes
+// away can buy a parking pass and nothing else, and that is a valid order.
+export const ADDONS = [
+  { id: 'shuttle', name: 'Round-trip stadium shuttle', icon: 'directions_bus', price: 28, unit: 'seat', per: 'person', max: 12, blurb: 'Runs from the hotel block two hours before kickoff, and back from the north gate after the game.' },
+  { id: 'parking', name: 'Event-day parking pass', icon: 'local_parking', price: 45, unit: 'pass', per: 'car', max: 4, blurb: 'Reserved lot P4 — a seven-minute walk to the gate, in and out all day.' },
+  { id: 'tailgate', name: 'Pregame tailgate party', icon: 'outdoor_grill', price: 85, unit: 'ticket', per: 'person', max: 12, blurb: 'Hosted New England BBQ and a craft beer garden (21+), three hours before kickoff.' },
+  { id: 'tour', name: 'Legends stadium tour', icon: 'tour', price: 120, unit: 'spot', per: 'person', max: 12, blurb: 'Locker room, tunnel and the Hall of Fame, guided, on the morning of the game.' },
+  { id: 'lounge', name: 'Field Lounge access', icon: 'workspace_premium', price: 160, unit: 'pass', per: 'person', max: 12, blurb: 'All-game access to the field-level lounge, with premium catering included.' },
+]
+export const addonById = (id) => ADDONS.find((a) => a.id === id) || ADDONS[0]
+
+// ── Pricing ──
+// Every rate is a whole dollar and every derived figure is rounded once, so a
+// total never drifts by a cent as lines come and go. Three rules:
+//
+//   • The trip saving exists ONLY when a stay and tickets are in the cart
+//     together. It is a reward for combining, never a requirement to combine —
+//     drop the tickets and the saving goes with them while the stay stands.
+//   • The service fee applies to the ticketed items (tickets + add-ons). Lodging
+//     doesn't carry it.
+//   • Tax applies to the whole subtotal, after the saving.
+//
+// The shape is deliberately the one the library's CartReview computes in
+// 'ticketing' mode (fees on the non-hotel lines, tax on the subtotal), so the
+// checkout page can be handed these lines and arrive at the same total on its
+// own arithmetic. A cart that totals differently on two screens would sink the
+// demo faster than any missing feature.
+export const FEE_RATE = 0.12
+export const TAX_RATE = 0.09
+export const BUNDLE_RATE = 0.08
+
+export const money = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0)
+
+/** What one trip line costs on its own — the only place a line price is decided. */
+export function lineTotal(item) {
+  if (item.kind === 'stay') return roomById(item.hotelId, item.roomId).rate * item.nights * item.rooms
+  if (item.kind === 'ticket') return tierById(item.tierId).price * item.qty
+  return addonById(item.addonId).price * item.qty
+}
+
+/** Whole-trip pricing, recomputed from the lines every time — never accumulated. */
+export function priceTrip(items = []) {
+  const of = (kind) => items.filter((i) => i.kind === kind).reduce((s, i) => s + lineTotal(i), 0)
+  const stay = of('stay')
+  const tickets = of('ticket')
+  const addons = of('addon')
+  const savings = stay > 0 && tickets > 0 ? Math.round(stay * BUNDLE_RATE) : 0
+  const netStay = stay - savings
+  const subtotal = netStay + tickets + addons
+  const fees = Math.round((tickets + addons) * FEE_RATE)
+  const taxes = Math.round(subtotal * TAX_RATE)
+  return { stay, netStay, tickets, addons, savings, subtotal, fees, taxes, total: subtotal + fees + taxes }
+}
+
+// ── Line descriptions ──
+// One place that turns a line into words, shared by the trip surfaces, the
+// checkout cart and the confirmation blocks — so the same room never gets
+// described three different ways on three screens.
+export function lineTitle(item) {
+  if (item.kind === 'stay') return stayById(item.hotelId).name
+  if (item.kind === 'ticket') return `${tierById(item.tierId).name} ticket`
+  return addonById(item.addonId).name
+}
+export function lineDetail(item) {
+  if (item.kind === 'stay') {
+    const room = roomById(item.hotelId, item.roomId)
+    return `${room.name} · ${item.nights} night${item.nights === 1 ? '' : 's'} · ${item.rooms} room${item.rooms === 1 ? '' : 's'}`
+  }
+  if (item.kind === 'ticket') return `${item.qty} × ${money(tierById(item.tierId).price)} · ${EVENT.venue?.name || 'Gillette Stadium'}`
+  const addon = addonById(item.addonId)
+  return `${item.qty} × ${money(addon.price)} per ${addon.per}`
+}
+
+/** Check-in / check-out labels for a stay line, from the fixed event weekend. */
+export const checkInLabel = () => NIGHT_DATES[0]
+export const checkOutLabel = (nights) => CHECK_OUT_DATES[Math.min(nights, MAX_NIGHTS) - 1]
+
+// ── Handing the trip to the library ──
+// Checkout and confirmation are the library's own pages, and both read the shared
+// "ticketing cart" shape ({ items: [{ type, label, sublabel, amount }], subtotal,
+// fees, taxes, total }). This is the one translation between the two models, and
+// it exists so those pages can be mounted as shipped rather than re-implemented
+// here — a trip of any composition arrives as an ordinary itemized order.
+//
+// The stay line carries the NET amount with the saving named in its sublabel,
+// rather than a gross line plus a discount line. CartReview sums its lines to get
+// the subtotal and has no negative-line rendering, so a discount line would print
+// as "$-46.00" and, worse, would be taxed as if it were a purchase.
+export function buildTripCart(itemsIn = []) {
+  const t = priceTrip(itemsIn)
+  const items = []
+
+  for (const line of itemsIn) {
+    if (line.kind === 'stay') {
+      const stay = stayById(line.hotelId)
+      const room = roomById(line.hotelId, line.roomId)
+      const nightsText = `${line.nights} night${line.nights === 1 ? '' : 's'} · ${line.rooms} room${line.rooms === 1 ? '' : 's'}`
+      items.push({
+        type: 'hotel',
+        label: `${stay.name} · ${room.name}`,
+        sublabel: t.savings ? `${nightsText} · ${money(t.savings)} trip saving applied` : nightsText,
+        amount: t.netStay,
+        image: stay.image,
+        imageCategories: ['exterior', 'rooms', 'lobby'],
+        // The per-night rows price the ROOMS the guest booked, not one room, so
+        // the breakdown multiplies out to the stay the line is charging for.
+        // hotelCartDetail() hard-codes a one-night King stay in its dates and its
+        // room note — true for the fixture it was written for, not for a trip
+        // whose nights and rooms are both variable. The three fields that depend
+        // on those are re-stated here rather than patched in the library.
+        hotelDetail: {
+          ...hotelCartDetail({ ...stay, roomType: room.name, nightlyRate: room.rate * line.rooms }, line.nights),
+          note: `${room.bed} · sleeps ${room.sleeps * line.rooms}${line.rooms > 1 ? ` across ${line.rooms} rooms` : ''} · near Gillette Stadium`,
+          checkIn: `${checkInLabel()} · 3:00 PM`,
+          checkOut: `${checkOutLabel(line.nights)} · 11:00 AM`,
+        },
+      })
+    } else if (line.kind === 'ticket') {
+      const t2 = tierById(line.tierId)
+      items.push({
+        type: 'ticket',
+        // The quantity is in the LABEL rather than passed as an editable
+        // unitPrice + qty: CartReview's quantity dropdown edits its own deep copy
+        // of the cart, which would leave checkout showing a number the trip never
+        // heard about. Quantities are edited in the trip; checkout states them.
+        label: `${line.qty} × ${t2.name} ticket`,
+        sublabel: `${money(t2.price)} each · ${EVENT.venue?.name || 'Gillette Stadium'}`,
+        amount: lineTotal(line),
+      })
+    } else {
+      const a = addonById(line.addonId)
+      items.push({
+        type: 'experience',
+        label: `${line.qty} × ${a.name}`,
+        sublabel: `${money(a.price)} per ${a.per}`,
+        amount: lineTotal(line),
+      })
+    }
+  }
+
+  return {
+    items,
+    subtotal: t.subtotal, fees: t.fees, taxes: t.taxes, total: t.total,
+    currency: 'USD', feeRate: FEE_RATE, taxRate: TAX_RATE,
+    // The guarantees block is about tickets — an add-ons-only order has no seats
+    // to reassure anyone about, so it isn't shown one.
+    ticketDetails: itemsIn.some((i) => i.kind === 'ticket') ? ticketDetails({ section: 'CL10', row: '12' }) : [],
+  }
+}

@@ -36,118 +36,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build Storybook
-        run: pnpm build-storybook
+      # ONE command builds the whole site — Storybook plus every prototype
+      # nested beneath it. Same script Netlify runs, so the two hosts cannot
+      # drift; adding a prototype means adding it to scripts/build-site.mjs and
+      # nowhere else. SITE_BASE is what differs: Pages serves this repo from a
+      # sub-path, Netlify from the domain root.
+      - name: Build the site (Storybook + all prototypes)
+        run: npm run build:site
         env:
+          SITE_BASE: "/presto-2026-ticketing"
           STORYBOOK_DISABLE_TELEMETRY: "1"
-          # Public URL of the separately-hosted imagery library (no secret).
-          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
-          # Google Maps JS key for the Hotel Map pattern. Stored as a repo secret;
-          # restrict it by HTTP referrer + Maps JS API in Google Cloud Console.
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-
-      # Build the clickable booking-journey prototype (a separate Vite app that
-      # reuses the real library components) and nest it under the Storybook site
-      # so it's served at /presto-2026-ticketing/prototype/. It has no deps of its own —
-      # it resolves vue/quasar/vite from the repo's node_modules installed above.
-      - name: Build prototype (booking journey)
-        working-directory: prototype
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/prototype/
-        env:
           VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
 
-      - name: Nest prototype under Storybook
-        run: cp -r prototype/dist storybook-static/prototype
-
-      # Build the ticket + hotel BUNDLE prototype (a second Vite app reusing the
-      # real library components) and nest it at /presto-2026-ticketing/bundle/.
-      - name: Build bundle prototype (ticket + hotel)
-        working-directory: bundle
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/bundle/
-        env:
-          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
-
-      - name: Nest bundle prototype under Storybook
-        run: cp -r bundle/dist storybook-static/bundle
-
-      # Build the integrated tickets + packages EXPERIENCE prototype (a stepper-
-      # guided end-to-end journey reusing the real library components) and nest it
-      # at /presto-2026-ticketing/experience/.
-      - name: Build experience prototype (tickets + packages)
-        working-directory: experience
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/experience/
-        env:
-          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-
-      - name: Nest experience prototype under Storybook
-        run: cp -r experience/dist storybook-static/experience
-
-      # Build the Hotel + Packages EXPERIENCE prototype (same stepper-guided flow
-      # as /experience, with packages in place of tickets) → /experience-packages/.
-      - name: Build experience-packages prototype (hotel + packages)
-        working-directory: experience-packages
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/experience-packages/
-        env:
-          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-
-      - name: Nest experience-packages prototype under Storybook
-        run: cp -r experience-packages/dist storybook-static/experience-packages
-
-      # Mike's working copy of the Hotel + Packages experience, forked 2026-08-04
-      # so edits can diverge from the original → /option-a/.
-      - name: Build Option A prototype (hotel + packages, Aug 4)
-        working-directory: option-a
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/option-a/
-        env:
-          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-
-      - name: Nest Option A prototype under Storybook
-        run: cp -r option-a/dist storybook-static/option-a
-
-      # Option B — the v2 prototype, a duplicate of Option A carrying a
-      # round of feedback → /option-b/.
-      - name: Build Option B prototype (v2)
-        working-directory: option-b
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/option-b/
-        env:
-          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-
-      - name: Nest Option B prototype under Storybook
-        run: cp -r option-b/dist storybook-static/option-b
-
-      # Option C — the one-click package grid built from the Aug 4 feedback:
-      # a 6-tile board straight to checkout, no filter rail and no modal → /option-c/.
-      - name: Build Option C prototype (one-click grid)
-        working-directory: option-c
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/option-c/
-        env:
-          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-
-      - name: Nest Option C prototype under Storybook
-        run: cp -r option-c/dist storybook-static/option-c
-
-      # Option D — the Aug 5 feedback response: a headcount prompt, then two
-      # identical packages differing only by hotel → /option-d/.
-      - name: Build Option D prototype (two hotels, one package)
-        working-directory: option-d
-        run: node ../node_modules/vite/bin/vite.js build --base=/presto-2026-ticketing/option-d/
-        env:
-          VITE_IMAGERY_URL: "https://epprestodesign.github.io/presto-ds-imagery"
-          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-
-      - name: Nest Option D prototype under Storybook
-        run: cp -r option-d/dist storybook-static/option-d
-
-      # The experience directory / hub landing page → /presto-2026-ticketing/hub/.
-      - name: Nest hub directory page
-        run: mkdir -p storybook-static/hub && cp hub/index.html storybook-static/hub/index.html
-
+      # The hub directory page is copied by the build script too.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: storybook-static
