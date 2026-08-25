@@ -46,6 +46,11 @@ const APPS = [
   'option-b',
   'option-c',
   'option-d',
+  // Aug 25 round — one prototype per user-flow edge case.
+  'tickets-first',
+  'hotel-first',
+  'package-customize',
+  'trip-builder',
 ]
 
 const VITE = join(root, 'node_modules', 'vite', 'bin', 'vite.js')
