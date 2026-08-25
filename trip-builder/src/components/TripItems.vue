@@ -2,12 +2,10 @@
 // TripItems — the trip, grouped and editable. The single most important surface
 // in this prototype, and deliberately the only one that can change a line.
 //
-// It is mounted TWICE with different chrome: inside TripFlyout (the slide-over
-// reachable from every screen) and on the Trip screen (the full page). That
-// mirrors how the library shares CartReview between CartFlyout and CheckoutPage —
-// one body, two frames — and it means the fly-out is not a read-only preview of
-// the cart. Whatever you can do on the trip page you can do without leaving the
-// tickets screen.
+// It used to be mounted twice — once inside TripFlyout, once on the Trip screen.
+// The fly-out is gone (Aug 25: no overlays), and with it the `variant` prop and
+// the panel-only footer that existed to get from the slide-over back to the page
+// it was duplicating. One cart body, one frame, one address.
 //
 // WHY NOT the library's CartReview in 'ticketing' mode. It renders exactly this
 // shape (typed lines, section heads, live totals) and its ticket lines are even
@@ -21,18 +19,13 @@ import { useQuasar } from 'quasar'
 import QuantityStepper from '@lib/components/QuantityStepper.vue'
 import DsEmptyState from '@lib/components/DsEmptyState.vue'
 import {
-  trip, itemsOf, isEmpty, setQty, removeItem, restoreItem, addMore, nav,
+  itemsOf, isEmpty, setQty, removeItem, restoreItem, addMore, openStay,
 } from '../store.js'
 import {
   stayById, roomById, tierById, addonById, lineTotal, money,
   checkInLabel, checkOutLabel, MAX_TICKETS,
 } from '../trip.js'
 
-const props = defineProps({
-  // 'panel' is the fly-out's tighter frame; 'page' is the Trip screen.
-  variant: { type: String, default: 'page' },
-})
-const emit = defineEmits(['edit-stay'])
 const $q = useQuasar()
 
 // Sections are declared, not derived from what's in the cart, so "Tickets" always
@@ -74,7 +67,7 @@ function remove(line, label) {
 </script>
 
 <template>
-  <div class="ti" :class="`ti--${props.variant}`">
+  <div class="ti">
     <!-- Empty trip: three ways in, stated as offers rather than as an error. The
          cart being empty is a normal state on a landing-page-less flow. -->
     <ds-empty-state
@@ -119,7 +112,12 @@ function remove(line, label) {
               {{ money(room(line).rate) }}/night
             </p>
             <div class="ti__ctrls">
-              <button type="button" class="ti__edit" @click="emit('edit-stay', line)">
+              <!-- Edit goes to the hotel's own details page, pre-filled — the
+                   same page the browse grid opens. Adding and editing were one
+                   dialog before this round and are one page after it, because a
+                   separate edit surface would make "change my room" mean
+                   re-entering the hotel flow. -->
+              <button type="button" class="ti__edit" @click="openStay(line.hotelId)">
                 <q-icon name="edit" size="16px" /> Edit stay
               </button>
               <button type="button" class="ti__rm" @click="remove(line, stay(line).name)">Remove</button>
@@ -195,12 +193,6 @@ function remove(line, label) {
         </button>
       </div>
 
-      <p v-if="props.variant === 'panel'" class="ti__hint">
-        Everything here can be changed or removed on its own — the rest of the trip stays put.
-      </p>
-      <button v-if="props.variant === 'panel' && trip.screen !== 'trip'" type="button" class="ti__full" @click="nav('trip')">
-        Open the full trip <q-icon name="arrow_forward" size="16px" />
-      </button>
     </template>
   </div>
 </template>
@@ -240,10 +232,4 @@ function remove(line, label) {
 .ti__morebtn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border: 1px dashed var(--ds-color-border-bold); border-radius: 999px; background: none; font: inherit; font-size: .875rem; font-weight: 600; color: var(--ds-color-text); cursor: pointer; }
 .ti__morebtn:hover { background: var(--ds-palette-slate-100, #f1f2f4); }
 
-.ti__hint { margin: 0; font-size: .8125rem; color: var(--ds-color-text-subtle); }
-.ti__full { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-surface); font: inherit; font-weight: 700; color: var(--ds-color-text); cursor: pointer; }
-.ti__full:hover { background: var(--ds-palette-slate-100, #f1f2f4); }
-
-/* The fly-out is 500px wide — the stay thumbnail is the first thing to go. */
-.ti--panel .ti__thumb { width: 64px; height: 64px; }
 </style>

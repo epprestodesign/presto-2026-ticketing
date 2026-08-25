@@ -30,9 +30,8 @@ import HotelDetailPage from '@lib/components/details/HotelDetailPage.vue'
 import { hotelBase } from '@lib/stories/details/_detail-data.js'
 import { getAmenities } from '@lib/lib/amenities.js'
 import RoomPackageCard from '../components/RoomPackageCard.vue'
-import PackagePriceDialog from '../components/PackagePriceDialog.vue'
-import { journey, activeHotel, priced, setTab, useRoomFromHotelPage, customizePackage } from '../store.js'
-import { buildPackage, priceConfiguration, roomsFor, NIGHTS, STAY_SHORT } from '../packages.js'
+import { journey, activeHotel, priced, setTab, useRoomFromHotelPage } from '../store.js'
+import { priceConfiguration, roomsFor, NIGHTS, STAY_SHORT } from '../packages.js'
 
 const AMENITY_KEYS = {
   ritz: ['wifi', 'valet', 'pool', 'restaurant', 'fitness', 'breakfast', 'spa', 'concierge'],
@@ -55,14 +54,16 @@ const configWith = (roomId) => ({ ...journey.config, hotelId: activeHotel.value.
 const roomCards = computed(() => {
   const hotel = activeHotel.value
   return roomsFor(hotel.id).map((room) => {
+    // The whole priced object goes to the card, not three numbers picked off it:
+    // the card now renders the breakdown as well as the total, and two paths to
+    // the same figure is exactly the drift this tab exists to avoid.
     const p = priceConfiguration(configWith(room.id))
     return {
       room,
       hotel,
-      packagePrice: p.packagePrice,
+      priced: p,
       delta: p.packagePrice - priced.value.packagePrice,
       selected: journey.config.hotelId === hotel.id && journey.config.roomId === room.id,
-      roomsNeeded: p.rooms,
     }
   })
 })
@@ -107,14 +108,10 @@ const args = computed(() => {
 const mounted = ref(false)
 onMounted(() => { mounted.value = true })
 
-// The breakdown for a hypothetical room, so "Price details" on a room the guest
-// doesn't hold explains the price on ITS button rather than the one they have.
-const priceOpen = ref(false)
-const pricePkg = ref(null)
-const openPrice = (room) => {
-  pricePkg.value = buildPackage(journey.config.pkgId, configWith(room.id))
-  priceOpen.value = true
-}
+// "Price details" no longer opens anything of this screen's — each card unfolds
+// its own breakdown in place, from the same priced object it renders its total
+// from, so a room the guest doesn't hold still explains the price on ITS button
+// rather than the one they have. See RoomPackageCard.
 const select = (room) => useRoomFromHotelPage(activeHotel.value.id, room.id)
 </script>
 
@@ -137,14 +134,12 @@ const select = (room) => useRoomFromHotelPage(activeHotel.value.id, room.id)
       <div class="xhd__rooms">
         <room-package-card
           v-for="c in roomCards" :key="c.room.id"
-          :room="c.room" :hotel="c.hotel" :package-price="c.packagePrice"
-          :delta="c.delta" :selected="c.selected" :rooms-needed="c.roomsNeeded"
-          @select="select" @price-details="openPrice"
+          :room="c.room" :hotel="c.hotel" :priced="c.priced"
+          :delta="c.delta" :selected="c.selected"
+          @select="select"
         />
       </div>
     </Teleport>
-
-    <package-price-dialog v-model="priceOpen" :pkg="pricePkg" @customize="customizePackage" />
   </div>
 </template>
 

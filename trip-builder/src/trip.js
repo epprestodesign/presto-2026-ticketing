@@ -14,6 +14,16 @@
 import { CONTRACTED_HOTELS, walkMinutes, hotelCartDetail, ticketDetails } from '@lib/lib/bundles.js'
 import { deriveTiers } from '@lib/lib/seatmap.js'
 import { fixtureEvents } from '@lib/lib/ticketmaster.js'
+// The library's own hotel photography, imported by name. The four contracted
+// properties arrive from CONTRACTED_HOTELS carrying an image already; the six
+// written here need one, and reusing the library's bundled shots keeps this app
+// free of its own asset folder.
+import imgExterior from '@lib/assets/hotel/exterior.jpg'
+import imgLobby from '@lib/assets/hotel/lobby.jpg'
+import imgPool from '@lib/assets/hotel/pool.jpg'
+import imgSpa from '@lib/assets/hotel/spa.jpg'
+import imgDeluxeKing from '@lib/assets/hotel/deluxe-king.jpg'
+import imgOceanSuite from '@lib/assets/hotel/ocean-suite.jpg'
 
 // ── The event everything hangs off ──
 export const EVENT = fixtureEvents.find((e) => /gillette|stadium/i.test(e.venue?.name || '')) || fixtureEvents[0]
@@ -39,17 +49,116 @@ const ROOM_LADDER = [
   { id: 'suite', name: 'Two-Room Suite', delta: 130, sleeps: 4, bed: '1 King Bed · separate living room' },
 ]
 
-export const STAYS = CONTRACTED_HOTELS.map((h) => ({
-  ...h,
-  walkMin: walkMinutes(h.distanceMi),
-  rooms: ROOM_LADDER.map((r) => ({
+// ── The property block, as a BROWSE surface needs it ──
+// CONTRACTED_HOTELS was shaped for a compact add-on tile: a name, a rate, a
+// distance and a rating. A browse page needs stars, a review count, a parent
+// brand, amenity keys, an availability tier and coordinates, so those are
+// written here rather than patched into the library. Ids, names, rates and
+// distances are taken from the library untouched, which is what keeps every
+// deep link minted before this round resolving to the same stay at the same
+// price.
+const PARENT = { Marriott: 'Marriott International', Hilton: 'Hilton Worldwide', Hyatt: 'Hyatt Hotels' }
+
+// Amenity keys are drawn from the library's own FILTER_AMENITY_KEYS / AMENITIES
+// vocabulary, so a box ticked in the Amenities filter can actually match a
+// property. A mix that used prettier words would render a rail that never
+// matches anything.
+const FAMILY = ['breakfast', 'parking', 'wifi', 'outdoor_pool', 'non_smoking', 'in_room_fridge', 'laundry']
+const SUITE = ['kitchenette', 'microwave', 'connecting_rooms', 'rollaway_beds', 'laundry', 'wifi']
+const RESORT = ['restaurant', 'bar', 'spa', 'fitness', 'room_service', 'concierge', 'valet', 'indoor_pool']
+const BUSINESS = ['business_center', 'front_desk_24h', 'express_checkin', 'dry_cleaning', 'fitness', 'wifi']
+
+const PROFILES = {
+  courtyard: { stars: 3.5, reviews: 1240, availability: 'available', preferred: true, amenities: [...FAMILY, ...BUSINESS], imageCategories: ['exterior', 'rooms', 'lobby'] },
+  westin: { stars: 4.5, reviews: 2180, availability: 'available', preferred: true, amenities: [...RESORT, ...BUSINESS, 'hot_tub'], imageCategories: ['lobby', 'suites', 'dining'] },
+  'hilton-garden': { stars: 3, reviews: 960, availability: 'available', amenities: [...FAMILY, 'shuttle', 'restaurant'], imageCategories: ['pool', 'rooms', 'exterior'] },
+  'hyatt-place': { stars: 3, reviews: 1420, availability: 'available', amenities: [...FAMILY, ...SUITE, 'shuttle'], imageCategories: ['dining', 'rooms', 'pool'] },
+}
+
+// Six properties beyond the contracted four. Four cards is enough to prove that
+// a card renders and nowhere near enough to prove that a FILTER RAIL does — a
+// brand checkbox, a star floor and a radius slider all read as decoration on a
+// list short enough to take in whole. The extra six exist to give the rail
+// something to remove, and to make the three availability tiers (match /
+// off-filter / sold out) visible on one screen.
+const EXTRA = [
+  { id: 'renaissance', name: 'Renaissance Patriot Place', brand: 'Marriott International', distanceMi: 0.2, rating: 4.7, roomType: 'King Room', nightlyRate: 329, image: imgSpa, stars: 4.5, reviews: 3050, availability: 'available', preferred: true, amenities: [...RESORT, 'breakfast', 'valet'], imageCategories: ['spa', 'suites', 'dining'] },
+  { id: 'holiday-inn-express', name: 'Holiday Inn Express Foxborough', brand: 'IHG Hotels & Resorts', distanceMi: 1.6, rating: 4.0, roomType: 'King Room', nightlyRate: 149, image: imgExterior, stars: 2.5, reviews: 780, availability: 'available', amenities: [...FAMILY, 'ev_charging'], imageCategories: ['exterior', 'rooms', 'bathroom'] },
+  { id: 'residence-inn', name: 'Residence Inn Foxborough', brand: 'Marriott International', distanceMi: 2.4, rating: 4.4, roomType: 'Studio Queen', nightlyRate: 199, image: imgDeluxeKing, stars: 3.5, reviews: 1130, availability: 'available', amenities: [...SUITE, ...FAMILY, 'pet_friendly'], imageCategories: ['rooms', 'suites', 'lobby'] },
+  { id: 'hampton-inn', name: 'Hampton Inn Mansfield', brand: 'Hilton Worldwide', distanceMi: 3.2, rating: 4.1, roomType: 'Double Queen', nightlyRate: 139, image: imgLobby, stars: 2.5, reviews: 640, availability: 'unmatched', amenities: [...FAMILY, 'shuttle'], imageCategories: ['lobby', 'rooms', 'exterior'] },
+  { id: 'crowne-plaza', name: 'Crowne Plaza Foxborough', brand: 'IHG Hotels & Resorts', distanceMi: 3.8, rating: 3.9, roomType: 'King Room', nightlyRate: 169, image: imgPool, stars: 3.5, reviews: 890, availability: 'unmatched', amenities: [...BUSINESS, 'outdoor_pool', 'parking', 'bar'], imageCategories: ['pool', 'bar', 'rooms'] },
+  { id: 'hyatt-regency', name: 'Hyatt Regency Gillette', brand: 'Hyatt Hotels', distanceMi: 4.2, rating: 4.5, roomType: 'Deluxe King', nightlyRate: 259, image: imgOceanSuite, stars: 4, reviews: 1960, availability: 'unavailable', amenities: [...RESORT, 'golf', 'tennis'], imageCategories: ['suites', 'spa', 'exterior'] },
+]
+
+// Gillette Stadium. Coordinates are DERIVED from each property's stated distance
+// rather than hand-typed, so the pin on the detail map and the number printed on
+// the card can never disagree; the golden angle keeps them from stacking.
+const VENUE_LAT = 42.0909
+const VENUE_LNG = -71.2643
+const COS_LAT = Math.cos((VENUE_LAT * Math.PI) / 180)
+function coordsFor(i, distanceMi) {
+  const ang = (i * 137.5 * Math.PI) / 180
+  return {
+    lat: VENUE_LAT + (distanceMi / 69) * Math.cos(ang),
+    lng: VENUE_LNG + (distanceMi / (69 * COS_LAT)) * Math.sin(ang),
+  }
+}
+
+// Rooms-left per night, derived from the property's index. Deterministic, and
+// uneven on purpose: a game weekend sells the Saturday first, so a card that
+// showed the same number on all three nights would look generated.
+//
+// The range starts at 1, never 0. A zero here would mean "this room is sold out
+// on that night", which the detail page honours by disabling its Reserve button —
+// so a stray zero would hand a bookable property a dead room for no stated
+// reason. Selling out is a property-level statement in this catalogue
+// (`availability: 'unavailable'`), made deliberately, on one property.
+function nightsLeft(i, r) {
+  return NIGHT_DATES.map((date, n) => ({ date, roomsLeft: 1 + ((i * 3 + r * 5 + n * 4) % 10) }))
+}
+
+const RAW_STAYS = [
+  ...CONTRACTED_HOTELS.map((h) => ({ ...h, brand: PARENT[h.brand] || h.brand, ...PROFILES[h.id] })),
+  ...EXTRA,
+]
+
+export const STAYS = RAW_STAYS.map((h, i) => {
+  const rooms = ROOM_LADDER.map((r) => ({
     id: r.id,
     name: r.name || h.roomType,
     rate: h.nightlyRate + r.delta,
     sleeps: r.sleeps,
     bed: r.bed,
-  })),
-}))
+  }))
+  const soldOut = h.availability === 'unavailable'
+  return {
+    ...h,
+    walkMin: walkMinutes(h.distanceMi),
+    rooms,
+    // ── Browse / detail derivations, all from the fields above ──
+    seed: i * 7,
+    city: 'Foxborough, MA',
+    address: `${100 + i * 40} Patriot Place, Foxborough, MA 02035`,
+    distance: `${h.distanceMi} mi from Gillette Stadium`,
+    // fromNightly is the CHEAPEST room in the ladder, which is the first one —
+    // the card's "From $X nightly" has to be a price the detail page can
+    // actually sell, or the two screens argue with each other.
+    fromNightly: rooms[0].rate,
+    refundable: i % 3 !== 2,
+    lowRateGuarantee: i % 2 === 0,
+    preferred: !!h.preferred,
+    ...coordsFor(i, h.distanceMi),
+    // Per-room availability, shared by the browse card's Availability panel and
+    // the detail page's room cards, so the two never disagree about a sell-out.
+    availByRoom: rooms.map((r, ri) => ({
+      roomId: r.id,
+      type: r.name,
+      nightly: r.rate,
+      nights: soldOut ? NIGHT_DATES.map((date) => ({ date, roomsLeft: 0 })) : nightsLeft(i, ri),
+    })),
+    soldOut,
+  }
+})
 export const stayById = (id) => STAYS.find((s) => s.id === id) || STAYS[0]
 export const roomById = (hotelId, roomId) => {
   const stay = stayById(hotelId)

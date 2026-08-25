@@ -17,9 +17,9 @@
 // sat, so restoring is exact; updateItem() patches one line and touches nothing
 // else. Nothing in here can clear the cart as a side effect of a navigation.
 import { reactive, computed } from 'vue'
-import { STAYS, ADDONS, TIERS, priceTrip, MAX_NIGHTS, MAX_ROOMS } from './trip.js'
+import { STAYS, ADDONS, TIERS, stayById, priceTrip, MAX_NIGHTS, MAX_ROOMS } from './trip.js'
 
-export const SCREENS = ['landing', 'stays', 'tickets', 'addons', 'trip', 'checkout', 'confirmation']
+export const SCREENS = ['landing', 'stays', 'hotel', 'tickets', 'addons', 'trip', 'checkout', 'confirmation']
 
 // The three entry points, in the order the landing page offers them. Each one is
 // a first step and none of them is THE first step.
@@ -34,8 +34,6 @@ export const ADD_SCREEN = { stay: 'stays', ticket: 'tickets', addon: 'addons' }
 export const trip = reactive({
   items: [],
   screen: 'landing',
-  // The trip fly-out — the cart surface that is reachable from every screen.
-  flyoutOpen: false,
 })
 
 // Deterministic line ids (no Date.now, no random) so a rebuilt trip from a deep
@@ -117,32 +115,45 @@ export function clearTrip() { trip.items = []; syncUrl() }
 
 function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, Math.round(n || lo))) }
 
-// ── The trip fly-out ──
-export function openTrip() { trip.flyoutOpen = true }
-export function closeTrip() { trip.flyoutOpen = false }
+// ── The hotel page ──
+// Aug 25 feedback: "I never want to have this as a pop-up … we're always going
+// to want a clean page." So the stay editor is no longer a modal opened over
+// whatever screen the guest happened to be on — it is a SCREEN. `stays` browses
+// the block, `hotel` is one property's detail page, and BOTH adding a stay and
+// editing one happen there, on the same surface, as they did in the dialog.
+//
+// All the state that used to describe "which dialog is open over what" collapses
+// to one field: which property the hotel page is showing. The screen carries the
+// rest, which is the point of making it a screen.
+export const stayView = reactive({ hotelId: null })
 
-// ── The stay editor ──
-// One dialog for adding a stay and for editing one, opened from the hotel grid
-// and from the stay line in the cart alike. Its state sits in the store rather
-// than in a screen because the fly-out can open it from ANY screen — editing the
-// room while standing on the add-ons page is exactly the move this prototype is
-// built to make possible.
-export const stayEditor = reactive({ open: false, hotelId: null, uid: null })
-export const editingStay = computed(() => trip.items.find((i) => i.uid === stayEditor.uid) || null)
-export function openStayEditor(hotelId, line = null) {
-  stayEditor.hotelId = hotelId || line?.hotelId || STAYS[0].id
-  stayEditor.uid = line?.uid || null
-  stayEditor.open = true
+// The line being edited is DERIVED, not remembered. A stored uid would have to
+// survive a reload from a deep link, where uids are minted fresh on decode — and
+// "the stay in the trip at THIS property" is the same answer without storing
+// anything. It also makes the swap warning fall out for free: a stay booked at a
+// different property is, by definition, not this page's line.
+export const editingStay = computed(() => {
+  const line = stayLine.value
+  return line && line.hotelId === stayView.hotelId ? line : null
+})
+/** The stay a choice made on this page would displace — named before it happens. */
+export const replacingStay = computed(() => {
+  const line = stayLine.value
+  return line && line.hotelId !== stayView.hotelId ? stayById(line.hotelId) : null
+})
+
+export function openStay(hotelId) {
+  stayView.hotelId = hotelId || stayLine.value?.hotelId || STAYS[0].id
+  nav('hotel')
 }
-export function closeStayEditor() { stayEditor.open = false }
+/** Add this page's property to the trip, or patch the line already holding it. */
 export function commitStay(draft) {
   const line = editingStay.value
-  // Same property → patch the existing line so it keeps its id and its place.
-  // Different property → addStay() swaps it in position. Either way the tickets
-  // and add-ons in the cart are never touched.
-  if (line && line.hotelId === draft.hotelId) updateItem(line.uid, draft)
-  else addStay(draft)
-  stayEditor.open = false
+  // Same property → patch the existing line so it keeps its uid and its place in
+  // the cart. Different property → addStay() swaps it in position. Either way
+  // the tickets and add-ons in the trip are never touched.
+  if (line) { updateItem(line.uid, draft); return line }
+  return addStay({ hotelId: stayView.hotelId, ...draft })
 }
 
 // ── URL sync ──
@@ -177,6 +188,10 @@ function syncUrl(push = false) {
   if (typeof window === 'undefined' || !window.history) return
   const params = new URLSearchParams(window.location.search)
   params.set('screen', trip.screen)
+  // The hotel page is a place, so it needs an address: without the property in
+  // the URL, `?screen=hotel` would reload onto a page with no hotel on it.
+  if (trip.screen === 'hotel' && stayView.hotelId) params.set('hotel', stayView.hotelId)
+  else params.delete('hotel')
   const encoded = encodeTrip()
   if (encoded) params.set('trip', encoded)
   else params.delete('trip')
@@ -189,7 +204,6 @@ function syncUrl(push = false) {
 export function nav(screen, { push = true } = {}) {
   if (!SCREENS.includes(screen)) return
   trip.screen = screen
-  trip.flyoutOpen = false
   syncUrl(push)
   if (typeof window !== 'undefined') requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
 }
@@ -203,13 +217,17 @@ export function bootstrapFromUrl() {
   const q = new URLSearchParams(window.location.search)
   const restored = decodeTrip(q.get('trip'))
   if (restored.length) trip.items = restored
+  const hotel = q.get('hotel')
+  stayView.hotelId = STAYS.some((s) => s.id === hotel) ? hotel : (restored.find((i) => i.kind === 'stay')?.hotelId || STAYS[0].id)
   const screen = q.get('screen')
   if (screen && SCREENS.includes(screen)) trip.screen = screen
   syncUrl()
   window.addEventListener('popstate', () => {
     const p = new URLSearchParams(window.location.search)
     const s = p.get('screen')
+    const h = p.get('hotel')
     trip.items = decodeTrip(p.get('trip'))
+    if (STAYS.some((x) => x.id === h)) stayView.hotelId = h
     if (s && SCREENS.includes(s)) nav(s, { push: false })
   })
 }

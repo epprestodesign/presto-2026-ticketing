@@ -120,6 +120,24 @@ export const ADD_ONS = [
 
 export const ADD_ONS_BY_ID = Object.fromEntries(ADD_ONS.map((a) => [a.id, a]))
 
+// ── PARTY SIZE IS THE QUANTITY ──────────────────────────────────────────────
+// Same rule the passes follow (see tickets.js): an add-on is in or out, and if
+// it is in, the party size decides how many. A per-guest product takes one per
+// guest; the shared van is one booking that carries the whole party, which is
+// the same rule expressed in the product's own unit — not an exception to it.
+//
+// Rejected: keeping the per-card stepper "for the family where one parent skips
+// the park". It bought that one case at the price of every cart being able to
+// disagree with itself, and it made changing the party size a re-edit of six
+// cards instead of one number.
+export const addOnQty = (a, guests) => (!a ? 0 : a.unit === 'booking' ? 1 : guests)
+
+/** The sentence a card prints where its stepper used to be. */
+export const addOnQtyNote = (a, guests) =>
+  (a.unit === 'booking'
+    ? '1 booking — covers your whole party'
+    : `${guests} guest${guests === 1 ? '' : 's'} — matches your party`)
+
 /** Selected quantities ({ addOnId: qty }) → priced lines, in catalogue order. */
 export function addOnLines(selection = {}) {
   return ADD_ONS

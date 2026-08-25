@@ -8,32 +8,42 @@
 // this fit my weekend and what does it cost my party", so the card leads with the
 // day it fits and states its pricing unit next to the price.
 //
-// The zero state is a single Add button rather than a stepper sitting at 0. A
-// stepper at zero asks the guest to do arithmetic before they have agreed to buy;
-// Add commits the obvious quantity (one per guest, or one van) and only THEN
-// hands over a stepper for the exceptions. The stepper is removable, so the way
-// back out is the same control — no separate "remove" affordance to hunt for.
+// The card is a single Add / Added toggle — there is no stepper on it at all,
+// at zero or after adding. Quantity is the party size (one per guest, or one van
+// for the whole party) and the card STATES that number instead of offering it
+// for editing.
+//
+// The rejected alternative is what this card shipped yesterday: Add committed
+// the obvious quantity and then handed over a removable stepper "for the
+// exceptions". It reads reasonably on one card and badly across six — a family
+// of four could leave this screen with four park days, three breakfasts and two
+// aquarium tickets, an order that no longer describes any trip anyone is taking,
+// and one the checkout rail then has to print with a straight face. One number
+// for the whole party is the trade: the one-parent-skips-the-park case is lost,
+// and every other case becomes explainable.
 import { computed } from 'vue'
-import QuantityStepper from '@lib/components/QuantityStepper.vue'
-import { unitLabel } from '../addons.js'
+import { unitLabel, addOnQty, addOnQtyNote } from '../addons.js'
 
 const props = defineProps({
   addOn: { type: Object, required: true },
-  qty: { type: Number, default: 0 },
-  // Party size — what "Add" means for a per-guest product.
+  selected: { type: Boolean, default: false },
+  // Party size — the quantity, not a default the guest can move off.
   guests: { type: Number, default: 4 },
 })
-const emit = defineEmits(['update:qty'])
+const emit = defineEmits(['toggle'])
 
 const money = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0)
 const perGuest = computed(() => props.addOn.unit !== 'booking')
-const defaultQty = computed(() => (perGuest.value ? props.guests : 1))
-const amount = computed(() => props.addOn.price * props.qty)
+const qty = computed(() => addOnQty(props.addOn, props.guests))
+// The number this card follows and why — otherwise the total looks like it moved
+// on its own the moment the party size changes on the other screen.
+const qtyNote = computed(() => addOnQtyNote(props.addOn, props.guests))
+const amount = computed(() => props.addOn.price * qty.value)
 const accent = computed(() => `var(${props.addOn.accentVar})`)
 </script>
 
 <template>
-  <article class="aoc" :class="{ 'aoc--added': qty > 0 }" :style="{ '--aoc-accent': accent }">
+  <article class="aoc" :class="{ 'aoc--added': selected }" :style="{ '--aoc-accent': accent }">
     <div class="aoc__rail" aria-hidden="true" />
 
     <div class="aoc__body">
@@ -50,6 +60,9 @@ const accent = computed(() => `var(${props.addOn.accentVar})`)
 
       <p class="aoc__when"><q-icon name="event" size="16px" /> {{ addOn.when }}</p>
 
+      <!-- Where the stepper used to be: the quantity, stated, not editable. -->
+      <p class="aoc__qty"><q-icon name="group" size="16px" /> {{ qtyNote }}</p>
+
       <ul class="aoc__includes">
         <li v-for="(line, i) in addOn.includes" :key="i">
           <q-icon name="check" size="16px" /> <span>{{ line }}</span>
@@ -64,14 +77,12 @@ const accent = computed(() => `var(${props.addOn.accentVar})`)
       </div>
 
       <div class="aoc__action">
-        <button v-if="qty === 0" type="button" class="aoc__add" @click="emit('update:qty', defaultQty)">
-          <q-icon name="add" size="18px" />
-          Add<template v-if="perGuest"> for {{ guests }}</template>
+        <span class="aoc__total">{{ money(amount) }}</span>
+        <button type="button" class="aoc__add" :class="{ 'is-on': selected }" @click="emit('toggle', addOn)">
+          <q-icon :name="selected ? 'check' : 'add'" size="18px" />
+          <template v-if="selected">Added</template>
+          <template v-else>Add<template v-if="perGuest"> for {{ qty }}</template></template>
         </button>
-        <template v-else>
-          <span class="aoc__total">{{ money(amount) }}</span>
-          <quantity-stepper :model-value="qty" :min="1" :max="12" removable size="sm" @update:model-value="emit('update:qty', $event)" />
-        </template>
       </div>
     </footer>
   </article>
@@ -113,4 +124,11 @@ const accent = computed(() => `var(${props.addOn.accentVar})`)
 
 .aoc__add { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button); background: var(--ds-color-surface); color: var(--ds-color-text); font: inherit; font-weight: 700; font-size: 0.875rem; cursor: pointer; }
 .aoc__add:hover { background: var(--ds-palette-slate-100); border-color: var(--aoc-accent); color: var(--aoc-accent); }
+.aoc__add.is-on { background: var(--aoc-accent); border-color: var(--aoc-accent); color: #fff; }
+.aoc__add.is-on:hover { background: var(--aoc-accent); color: #fff; opacity: 0.9; }
+
+/* The locked quantity line sits with the schedule line, not with the price:
+   both answer "does this fit us", which is the decision the card is for. */
+.aoc__qty { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.8125rem; font-weight: 700; color: var(--ds-color-text); }
+.aoc__qty .q-icon { color: var(--ds-color-text-subtle); }
 </style>

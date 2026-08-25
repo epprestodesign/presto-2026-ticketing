@@ -13,6 +13,15 @@
 //   • NOTHING IS PRE-SELECTED. The rail starts at $0 and stays there until the
 //     guest adds something (see store.js — tickets are seeded, add-ons never are).
 //
+//   • THE PARTY SIZE IS THE QUANTITY, AND IT IS ON THIS PAGE. Every card is a
+//     plain Add / Added toggle now; how many is decided once, by the party size
+//     chosen for the room, and changing it here re-prices all six cards, the
+//     rail, the nav cart and the checkout in the same tick. The party control is
+//     repeated on this screen rather than left behind on Tickets because it is
+//     the only quantity control the guest has left — sending them back a screen
+//     to change a number that re-prices the page in front of them would be the
+//     lock costing them something instead of saving them something.
+//
 //   • THE SCHEDULE IS THE ORGANISING FACT. Each card says which day it fits
 //     against the competition schedule, and the header says out loud that a
 //     Saturday park day is not available to a family whose athlete competes
@@ -24,8 +33,9 @@
 import { computed } from 'vue'
 import { ADD_ONS, addOnLines, addOnCount, addOnSubtotal } from '../addons.js'
 import { COMP_DAYS } from '../event.js'
-import { journey, setAddOnQty, clearAddOns, nav } from '../store.js'
+import { journey, toggleAddOn, addOnOn, clearAddOns, setGuests, nav } from '../store.js'
 import AddOnCard from '../components/AddOnCard.vue'
+import PartySizeField from '../components/PartySizeField.vue'
 
 const lines = computed(() => addOnLines(journey.addOns))
 const count = computed(() => addOnCount(journey.addOns))
@@ -55,12 +65,20 @@ function continueWithout() {
       </header>
 
       <div class="ao__grid">
-        <div class="ao__cards">
-          <add-on-card
-            v-for="a in ADD_ONS" :key="a.id"
-            :add-on="a" :guests="journey.guests" :qty="journey.addOns[a.id] || 0"
-            @update:qty="(n) => setAddOnQty(a.id, n)"
+        <div class="ao__main">
+          <party-size-field
+            :guests="journey.guests"
+            note="Every add-on below is priced for this many people — change it once and the whole trip re-prices."
+            @update:guests="setGuests"
           />
+
+          <div class="ao__cards">
+            <add-on-card
+              v-for="a in ADD_ONS" :key="a.id"
+              :add-on="a" :guests="journey.guests" :selected="addOnOn(a.id)"
+              @toggle="toggleAddOn(a.id)"
+            />
+          </div>
         </div>
 
         <aside class="ao__rail">
@@ -105,6 +123,7 @@ function continueWithout() {
 .ao__sub { margin: 8px 0 0; max-width: 74ch; color: var(--ds-color-text-subtle); }
 
 .ao__grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; align-items: start; }
+.ao__main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
 /* Two columns of cards, not three: each card carries an inclusion list, and a
    three-up track squeezes those lists into a shape you skim past. */
 .ao__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: stretch; }

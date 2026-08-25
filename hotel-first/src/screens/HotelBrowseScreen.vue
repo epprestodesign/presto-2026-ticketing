@@ -12,6 +12,13 @@
 // booking site's Browse in every respect except its data.
 //
 // Card CTA or hotel name → that hotel's Details page.
+//
+// THE MAP IS A VIEW OF THIS PAGE, NOT A POP-UP (Aug 25). "View Map" in the rail
+// used to open a full-screen DsModal. It now switches this column: the results
+// list is replaced by HotelMapPanel, the filter rail stays put and keeps
+// working, and "Back to list" switches back. Same amount of map, none of the
+// modal — and the guest can still filter what the pins are showing, which they
+// could not do behind a scrim.
 import { ref, computed } from 'vue'
 import ResultsToolbar from '@lib/components/browse/ResultsToolbar.vue'
 import HotelCardReserve from '@lib/components/browse/HotelCardReserve.vue'
@@ -19,7 +26,8 @@ import BookingWidget from '@lib/components/BookingWidget.vue'
 import epLogoWhite from '@lib/assets/eventpipe logos/eventpipe-logo-fff.svg'
 import heroBg from '../../../background-img/defaultBackgroundImage.png'
 import HotelFilters from '../components/HotelFilters.vue'
-import { HOTELS, filterHotels, sortHotels, countFilters } from '../hotels.js'
+import HotelMapPanel from '../components/HotelMapPanel.vue'
+import { HOTELS, filterHotels, sortHotels, countFilters, FULL_RADIUS } from '../hotels.js'
 import { EVENT } from '../event.js'
 import { openHotel } from '../store.js'
 
@@ -51,6 +59,24 @@ function cardProps(h) {
   }
 }
 const clearFilters = () => railRef.value?.clearAll()
+
+// ── Map view ──
+// The pending radius lives in the RAIL (see HotelFilters' defineExpose), not
+// here: the map and the rail's own slider have to move the same number, and the
+// rail is where every other pending filter already lives. Keeping a second copy
+// on this screen would let the two disagree between Applies.
+const mapOpen = ref(false)
+const mapRadius = computed({
+  get: () => railRef.value?.raw?.radius ?? FULL_RADIUS,
+  set: (v) => { if (railRef.value?.raw) railRef.value.raw.radius = v },
+})
+// Applying from the map commits the radius through the rail's own Apply and
+// returns to the list — the results the guest just narrowed are the thing they
+// asked to see, so landing them back on the map would waste the click.
+function applyFromMap() {
+  railRef.value?.apply()
+  mapOpen.value = false
+}
 </script>
 
 <template>
@@ -74,8 +100,16 @@ const clearFilters = () => railRef.value?.clearAll()
     <!-- Results -->
     <div class="bcontainer">
       <div class="bgrid">
-        <hotel-filters ref="railRef" class="brail" :hotels="results" @update:filters="filters = $event" />
-        <div class="bresults">
+        <hotel-filters ref="railRef" class="brail" :hotels="results" @update:filters="filters = $event" @expand="mapOpen = true" />
+
+        <!-- Map view — the same column, switched. No dialog, no scrim. -->
+        <hotel-map-panel
+          v-if="mapOpen" class="bmap"
+          :hotels="results" :radius="mapRadius"
+          @update:radius="mapRadius = $event" @apply="applyFromMap" @close="mapOpen = false"
+        />
+
+        <div v-else class="bresults">
           <results-toolbar v-model="sort" :count="results.length" :filters-applied="filtersApplied" @clear-filters="clearFilters" />
           <div v-if="results.length" class="bgroups">
             <div v-if="tier1.length" class="bcards">
@@ -124,6 +158,9 @@ const clearFilters = () => railRef.value?.clearAll()
 .bcontainer { max-width: 1180px; margin-inline: auto; padding: 28px 24px 48px; }
 .bgrid { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 28px; align-items: start; }
 .bresults { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+/* The map takes the results column's slot; it brings its own internal rhythm,
+   so it gets width constraints only. */
+.bmap { min-width: 0; }
 .bgroups { display: flex; flex-direction: column; gap: 20px; }
 .bcards { display: flex; flex-direction: column; gap: 20px; }
 .bbreak { margin: 4px 0; padding-top: 22px; border-top: 1px solid var(--ds-color-border); color: var(--ds-color-text-subtle); font-size: 0.9375rem; font-weight: 600; line-height: 1.4; }

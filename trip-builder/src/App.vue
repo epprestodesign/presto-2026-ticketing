@@ -12,28 +12,34 @@
 //     and offers all three categories on every screen, which is orientation
 //     without a sequence.
 //
-//   • No global click router. Every screen here is driven by real props and
-//     events (ContractedHotelCard's `toggle`, TicketTierList's `continue`), so
-//     nothing has to be intercepted by matching CSS classes on the way up. The
-//     one exception is checkout's Book Now, which CheckoutPage doesn't emit —
-//     that single case is handled below rather than a whole routing layer.
+//   • No global click router. Screens are driven by real props and events
+//     (HotelCardReserve's `choose`, TicketTierList's `continue`), so almost
+//     nothing has to be intercepted by matching CSS classes on the way up. Two
+//     library CTAs emit nothing a parent can hear — checkout's Book Now and the
+//     room card's Reserve Room — and each is caught where it happens: Book Now
+//     here, Reserve Room inside HotelScreen. Neither is a routing layer.
 //
 // GlobalNav is mounted with its cart hidden. Its cart button opens CartFlyout,
 // whose body can't remove a line; a cart icon that opens a cart you can't edit
 // would quietly contradict the prototype. The trip lives in TripBar instead.
+//
+// AUG 25: THE SHELL NO LONGER MOUNTS ANY OVERLAY. It used to carry two — a
+// DsSidePanel trip fly-out and a DsModal stay editor — both hung here precisely
+// so they could open over any screen. Stakeholder feedback was blunt about it:
+// "I never want to have this as a pop-up … we're always going to want a clean
+// page", and "I definitely wouldn't want it to be inconsistent between add-on
+// and add hotel." Both are now screens (`hotel` and the `trip` page that already
+// existed), so the shell is a nav, a bar and a page. What is left docked is
+// TripBar, which is not an overlay: it takes up its own row, scrolls nothing
+// under a scrim, and is the cart spine this prototype is built on.
 import { computed, onMounted, onBeforeUnmount } from 'vue'
 import GlobalNav from '@lib/components/GlobalNav.vue'
 import TripBar from './components/TripBar.vue'
-import TripFlyout from './components/TripFlyout.vue'
-import StayEditDialog from './components/StayEditDialog.vue'
-import {
-  trip, stayEditor, editingStay, stayLine, commitStay, removeItem, closeStayEditor,
-  openStayEditor, nav,
-} from './store.js'
-import { stayById } from './trip.js'
+import { trip, nav } from './store.js'
 
 import LandingScreen from './screens/LandingScreen.vue'
 import StaysScreen from './screens/StaysScreen.vue'
+import HotelScreen from './screens/HotelScreen.vue'
 import TicketsScreen from './screens/TicketsScreen.vue'
 import AddonsScreen from './screens/AddonsScreen.vue'
 import TripScreen from './screens/TripScreen.vue'
@@ -43,6 +49,7 @@ import ConfirmationScreen from './screens/ConfirmationScreen.vue'
 const screens = {
   landing: LandingScreen,
   stays: StaysScreen,
+  hotel: HotelScreen,
   tickets: TicketsScreen,
   addons: AddonsScreen,
   trip: TripScreen,
@@ -55,22 +62,6 @@ const current = computed(() => screens[trip.screen] || LandingScreen)
 // placed there is no trip left to add to, and a bar offering to add tickets to a
 // finished purchase would be an invitation to a screen that can't honour it.
 const showBar = computed(() => trip.screen !== 'confirmation')
-
-// The stay a new choice would displace, named in the dialog before the swap.
-const replacing = computed(() => {
-  const line = stayLine.value
-  return line && line.hotelId !== stayEditor.hotelId ? stayById(line.hotelId).name : ''
-})
-
-function removeStay(line) {
-  if (line) removeItem(line.uid)
-  closeStayEditor()
-}
-// "Choose a different hotel" from inside the editor — close it, show the grid.
-function browseStays() {
-  closeStayEditor()
-  nav('stays')
-}
 
 // CheckoutPage's final Book Now is the one CTA in the app with no event to bind
 // to, so it is caught here. Capture phase and document scope because the button
@@ -95,19 +86,6 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
     <main class="tbapp__main">
       <component :is="current" />
     </main>
-
-    <!-- Both live at the shell so they are reachable from every screen: the trip
-         can be opened and a room re-chosen without leaving whatever page the
-         guest is on. -->
-    <trip-flyout @edit-stay="(line) => openStayEditor(line.hotelId, line)" />
-    <stay-edit-dialog
-      :model-value="stayEditor.open"
-      :hotel-id="stayEditor.hotelId"
-      :line="editingStay"
-      :replacing="replacing"
-      @update:model-value="!$event && closeStayEditor()"
-      @save="commitStay" @remove="removeStay" @browse="browseStays"
-    />
   </div>
 </template>
 

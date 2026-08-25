@@ -29,10 +29,13 @@ import {
 export const SCREENS = ['packages', 'packageDetails', 'customize', 'checkout', 'confirmation', 'hotelDetails']
 // The linear path next()/back() walk — the reference screen is excluded.
 const FLOW = ['packages', 'packageDetails', 'customize', 'checkout', 'confirmation']
-export const STEP_LABELS = ['Package', 'Customize', 'Review']
-// The packages page is stage -1, not 0: it is the landing page, and a progress
-// bar above a landing page is orientation for progress not yet made.
-const SCREEN_STAGE = { packages: -1, packageDetails: 0, customize: 1, checkout: 2, confirmation: 2, hotelDetails: -1 }
+
+// There is no stage model here any more. This file used to export STEP_LABELS,
+// currentStage, showStepper and goToStage to drive an `AppStepper` in the shell;
+// the Aug 25 review removed the stepper from the prototype (see App.vue for the
+// quotes and for why it went from every screen rather than only from customize),
+// and state that nothing renders is state that quietly goes stale. The screen
+// name in `journey.screen` is the whole of the flow's position.
 
 // Screens from the sibling prototypes that don't exist here.
 const REDIRECTS = { landing: 'packages', hotels: 'packages' }
@@ -53,9 +56,6 @@ export const journey = reactive({
 
 export const nights = NIGHTS
 export { HOTELS }
-
-export const currentStage = computed(() => SCREEN_STAGE[journey.screen] ?? -1)
-export const showStepper = computed(() => currentStage.value >= 0)
 
 /** The three pre-built tiles, each priced on its own preset at the party size. */
 export const packages = computed(() =>
@@ -167,11 +167,6 @@ export function back() {
   const i = FLOW.indexOf(journey.screen)
   if (i > 0) nav(FLOW[i - 1])
 }
-const STAGE_ENTRY = { 0: 'packageDetails', 1: 'customize', 2: 'checkout' }
-export function goToStage(stage) {
-  if (STAGE_ENTRY[stage]) nav(STAGE_ENTRY[stage])
-}
-
 // ── Choosing a package ──
 
 /**

@@ -15,15 +15,23 @@
 //   subtotal = every line
 //   fees     = 12% of the NON-HOTEL lines — the ticketing service fee. Hotel is
 //              excluded because its taxes/fees are quoted in the nightly rate,
-//              and because CartReview's own live recompute excludes it too: if we
-//              charged fees on the room here, editing a ticket quantity in the
-//              cart would silently change the total away from this one.
+//              and because CartReview's own fee base excludes it too — keeping
+//              the two bases identical is what stops the rail and this file from
+//              ever printing different totals for the same cart.
 //   taxes    = 9% of the subtotal (Orange County sales + tourist development)
 //   total    = subtotal + fees + taxes
 // All rounding is Math.round on whole dollars — deterministic, no drift.
 import { EVENT, STAY, DETAIL_NIGHTS, CONF_NIGHTS } from './event.js'
 import { ticketLines, ticketCount, ticketSubtotal } from './tickets.js'
 import { addOnLines, addOnCount, addOnSubtotal, unitLabel } from './addons.js'
+
+// Every line's quantity is the party size (see store.js). The cart says so on
+// each line rather than assuming the guest remembers the rule from two screens
+// back — and it says it in the same words the cards use.
+const partyNote = (qty, guests) =>
+  (qty < guests
+    ? `${qty} of ${guests} in your party — limited availability`
+    : `${qty} guest${qty === 1 ? '' : 's'} — matches your party`)
 
 export const FEE_RATE = 0.12
 export const TAX_RATE = 0.09
@@ -61,18 +69,26 @@ function hotelItem(hotel, room) {
   }
 }
 
-/** Admission lines. `unitPrice` + `qty` is what makes them editable in the cart. */
-function ticketItems(selection) {
+/**
+ * Admission lines.
+ *
+ * `unitPrice` + `maxQty` are deliberately NOT set. CartReview turns a ticket line
+ * into an editable quantity dropdown exactly when `unitPrice` is present, and an
+ * editable quantity in the rail is the last place a line could still break away
+ * from the party size — a guest could arrive at checkout with four park tickets
+ * and three passes after everything upstream had been locked. Dropping the field
+ * is what closes that door, with no library change: the rail prints the line
+ * amount and the party note instead.
+ */
+function ticketItems(selection, guests) {
   return ticketLines(selection).map((t) => ({
     type: 'ticket',
     label: t.name,
-    sublabel: `${EVENT.venueShort} · ${t.days}`,
+    sublabel: `${EVENT.venueShort} · ${t.days} · ${partyNote(t.qty, guests)}`,
     amount: t.amount,
-    unitPrice: t.price,
-    qty: t.qty,
-    maxQty: 12,
     details: [
-      { icon: 'confirmation_number', title: t.name, text: t.desc },
+      { icon: 'confirmation_number', title: `${t.qty} × ${t.name}`, text: t.desc },
+      { icon: 'group', title: partyNote(t.qty, guests), text: 'Pass quantities follow the party size on your room — change it on the Tickets step and the whole order re-prices.' },
       { icon: 'qr_code_2', title: 'Mobile entry', text: 'Delivered to the EventPipe app and scanned at the West Building doors.' },
     ],
   }))
@@ -83,7 +99,7 @@ function ticketItems(selection) {
  * their own "Experiences" section heading — the guest sees three named groups
  * (Hotel · Tickets · Experiences), which is the combined-itinerary read.
  */
-function addOnItems(selection) {
+function addOnItems(selection, guests) {
   return addOnLines(selection).map((a) => ({
     type: 'experience',
     label: a.name,
@@ -91,6 +107,11 @@ function addOnItems(selection) {
     amount: a.amount,
     details: [
       { icon: 'event', title: a.when, text: a.blurb },
+      {
+        icon: 'group',
+        title: a.unit === 'booking' ? '1 booking — covers your whole party' : partyNote(a.qty, guests),
+        text: 'Add-on quantities follow the party size on your room, so this line can never disagree with your passes.',
+      },
       ...a.includes.map((line) => ({ icon: 'check_circle', title: line })),
     ],
   }))
@@ -100,8 +121,8 @@ function addOnItems(selection) {
 export function buildCart(journey, hotel) {
   const items = [
     hotelItem(hotel, journey.room),
-    ...ticketItems(journey.tickets),
-    ...addOnItems(journey.addOns),
+    ...ticketItems(journey.tickets, journey.guests),
+    ...addOnItems(journey.addOns, journey.guests),
   ]
   const subtotal = items.reduce((s, i) => s + i.amount, 0)
   const feeBase = items.filter((i) => i.type !== 'hotel').reduce((s, i) => s + i.amount, 0)
@@ -123,7 +144,7 @@ export function buildCart(journey, hotel) {
       { icon: 'qr_code_2', title: 'One order, one app', text: 'Room confirmation, tournament passes and add-on tickets all live in the same EventPipe order.' },
       { icon: 'verified', title: 'Official tournament block', text: 'Rates and passes are contracted directly with Spirit Nationals and the Convention Center.' },
       { icon: 'event_available', title: 'Free hotel cancellation until Feb 10', text: 'Change or cancel the room without touching the rest of the itinerary.' },
-      { icon: 'family_restroom', title: 'Your party stays together', text: 'Everyone on this order is booked into the same property and the same entry group.' },
+      { icon: 'family_restroom', title: 'Your party stays together', text: 'Everyone on this order is booked into the same property and the same entry group — passes and add-ons are bought for the whole party, not line by line.' },
     ],
   }
 }
@@ -155,7 +176,9 @@ export function buildSummary(journey, hotel, cart, image = '') {
     rrow1: parts.join(' · '),
     rows: [
       { label: 'Dates', value: STAY.range, change: true },
-      { label: 'Guests', value: `${journey.guests} guests`, change: true },
+      // The party size is the number every line above is priced from, so the rail
+      // names it rather than leaving it as trip trivia beside the dates.
+      { label: 'Party', value: `${journey.guests} guest${journey.guests === 1 ? '' : 's'} — sets every quantity`, change: true },
       { label: 'Event', value: EVENT.shortName },
     ],
     priceLines,
