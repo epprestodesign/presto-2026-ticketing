@@ -177,7 +177,18 @@
       <a href="/presto-2026-ticketing/prototype/">→ Hotel prototype</a>
     </div>
 
-    <footer>Presto Design System · prototypes for presentation. Pricing, inventory, and seat data are illustrative.</footer>
+    <footer>
+      Presto Design System · prototypes for presentation. Pricing, inventory, and seat data are illustrative.
+      <br />
+      <!-- Hosting note. Pages is primary; Netlify is a mirror built from the same
+           `npm run build:site` on the same push, so it is never a stale copy.
+           This page is served by Pages, so if Pages is down you cannot read this
+           here — README.md on github.com carries the same note and stays up. -->
+      Hosted on <strong>GitHub Pages</strong> (primary). If it is unavailable, the
+      same build is mirrored at
+      <a href="https://ep-presto-2026-ticketing.netlify.app/">ep-presto-2026-ticketing.netlify.app</a>
+      — same paths, without the <code>/presto-2026-ticketing</code> prefix.
+    </footer>
   </div>
 </body>
 </html>
