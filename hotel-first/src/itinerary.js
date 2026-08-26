@@ -239,9 +239,50 @@ const ICONS = { ticket: 'confirmation_number', hotel: 'hotel', experience: 'star
 
 /** ConfirmationPage `data` — the itinerary, read back as one document. */
 export function buildConfirmation(journey, hotel, cart) {
-  const blocks = cart.items
+  // ── THE SUMMARY HAS TO ADD UP (Aug 26) ──
+  // ConfirmationPage prints the room's nights, then these component rows, then
+  // "Total charged". It accepts no subtotal / fees / taxes fields — `totalCharged`
+  // is the only money prop it reads — so with the lines above summing to $1,533
+  // against a $1,762 total, the page asked the guest to accept $229 it never
+  // named. Reading that summary and concluding your passes had not been counted
+  // is the correct inference from what was on screen.
+  //
+  // Fees and taxes are therefore stated as their own rows. They are real charges
+  // on this order and the checkout rail already itemises both — this makes the
+  // final screen agree with the screen before it, line for line, and the visible
+  // rows now sum exactly to the total.
+  //
+  // It also repairs a second failure. The library gates BOTH the component rows
+  // and the total behind `v-if="isTicketing && blocks.length"`, so a room-only
+  // order — no passes, no add-ons, nothing but the hotel — produced an empty
+  // blocks array and a confirmation with NO TOTAL CHARGED AT ALL. Taxes are
+  // non-zero on any real itinerary, so this list is never empty again and the
+  // total always renders. That gate is a library bug and should be fixed there
+  // (it belongs on `totalCharged != null`); this keeps the prototype honest
+  // until it is.
+  const lineBlocks = cart.items
     .filter((it) => it.type !== 'hotel') // the room gets the full reservation block below
     .map((it) => ({ icon: ICONS[it.type] || 'shopping_bag', name: it.label, meta: it.sublabel, amount: it.amount }))
+
+  const charges = []
+  // Fees are 12% of the NON-hotel lines, so a room-only order has none — and a
+  // $0 row would be noise rather than disclosure.
+  if (cart.fees > 0) {
+    charges.push({
+      icon: 'receipt_long',
+      name: 'Service fees',
+      meta: `${Math.round(FEE_RATE * 100)}% on passes and add-ons — the room's fees are already in its nightly rate.`,
+      amount: cart.fees,
+    })
+  }
+  charges.push({
+    icon: 'account_balance',
+    name: 'Taxes',
+    meta: `${Math.round(TAX_RATE * 100)}% Orange County sales & tourist development tax on the full itinerary.`,
+    amount: cart.taxes,
+  })
+
+  const blocks = [...lineBlocks, ...charges]
 
   const hotelBlock = {
     name: hotel.name,
