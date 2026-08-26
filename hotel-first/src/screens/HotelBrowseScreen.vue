@@ -23,15 +23,12 @@ import { ref, computed } from 'vue'
 import ResultsToolbar from '@lib/components/browse/ResultsToolbar.vue'
 import HotelCardReserve from '@lib/components/browse/HotelCardReserve.vue'
 import BookingWidget from '@lib/components/BookingWidget.vue'
-import epLogoWhite from '@lib/assets/eventpipe logos/eventpipe-logo-fff.svg'
-import heroBg from '../../../background-img/defaultBackgroundImage.png'
+import { eventLogo, EVENT_LOGO_ALT, bandStyle } from '../brand.js'
 import HotelFilters from '../components/HotelFilters.vue'
 import HotelMapPanel from '../components/HotelMapPanel.vue'
 import { HOTELS, filterHotels, sortHotels, countFilters, FULL_RADIUS } from '../hotels.js'
 import { EVENT } from '../event.js'
 import { openHotel } from '../store.js'
-
-const heroStyle = { backgroundImage: `linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.5)), url(${heroBg})` }
 
 const filters = ref({})
 const sort = ref('distance')
@@ -82,9 +79,9 @@ function applyFromMap() {
 <template>
   <div class="bhotels">
     <!-- Hero band — the library HeroBanner "Hotel Listings" treatment. -->
-    <section class="bhero" :style="heroStyle">
+    <section class="bhero" :style="bandStyle">
       <div class="bhero__inner">
-        <img :src="epLogoWhite" alt="EventPipe" class="bhero__logo" />
+        <img :src="eventLogo" :alt="EVENT_LOGO_ALT" class="bhero__logo" />
         <h1 class="bhero__event">{{ EVENT.name }}</h1>
         <p class="bhero__dates">{{ EVENT.dates }} · {{ EVENT.venueShort }}</p>
       </div>
@@ -144,7 +141,34 @@ function applyFromMap() {
 /* Hero band — full-bleed, inner content in the shared column. */
 .bhero { background-color: #000; background-size: cover; background-position: center; color: #fff; }
 .bhero__inner { max-width: 1180px; margin-inline: auto; padding: 30px 24px; text-align: center; }
-.bhero__logo { height: 30px; width: auto; margin-bottom: 12px; opacity: 0.95; }
+/* THE CREST IS NOT A WORDMARK — the reasoning and both context sizes are in
+   `../brand.js`. The library sized this `<img>` at 30px because it held the
+   EventPipe logotype; the Spirit shield stacks four tiers of type and at 30px
+   they are sub-pixel mush.
+
+   110px, and that number is chosen against the ARTWORK. 30 padding + 110 crest +
+   12 + 28 title + 6 + 24 sub + 30 padding = exactly 240, the natural height of
+   the supplied 1440×240 banner — so at 1440 the band renders its image 1:1 with
+   no crop at all. Bigger would make a mid-flow header taller than the landing's
+   own widget band; smaller re-introduces the crop for nothing.
+
+   `opacity: .95` is gone with the wordmark. Knocking a white logotype back a hair
+   kept it from shouting over the photograph; doing the same to a colour crest
+   just makes the brand look faded. The drop-shadow replaces it, and separates the
+   shield's dark navy outer stroke from the dark scrim — the one part of the mark
+   that does not carry itself (the bright yellow rim just inside it does). */
+.bhero__logo {
+  height: 110px;
+  width: auto;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+/* At ~1100 the dates line ("… · Orange County Convention Center") is close to
+   wrapping; the crest gives back 14px so the band stays one screen-worth of
+   header rather than growing when the text takes a second line. */
+@media (max-width: 1100px) {
+  .bhero__logo { height: 96px; }
+}
 .bhero__event { margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.15; }
 .bhero__dates { margin: 6px 0 0; opacity: 0.85; font-size: 1rem; }
 

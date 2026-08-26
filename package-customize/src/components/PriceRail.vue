@@ -48,6 +48,19 @@ const props = defineProps({
   // The preset it started from, for the name at the top.
   packageName: { type: String, default: '' },
   customized: { type: Boolean, default: false },
+  /**
+   * Show the per-component rows. On for the customize screen, where the rail IS
+   * the itemisation. Off on the cart page, where the same rows are the page's
+   * main column with a "Change" on each — a rail restating them three feet to the
+   * right would be the same list twice, and the guest would have to work out
+   * which copy is the editable one.
+   *
+   * A prop rather than a second summary component: the total, the discount, the
+   * per-person line and the CTA are identical on both screens, and two files
+   * spelling them out is how a rail and a summary start disagreeing about what a
+   * package costs.
+   */
+  itemised: { type: Boolean, default: true },
 })
 const emit = defineEmits(['continue', 'reset'])
 
@@ -63,7 +76,7 @@ const discountPct = computed(() => Math.round(props.priced.discountRate * 100))
 </script>
 
 <template>
-<ds-card class="prail" padding="none">
+<ds-card class="prail" :class="{ 'prail--slim': !itemised }" padding="none">
   <header class="prail__head">
     <p class="prail__eyebrow">
       Your package
@@ -73,7 +86,7 @@ const discountPct = computed(() => Math.round(props.priced.discountRate * 100))
     <p class="prail__stay"><q-icon name="event" size="14px" /> {{ STAY_LABEL }}</p>
   </header>
 
-  <div class="prail__lines">
+  <div v-if="itemised" class="prail__lines">
     <div v-for="l in lines" :key="l.key" class="prail__row">
       <span class="prail__label">
         {{ l.label }}
@@ -125,6 +138,9 @@ const discountPct = computed(() => Math.round(props.priced.discountRate * 100))
 
 .prail__lines { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px; }
 .prail__totals { padding: 14px 20px; border-top: 1px solid var(--ds-color-border); display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+/* Without the lines between them, the head's own border and the totals' border
+   stack into one 2px rule that reads as a heavier divider than either intends. */
+.prail--slim .prail__totals { border-top: 0; padding-top: 16px; }
 /* The badge is a pill, not a row — it must not stretch to the column's width.
    (Scoped CSS stamps this component's scope id onto a child's root element, so
    the badge's own class is reachable from here without `:deep`.) */

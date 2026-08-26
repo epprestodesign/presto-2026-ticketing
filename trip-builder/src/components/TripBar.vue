@@ -8,22 +8,51 @@
 // screen — including the ones you are already on, because "add more tickets" is a
 // real thing to want while looking at tickets.
 //
-// It is not the library's GlobalNav cart button. That button opens CartFlyout,
-// whose body is CartReview — which cannot remove a line (see TripItems). A cart
-// icon that opens a cart you can't edit would undercut the entire prototype, so
-// GlobalNav is mounted with `:show-cart="false"` and the trip lives here instead,
-// where it is a labelled bar rather than a badge someone has to notice.
+// ── AUG 25, FOURTH ROUND: THE BAR HAS NO CART HANDLE. THIS IS THE STAKEHOLDER
+//    CALL, NOT AN OVERSIGHT — DO NOT PUT IT BACK. ──
 //
-// AUG 25: "REVIEW TRIP" GOES TO THE TRIP PAGE. It used to open TripFlyout, a
-// DsSidePanel carrying the same TripItems body the /trip page already carries —
-// which made the fly-out a second copy of a page that existed, reached by a
-// scrim. The round asked for pages rather than overlays, and the redundancy made
-// it an easy call: one cart, one address. The BAR stays, because a docked row is
-// not a pop-up — nothing is covered, nothing has to be dismissed, and it is what
-// replaced the stepper.
+// This bar used to end in a bordered button reading "4 items / $803" with a
+// chevron, which opened the cart peek. It is gone, on a direct note: "there is a
+// cart button that already exists from the global nav." One cart control, and
+// the NAV ICON is the one that wins — it is the pattern shared across all four
+// Aug 25 prototypes, so this bar is now the odd one out rather than the rule.
+//
+// WHAT THAT OVERRULES, so the next reader doesn't "fix" it back. The earlier
+// round argued the icon and this handle were ONE action in TWO placements, the
+// way a wordmark in a header and in a footer are both "home", and kept both on
+// the grounds that the nav scrolls away while this row is sticky. That reasoning
+// was reviewed and rejected: two handles on one cart, one row apart, is two
+// things to a guest no matter how carefully they are argued to be one, and the
+// answer to "the nav scrolls away" is that the nav's cart icon is reachable from
+// the top of any screen rather than that it needs a deputy.
+//
+// WHAT THE BAR IS NOW, AND WHY IT STILL EARNS ITS ROW. Two jobs, neither of them
+// the cart button's:
+//
+//   • WHAT THE TRIP HOLDS, at a glance — "Your trip", then a chip per category
+//     present. This is what stands in for the stepper the sibling prototypes
+//     carry. A stepper answers "how far along the one path am I", and this flow
+//     has no one path: the honest orientation is what the cart currently holds.
+//     It is TEXT, not a control, so it is not a second anything.
+//   • THE THREE ADD DOORS — Hotel / Tickets / Add-ons — which are a DIFFERENT
+//     VERB. Adding is not reviewing, those doors belong on every screen
+//     (including the one you are already on: "add more tickets" is a real thing
+//     to want while looking at tickets), and a 22px icon in the nav cannot offer
+//     three of them.
+//
+// THE ONE THING THE REMOVAL COSTS, named rather than hidden: the running TOTAL
+// is no longer visible at zero presses. It now lives in the peek footer, the
+// /trip rail and the checkout rail — all one press from the nav's cart icon, on
+// every screen. The earlier round called a cart with no visible total "not
+// orientation"; that was the argument for the handle and it went with it. If the
+// total is wanted back it belongs as a QUIET FIGURE in the summary chips on the
+// left, never as a button on the right — a button is the thing that was removed.
+//
+// The bar itself is not an overlay and never was: it occupies its own row,
+// covers nothing, scrolls nothing under a scrim, and cannot be dismissed. The
+// one sanctioned overlay in this app is the peek — see TripFlyout.
 import { computed } from 'vue'
-import { trip, totals, count, isEmpty, itemsOf, addMore, nav } from '../store.js'
-import { money } from '../trip.js'
+import { isEmpty, itemsOf, addMore } from '../store.js'
 
 const ADD = [
   { kind: 'stay', icon: 'hotel', label: 'Hotel' },
@@ -41,9 +70,6 @@ const chips = computed(() => {
   if (addons) out.push({ icon: 'auto_awesome', text: `${addons} add-on${addons === 1 ? '' : 's'}` })
   return out
 })
-// On the trip page the review button would point at the page you're on, so it
-// becomes the next step instead — the bar never shows a control that does nothing.
-const onTripPage = computed(() => trip.screen === 'trip')
 </script>
 
 <template>
@@ -63,19 +89,9 @@ const onTripPage = computed(() => trip.screen === 'trip')
           <q-icon :name="a.icon" size="15px" /> {{ a.label }}
         </button>
       </div>
-
-      <div class="tb__right">
-        <span v-if="!isEmpty" class="tb__total">
-          <small>{{ count }} item{{ count === 1 ? '' : 's' }}</small>
-          {{ money(totals.total) }}
-        </span>
-        <button v-if="onTripPage" type="button" class="tb__cta" :disabled="isEmpty" @click="nav('checkout')">
-          Checkout <q-icon name="arrow_forward" size="16px" />
-        </button>
-        <button v-else type="button" class="tb__cta" @click="nav('trip')">
-          {{ isEmpty ? 'View trip' : 'Review trip' }} <q-icon name="arrow_forward" size="16px" />
-        </button>
-      </div>
+      <!-- Nothing follows the Add group. The cart handle that used to sit here
+           was removed on the stakeholder's call — the nav's cart icon is the
+           one cart control, on every screen. -->
     </div>
   </div>
 </template>
@@ -94,14 +110,15 @@ const onTripPage = computed(() => trip.screen === 'trip')
 .tb__addbtn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border: 1px dashed var(--ds-color-border-bold); border-radius: 999px; background: none; font: inherit; font-size: .8125rem; font-weight: 600; color: var(--ds-color-text); cursor: pointer; }
 .tb__addbtn:hover { background: var(--ds-palette-slate-100, #f1f2f4); }
 
-.tb__right { display: flex; align-items: center; gap: 14px; }
-.tb__total { display: flex; flex-direction: column; line-height: 1.15; text-align: right; font-weight: 800; color: var(--ds-color-text); }
-.tb__total small { font-size: .6875rem; font-weight: 600; color: var(--ds-color-text-subtle); }
-.tb__cta { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px; border: 0; border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-background-brand-bold, #01113E); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
-.tb__cta:disabled { background: var(--ds-palette-slate-200, #e2e4e8); color: var(--ds-color-text-subtlest); cursor: not-allowed; }
-
+/* With the cart handle gone the Add group is the last thing on the row, so
+   `margin-left: auto` above now pushes it to the right edge on its own — the
+   summary reads left, the doors read right, and the row keeps the same 42px
+   rhythm it had. No filler was added to occupy the space the handle left: an
+   empty gap between two groups that each say something is not a problem to
+   solve with a third thing. */
 @media (max-width: 860px) {
+  /* Under 860 the summary chips can wrap, so the doors take their own full-width
+     line rather than being squeezed against them. */
   .tb__add { margin-left: 0; order: 3; width: 100%; }
-  .tb__right { margin-left: auto; }
 }
 </style>

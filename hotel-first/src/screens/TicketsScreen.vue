@@ -19,13 +19,10 @@
 import { computed } from 'vue'
 import TicketTierCard from '../components/TicketTierCard.vue'
 import PartySizeField from '../components/PartySizeField.vue'
-import epLogoWhite from '@lib/assets/eventpipe logos/eventpipe-logo-fff.svg'
-import heroBg from '../../../background-img/defaultBackgroundImage.png'
+import { eventLogo, EVENT_LOGO_ALT, bandStyle } from '../brand.js'
 import { EVENT, COMP_DAYS } from '../event.js'
 import { ticketCategories, ticketLines, ticketCount, ticketSubtotal } from '../tickets.js'
 import { journey, activeHotel, setGuests, toggleTicket, ticketOn, nav } from '../store.js'
-
-const heroStyle = { backgroundImage: `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url(${heroBg})` }
 
 const categories = computed(() => ticketCategories())
 const lines = computed(() => ticketLines(journey.tickets))
@@ -50,9 +47,9 @@ function skipTickets() {
 
 <template>
   <div class="tix">
-    <section class="tix__hero" :style="heroStyle">
+    <section class="tix__hero" :style="bandStyle">
       <div class="tix__hero-inner">
-        <img :src="epLogoWhite" alt="EventPipe" class="tix__hero-logo" />
+        <img :src="eventLogo" :alt="EVENT_LOGO_ALT" class="tix__hero-logo" />
         <h1 class="tix__hero-title">{{ EVENT.name }}</h1>
         <p class="tix__hero-sub">{{ EVENT.dates }} · {{ EVENT.venue }}</p>
       </div>
@@ -134,7 +131,17 @@ function skipTickets() {
 
 .tix__hero { background-color: #000; background-size: cover; background-position: center; color: #fff; }
 .tix__hero-inner { max-width: 1180px; margin-inline: auto; padding: 30px 24px; text-align: center; }
-.tix__hero-logo { height: 30px; width: auto; margin-bottom: 12px; opacity: 0.95; }
+/* Crest sized and treated exactly as on Browse Hotels — see the note there, and
+   `../brand.js` for why 110 rather than the 30px the wordmark used. */
+.tix__hero-logo {
+  height: 110px;
+  width: auto;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+@media (max-width: 1100px) {
+  .tix__hero-logo { height: 96px; }
+}
 .tix__hero-title { margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.15; }
 .tix__hero-sub { margin: 6px 0 0; opacity: 0.85; }
 

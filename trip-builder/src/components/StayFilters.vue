@@ -14,6 +14,11 @@
 // the one place a guest is most likely to press it. The radius slider below
 // still does the spatial filtering the map was there to support.
 //
+// STILL LEFT OUT after the cart peek came back. The peek (TripFlyout) is one
+// named exception, argued in that file: it is the CART, it is a view of a page
+// that still exists, and it opens from a control on every screen. A map that
+// covers the results you are filtering is none of those things.
+//
 // Filters commit on "Apply Filters" (or any per-field Apply), never on keystroke.
 // A rail that re-sorts the results under the cursor as you type is the thing the
 // real site deliberately doesn't do.

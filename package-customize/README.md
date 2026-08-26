@@ -23,6 +23,15 @@ screen is not redesigned. Three targeted notes were acted on:
 | *"these buttons might need a little bit more of a punch up, because it should just go right to checkout. And if I didn't know to look for this, I might not see it."* | **Continue to checkout is now one component** ([`CheckoutCta.vue`](src/components/CheckoutCta.vue)), carries the package total on its face, and is the only filled-navy surface on the screen. The savings badge that sat between the total and the button moved up beside the discount row; the reset link went quiet and below. Under 1080px, where the rail unsticks, a fixed bar carries the total and the same action. |
 | *"I never want to have this as a pop-up... we almost never are going to want those modal pop-ups, we're always going to want a clean page."* | `PackagePriceDialog.vue` (a `DsModal`) is **deleted**. *Price details* is now a disclosure that unfolds [`PriceBreakdown.vue`](src/components/PriceBreakdown.vue) **inside** the card that owns the price. **Zero `DsModal` and zero `DsSidePanel` usages remain in this folder.** |
 
+### …and then one overlay was asked back, by name
+
+A later, separate note asked for the **cart** to be a slide-over peek with a full page behind
+it. That is a scoped reversal, not a change of mind about dialogs, and
+[`CartPeek.vue`](src/components/CartPeek.vue) is the whole of it: **one overlay in the entire
+prototype, and no more are allowed on the strength of it existing.** The price breakdown
+stays inline, `PackagePriceDialog` stays deleted, every other surface stays a page. See
+[the cart](#the-nav-cart-one-peek-one-page) below.
+
 Everything the prototype was testing is untouched: five customization axes, one
 `priceConfiguration()`, per-row deltas against the package total, the once-rounded
 discount, and the expanded library checkout.
@@ -41,6 +50,9 @@ Packages ──▶ Package details ──▶ CUSTOMIZE ──▶ Checkout ──
       │
       └── hotel NAME ──▶ Hotel details ─ Use this room ─▶ back to Customize
                           (new tab)                        in that tab
+      │
+      └── nav CART icon ─▶ peek (slide-over) ─▶ Cart page ─▶ Change ─▶ Customize
+           live count        the glance          the list      any line   the control
 ```
 
 **There is no stepper over any of it.** The Aug 25 review removed it from the customize
@@ -306,6 +318,94 @@ made the three tiles mutually exclusive, and reading two breakdowns side by side
 thing a board of three is for — something the modal could not do at all. The cost is that an
 open tile grows the grid row, and that trade was taken deliberately.
 
+### The nav cart: one peek, one page
+
+The `GlobalNav` cart icon carries a **live count**, opens a **slide-over peek**, and the peek
+links to a **full cart page** at `?screen=cart`.
+
+**What the count counts.** This flow sells one configured package, not a basket, so "3 items"
+has to be given a meaning before it can be honest. The badge counts the **priced components of
+the package** — the tickets, the stay, and each extra that costs something. It is literally
+`breakdownLines().length`: the same rows the rail itemises and the same rows the cart page
+lists, so the number on the icon is *how many lines are behind it* and cannot disagree with
+what opening it shows. It moves when — and only when — an extra is added or dropped. Swapping
+hotel, room, tier or party size re-prices every line but adds and removes nothing, so the badge
+correctly holds still while the total moves.
+
+Two alternatives were rejected. A constant **1** ("one package") is honest but never moves, so
+it is decoration on a control whose job is to report change. **Party size** reads like a
+quantity, which is the problem: it would imply four of something in the cart when there is one
+package for four people.
+
+**Empty until the package is taken.** `journey.config` is always complete — it is seeded from
+the first preset so a cold deep link is priceable — so without a held/not-held flag the badge
+would read *4 items* on the landing page before a single click. Opening the **customize** screen
+is what takes a package; browsing the board and reading a package's details page are the
+catalogue. The icon stays visible while the cart is empty (showing `0`) rather than appearing
+mid-flow, for the same reason the stepper went: chrome that appears and disappears reads as a
+rendering bug.
+
+**Peek vs page.** The peek is the *glance* — lines, discount, total, forward — with no notes,
+no expandable components and no fee/tax card, because all of that is on the page. A peek that
+itemises as hard as the page makes the page redundant. Its CTA is the same `CheckoutCta`
+component as the rail's, and the *Open the full cart* link under it is quiet and underlined, in
+the slot the rail gives *Reset*, so **the cart cannot start competing with the checkout CTA the
+Aug 25 review asked to punch up**.
+
+**The cart page is a list, not a second editor.** One package, its components underneath, each
+with a **Change** that returns to the customize screen and lands on the control that owns that
+line (it scrolls to the section and rings it). Rebuilding the tier ladder, the hotel list or the
+room list on the cart page was rejected outright: every one of those rows carries a live delta
+priced against the package total, and a second copy would either recompute those deltas — a
+fork of the one function allowed to do arithmetic — or omit them, and a chooser that no longer
+says what a choice costs is worse than a link to the one that does.
+
+The single edit the page performs is **dropping an add-on**, because it is one call to the same
+`toggleExtra()` the customize screen calls; there is no second implementation, so there is
+nothing to drift. **Transport lines get *Change*, not *Remove***: Getting there is single-choice
+and must always have an answer, so losing the coach has to be a swap rather than a deletion.
+*Make your own way* costs nothing, so it is not an item and is not counted — but it is still a
+choice, so the page states it as a dashed row rather than dropping it silently.
+
+**The cart is hidden on confirmation, and nowhere else.** That order has been bought, and a
+cart icon over a placed order invites the guest to change something that is no longer
+changeable.
+
+**It used to be hidden on checkout too, and is not any more.** The argument for hiding it was
+that checkout already carried the order twice — this app's configuration strip *and* the
+library page's cart rail — so a third copy in the nav would be a competing exit from the one
+page whose job is to be finished. Both halves of that argument have since been deleted: the
+configuration strip is gone, and so is the quiet *Back to your package* link that replaced it
+(see [below](#checkout-bills-the-configuration-not-the-preset)). Leaving the cart hidden on top
+of those two removals would make checkout a **dead end** — no strip, no link, no cart, no route
+back to the package it is charging for, short of the browser Back button. Restoring either of
+them is exactly what was rejected, twice. The cart icon is the one exit that costs the top of
+the screen **nothing**: it lives in chrome that is there anyway, and puts nothing between the
+nav and *Confirm and pay*. On checkout the peek drops its *Continue to checkout* CTA — that
+button would point at the page under the drawer, and a filled navy CTA floating over *Book Now*
+is the peek competing with the action the review asked to punch up — and offers **Change your
+package** instead, in the quiet weight the full-cart link already uses.
+
+**Why the library's `CartFlyout` is not the peek.** Three reasons, all read off the file:
+
+1. **The badge could never be live.** `GlobalNav`'s count is an internal ref fed by
+   `@update:count` from the flyout, and the flyout's whole template — the `CartReview` that
+   emits that count — is inside `v-if="modelValue"`. The count is `0` until the guest opens the
+   cart once, on every screen. `CartPeek` stays mounted and emits from a watcher, so the badge
+   is right before anything is clicked.
+2. **It is not a peek.** In `ticketing` mode `CartReview` *is* the checkout review body:
+   expandable per-line panels, a hotel sub-block with nightly rows and policies, a Price details
+   card, delivery guarantees. In the drawer, that makes the drawer the cart page.
+3. **Its footer is a hold.** A *"Time left to book"* countdown over a hardcoded *Go to checkout*
+   button — no hold exists in this flow, and no prop or event can point that button at a cart
+   page.
+
+`GlobalNav` has no slot and no cart events, so the only way to give the library nav a cart that
+belongs to this prototype is the app's own `OVERRIDES` map in
+[`vite.config.js`](vite.config.js), which redirects `@lib/components/CartFlyout.vue` to
+`CartPeek.vue` **for this app only**. The library file is not edited and every other app in the
+repo still gets the library's flyout.
+
 ### The hotel tab is a second door onto the same two choices
 
 Hotel names open the library's `HotelDetailPage` in a **new tab**, so the customize screen
@@ -328,20 +428,96 @@ way to relabel its CTA without editing the library.
 
 `CheckoutPageExpanded` — every section open, one **Book Now**.
 
-Above it sits a **configuration strip** this screen owns: every switchable component named
-with its configured value, the preset it started from, how many changes were made to it,
-and a link back to change something else. It exists because `CheckoutPageExpanded` reads
-only `summary.total` off the summary object — its rail is the cart, and the `rows`
-`OrderSummary` would render never reach the page. That's fine for a fixed package, whose
-cart line says everything there is to say; it isn't fine here. Patching the library page to
-render rows was the other option, and the rule every prototype here follows is that the
-library is read-only: what it can't do gets built alongside it.
+**The top of this screen is empty on purpose.** Nothing sits between the nav and *Confirm and
+pay*. Two things came off it in one evening, in this order:
 
-Extras get **a row each** rather than a comma-joined list. A dropped extra is the change
-most likely to be regretted at the door, and a row that simply isn't there reads louder
-than a shorter sentence. The cart line carries the same facts in its expandable *what's
-inside* list, so the two agree; the strip is what makes them legible without expanding
-anything.
+1. **The configuration strip** (BOOKING / PARTY / TICKETS / HOTEL / ROOM). It restated the
+   package, party, tickets, hotel and room across the top of checkout — every one of which the
+   sticky rail already itemises, three inches away in the same viewport. That is the same
+   duplication the customize screen was stripped for (*"we have this other thing on the side
+   here"*), and it pushed the form the guest actually has to fill in below the fold.
+2. **The quiet *Back to your package* link** that replaced it. It was kept deliberately,
+   because the strip had been carrying the only route back and a dead-end checkout would have
+   traded one complaint for a worse one. The stakeholder has now seen the link and wants the
+   top clean.
+
+It is **not** replaced by a smaller band, a banner or an explanatory sentence — that is the
+exact shape being removed. The route back moved into the **nav cart** instead, which is chrome
+this app already carries everywhere else; see [the cart notes](#the-nav-cart-one-peek-one-page)
+for why hiding it here no longer holds.
+
+### The hold countdown floats, and there is exactly one of it
+
+*Time left to book* ships **inside** the rail — `CheckoutPageExpanded`'s own `.ck__timer`
+panel, under the cart card — so it scrolls off the moment the guest starts filling in the form,
+which is the one screen where the number actually matters. The stakeholder asked for it pinned
+and always in view, so the library's own [`HoldTimerPill`](../src/components/HoldTimerPill.vue)
+is mounted **fixed, bottom-right**, and **the rail's copy is hidden**:
+
+```css
+.xcheckout :deep(.ck__timer) { display: none; }
+```
+
+One hold gets one clock. Left alone, the rail panel and the pill would be two countdowns for
+the same hold on the same screen, each ticking on its own `setInterval` from its own seed —
+they would read differently within seconds and the guest would have no way to tell which one is
+the hold. The pill is the one that survives, because being always visible is the whole request.
+The rail's is **suppressed with a scoped `:deep()` rule rather than removed from the library**,
+which is read-only here. Its explanatory note goes with it, which is fine: the pill's sub-line
+says what is held, and cancellation terms are stated in the Policies section on the same page.
+
+The seed is a fixed `895`, not a clock reading — no `Date.now()` anywhere, so every demo opens
+on the same time, the way the *Checkout Experience* stories seed theirs.
+
+**A fixed pill is not a pop-up.** The no-modals rule here is about surfaces that *interrupt* —
+something that takes the screen, traps focus and has to be dismissed before you can carry on.
+This takes no click, blocks nothing, dismisses nothing and can be ignored: it is page furniture
+anchored to the viewport instead of to the document, the same class of thing as the sticky
+`PriceRail`. It needs no exception, and it does **not** spend the cart peek's one — the peek is
+still the only overlay in this app.
+
+**Checkout only**, and rendered by `CheckoutScreen` rather than by the shell so it cannot
+outlive the screen. **Customize gets no countdown**: this prototype exists to let a guest swap
+hotels, drop a transfer and change their mind twice, and a clock ticking over that screen would
+rush the exact decision it was built to slow down. **Confirmation gets none** either — a hold
+countdown over an order already paid for is both alarming and untrue.
+
+**What it overlaps, measured** (headless Chrome, live app):
+
+| Viewport | What the pill covers |
+| --- | --- |
+| 1440×900 | Nothing at rest. Mid-scroll it clips the rail's check-out date. The *Book Now* submit is in the left column (`x 200–808`); the pill is right-anchored at `x 1099–1416`, so they never meet. |
+| 1440×700 | Mid-scroll it passes over ~141px of the rail's 400px column — the cart card's hotel line, its *Included* amount and its *Hide details* toggle. Scrolled to the bottom of the page, nothing overlaps. |
+
+Two rules make that safe, and neither moves anything on the page or reserves layout space:
+
+- `:deep(.ck__railwrap) { padding-bottom: 84px }` (and the same on the page below 880px, where
+  the library collapses to one column and the full-width submit reaches the corner) so nothing
+  ever comes to **rest** under the pill;
+- `:deep(.htp) { pointer-events: none }` so the pill never **swallows a click** on the way past.
+  Clearance can't fix mid-scroll; a status readout with nothing clickable in it has no business
+  intercepting the rail's toggles. Verified with `elementFromPoint` at the pill's centre and
+  corner — both return the page underneath.
+
+Moving or shrinking the pill instead was rejected: clearing a 400px rail entirely means the
+bottom-**left** corner, and the left column is where the form and *Book Now* are — the countdown
+would then sit on the primary action rather than beside a scrolling list.
+
+**The sub-1080px fixed bottom bar: no collision, and why.** This app does carry a fixed bottom
+bar below 1080px, but it belongs to `CustomizeScreen` (`.cst__bar`) and to that screen alone.
+`App.vue` mounts exactly one screen at a time through `<component :is>` with no `keep-alive`, so
+the bar is unmounted before checkout exists — measured at 1079×800: `.cst__bar` is present and
+visible on customize, and **not in the DOM at all** on checkout. The pill and the bar can never
+share a viewport, at any width. So nothing is raised and nothing is hidden by width, and that is
+the choice: a width-keyed rule suppressing a bar that isn't there would be dead CSS pretending to
+solve a real problem. Worth recording what the answer *would* have been, because the z-order
+makes it non-obvious — `HoldTimerPill` is `z-index: 2000` and the bar is `30`, so if they ever
+met the pill would land **on top of** the bar's checkout button. The pill must never compete with
+`CheckoutCta`, so the fix would be to **hide the pill wherever the bar is showing**, not to raise
+it and not to nudge it above the bar, which would leave a countdown stacked over the one button
+the guest is meant to press.
+
+### The cart the library page is handed
 
 One thing is stripped from the library cart: `buildPackageCart()` attaches re-pricing
 metadata so the cart can show its own party-size stepper. That stepper re-prices with the
@@ -359,8 +535,10 @@ right place, and the right place is the customize screen.
 
 `AppStepper` and `DsModal` were both in this list before Aug 25 and are both gone —
 the stepper with the chrome above the screens, `DsModal` with the price dialog. **This
-folder now contains zero `DsModal` and zero `DsSidePanel` usages**, and none of the library
-pages it mounts brings one in.
+folder still contains zero `DsModal` and zero `DsSidePanel` usages**, and none of the library
+pages it mounts brings one in. The one overlay in the app is
+[`CartPeek.vue`](src/components/CartPeek.vue), which is neither: it is this folder's own
+slide-over, asked for by name (see [the cart](#the-nav-cart-one-peek-one-page)).
 
 **Built here, and why:**
 
@@ -372,11 +550,16 @@ pages it mounts brings one in.
 | [`RoomPackageCard.vue`](src/components/RoomPackageCard.vue) | `RoomCardReserve` is room-shaped throughout, with no package total, no delta and no relabelable CTA. Uses the library's `AvailabilityBadge`. |
 | [`PriceBreakdown.vue`](src/components/PriceBreakdown.vue) | `PriceDetailsDialog` breaks down a *room*, would total a different number than the package price above it — and is a dialog, which Aug 25 ruled out. This is a plain block a card unfolds in place. Replaced `PackagePriceDialog.vue`. |
 | [`CheckoutCta.vue`](src/components/CheckoutCta.vue) | A stock `q-btn` is the same shape and weight as every other button in the flow, which is exactly why the review couldn't find it. Carries the total on its face; one definition so the rail's copy and the review card's copy cannot drift. |
-| the checkout **configuration strip** | `CheckoutPageExpanded` consumes only `summary.total`; its rail is the cart, and `OrderSummary`'s rows never render. Built in `CheckoutScreen.vue` rather than patched into the page. |
+| [`CartPeek.vue`](src/components/CartPeek.vue) | `CartFlyout` only mounts its body while OPEN, so `GlobalNav`'s badge reads `0` until the cart is opened once; in `ticketing` mode its body is the full checkout review, which makes the drawer the cart page; and its footer is a hold countdown over a hardcoded *Go to checkout*. Wired in through the app's `OVERRIDES` map — the library file is untouched. |
+| [`CartScreen.vue`](src/screens/CartScreen.vue) | Every library cart surface lists independent items. Here the parts of the package are not independent — the stay depends on party size, the extras multiply by heads, rooms and nights, and the 12% comes off all of it together — so it is one package with its components under it, from the same `breakdownLines()` the rail uses. |
+| the pinned **hold countdown** | Not ours — it *is* the library's [`HoldTimerPill`](../src/components/HoldTimerPill.vue), mounted fixed bottom-right by `CheckoutScreen.vue`. What is ours is the two scoped rules beside it: `:deep(.ck__timer) { display: none }`, which suppresses the rail's duplicate of the same countdown without editing `CheckoutPageExpanded`, and `:deep(.htp) { pointer-events: none }`. |
 
-Library **overrides: 0. Source patches: 0.** The two places a template needed bending —
-section order on the package page, the room grid on the hotel page — are scoped CSS in the
-screens that mount them, which fails visibly rather than breaking the build when the
+Library **overrides: 1. Source patches: 0.** The one override is
+`@lib/components/CartFlyout.vue` → [`CartPeek.vue`](src/components/CartPeek.vue), because
+`GlobalNav` imports its flyout by relative path and offers no slot and no cart event —
+reasoned through [above](#the-nav-cart-one-peek-one-page). The two places a template needed
+bending — section order on the package page, the room grid on the hotel page — are scoped CSS
+in the screens that mount them, which fails visibly rather than breaking the build when the
 library moves.
 
 ## Source
@@ -386,10 +569,13 @@ library moves.
 | [`src/packages.js`](src/packages.js) | The catalogue — hotels, rooms, extras, the three presets — and `priceConfiguration()` |
 | [`src/pricing.js`](src/pricing.js) | The four ticket tiers, off the library's `deriveTiers()` |
 | [`src/store.js`](src/store.js) | The configuration, the setters, the URL round-trip |
+| [`src/cart.js`](src/cart.js) | **What the cart is** — the lines, what the badge counts, where each line is edited |
 | [`src/screens/PackagesScreen.vue`](src/screens/PackagesScreen.vue) | Screen 1 — the three pre-built tiles |
 | [`src/screens/PackageDetailsScreen.vue`](src/screens/PackageDetailsScreen.vue) | Screen 2 — the library package template |
 | [`src/screens/CustomizeScreen.vue`](src/screens/CustomizeScreen.vue) | **Screen 3 — the one this prototype exists for** |
+| [`src/screens/CartScreen.vue`](src/screens/CartScreen.vue) | The full cart page — one package, its components, a *Change* per line |
 | [`src/screens/HotelDetailsScreen.vue`](src/screens/HotelDetailsScreen.vue) | Off-flow hotel reference, and a second door onto hotel + room |
+| [`src/components/CartPeek.vue`](src/components/CartPeek.vue) | The cart slide-over — **the one overlay in this prototype** |
 | [`src/components/CheckoutCta.vue`](src/components/CheckoutCta.vue) | The one definition of *Continue to checkout* |
 | [`src/components/PriceBreakdown.vue`](src/components/PriceBreakdown.vue) | The on-demand itemisation, rendered in place — no dialog |
 | [`src/configured.js`](src/configured.js) | The configuration reshaped for the library's checkout and confirmation |
@@ -397,7 +583,11 @@ library moves.
 ## Run it
 
 ```bash
+# dev, with hot reload, on port 7200
 cd package-customize && node ../node_modules/vite/bin/vite.js --port 7200
+
+# production build
+cd package-customize && node ../node_modules/vite/bin/vite.js build
 ```
 
 No install needed — deps resolve up the tree to the repo's `node_modules`. Port **7200**,
@@ -417,6 +607,7 @@ to want off the customize screen.
 - [Screen 3 · The Tailgater, moved up to the Ritz](https://epprestodesign.github.io/presto-2026-ticketing/package-customize/?screen=customize&pkg=tailgater&hotel=ritz&room=club-suite)
 - [Screen 3 · every extra dropped](https://epprestodesign.github.io/presto-2026-ticketing/package-customize/?screen=customize&pkg=club-weekend&extras=own-way)
 - [Screen 4 · checkout, as customised](https://epprestodesign.github.io/presto-2026-ticketing/package-customize/?screen=checkout&pkg=fifty-yard&people=6&tier=club)
+- [The full cart page](https://epprestodesign.github.io/presto-2026-ticketing/package-customize/?screen=cart&pkg=club-weekend) — the nav peek links here; *Change* on any line goes back to the control that sets it
 - [Hotel details · The Westin, Rooms tab](https://epprestodesign.github.io/presto-2026-ticketing/package-customize/?screen=hotelDetails&view=westin&tab=rooms) — off-flow, and it can put a room in your package
 
 ## Still open

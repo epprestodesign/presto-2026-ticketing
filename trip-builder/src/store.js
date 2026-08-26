@@ -36,6 +36,25 @@ export const trip = reactive({
   screen: 'landing',
 })
 
+// ── The cart peek ──
+// AUG 25, SECOND LOOK: THE FLY-OUT IS BACK, AND ON PURPOSE.
+//
+// The first Aug 25 round deleted TripFlyout on a flat note — "I never want to
+// have this as a pop-up … we're always going to want a clean page" — and moved
+// the cart onto the /trip page. The page stayed. What came back is the PEEK in
+// front of it: the same cart, opened from the nav's cart icon, with the full
+// page one press behind it. The stakeholder asked for exactly that pairing in
+// the next review, so this flag is a reversal that was requested, not a
+// regression that crept back. Anyone reading the history will find the deletion
+// commit and should read this comment before repeating it.
+//
+// It is NOT in the URL, unlike `screen` and the whole cart. A peek is a glance
+// at a page that already has an address; giving it a second one would mean two
+// links to the same trip, which is the duplication the deletion was right about.
+export const peek = reactive({ open: false })
+export function openPeek() { peek.open = true }
+export function closePeek() { peek.open = false }
+
 // Deterministic line ids (no Date.now, no random) so a rebuilt trip from a deep
 // link is byte-identical to one built by clicking.
 let seq = 0
@@ -124,7 +143,16 @@ function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, Math.round(n || lo)
 //
 // All the state that used to describe "which dialog is open over what" collapses
 // to one field: which property the hotel page is showing. The screen carries the
-// rest, which is the point of making it a screen.
+// rest, which is the point of making it a screen. The cart peek returning above
+// does not reopen this question — `peek.open` is one boolean for one fly-out,
+// and nothing else in this store may grow another.
+//
+// AUG 25, THIRD ROUND — WHAT THE HOTEL PAGE STILL DECIDES. The stay band across
+// the top of that screen is gone, so the page now decides exactly one thing: the
+// ROOM. Nights and rooms moved onto the stay line in TripItems, where every
+// other quantity in this cart is already edited. commitStay() below is therefore
+// handed the nights and rooms the trip is ALREADY holding, read back off the
+// line — the hotel page has no draft of them to send.
 export const stayView = reactive({ hotelId: null })
 
 // The line being edited is DERIVED, not remembered. A stored uid would have to
@@ -203,6 +231,11 @@ function syncUrl(push = false) {
 // from the tickets screen without picking any leaves the trip exactly as it was.
 export function nav(screen, { push = true } = {}) {
   if (!SCREENS.includes(screen)) return
+  // Going anywhere ends the peek. It is a glance over the screen you are on, so
+  // it cannot survive that screen changing underneath it — and this is the one
+  // place that has to know, which is why every control inside the fly-out (Edit
+  // stay, the three Add doors, View full trip, Checkout) just calls nav().
+  peek.open = false
   trip.screen = screen
   syncUrl(push)
   if (typeof window !== 'undefined') requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))

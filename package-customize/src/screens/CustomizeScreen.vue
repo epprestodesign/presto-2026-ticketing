@@ -60,7 +60,15 @@
 // That is also why the hotel rows call `withHotel()` rather than spreading
 // `{ hotelId }` themselves: changing hotel also moves the room, and the preview
 // has to make the same move the click will.
-import { computed, ref } from 'vue'
+//
+// --- Arriving from a cart line (Aug 25, second pass) --------------------------
+// Each section carries an id, and a "Change" on the cart page sets
+// `journey.focus` before navigating here so the guest lands on the control that
+// owns the line they clicked. That is what lets the cart page stay a LIST rather
+// than becoming a second editor: the real control is one click away with the
+// configuration intact, so nothing has to be rebuilt there and nothing can drift
+// out of step with this screen. See `editSection()` in the store.
+import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import DsCard from '@lib/components/DsCard.vue'
 import QuantityStepper from '@lib/components/QuantityStepper.vue'
 import OptionRow from '../components/OptionRow.vue'
@@ -180,6 +188,30 @@ const summaryRows = computed(() => {
 })
 
 const showChanges = ref(true)
+
+// --- Landing on the section a cart line pointed at ---------------------------
+// `nav()` scrolls to the top in a rAF; this has to win, so it runs one frame
+// later. The brief highlight matters as much as the scroll — a page that simply
+// arrives already scrolled leaves the guest to work out why, and the ring says
+// "this is the thing you clicked" without a word of copy.
+const flashed = ref(null)
+function focusSection() {
+  const section = journey.focus
+  if (!section) return
+  journey.focus = null
+  nextTick(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+    const el = document.getElementById(`cst-${section}`)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    flashed.value = section
+    setTimeout(() => { if (flashed.value === section) flashed.value = null }, 1600)
+  })))
+}
+onMounted(focusSection)
+// Also while already here: the cart peek can be opened from this screen, and its
+// full-cart page can send the guest straight back to a section without the screen
+// ever unmounting.
+watch(() => journey.focus, (v) => { if (v) focusSection() })
 </script>
 
 <template>
@@ -200,7 +232,7 @@ const showChanges = ref(true)
     <div class="cst__cols">
       <div class="cst__main">
         <!-- 1 · Party ----------------------------------------------------- -->
-        <ds-card class="cst__sec" tag="section">
+        <ds-card id="cst-party" class="cst__sec" :class="{ 'is-flashed': flashed === 'party' }" tag="section">
           <h2 class="cst__sech">Your party</h2>
           <p class="cst__secsub">Tickets are per person; rooms follow the occupancy of the room you pick.</p>
           <div class="cst__party">
@@ -213,7 +245,7 @@ const showChanges = ref(true)
         </ds-card>
 
         <!-- 2 · Ticket level ---------------------------------------------- -->
-        <ds-card class="cst__sec" tag="section">
+        <ds-card id="cst-tickets" class="cst__sec" :class="{ 'is-flashed': flashed === 'tickets' }" tag="section">
           <h2 class="cst__sech">Ticket level</h2>
           <p class="cst__secsub">
             Upgrade or downgrade the whole party — everyone sits together in one block.
@@ -229,7 +261,7 @@ const showChanges = ref(true)
         </ds-card>
 
         <!-- 3 · Hotel ------------------------------------------------------ -->
-        <ds-card class="cst__sec" tag="section">
+        <ds-card id="cst-hotel" class="cst__sec" :class="{ 'is-flashed': flashed === 'hotel' }" tag="section">
           <h2 class="cst__sech">Hotel</h2>
           <p class="cst__secsub">
             Three properties in the EventPipe block.
@@ -248,7 +280,7 @@ const showChanges = ref(true)
         </ds-card>
 
         <!-- 4 · Room ------------------------------------------------------- -->
-        <ds-card class="cst__sec" tag="section">
+        <ds-card id="cst-room" class="cst__sec" :class="{ 'is-flashed': flashed === 'room' }" tag="section">
           <h2 class="cst__sech">Room type at {{ priced.hotel.name }}</h2>
           <p class="cst__secsub">
             A room that sleeps more can cost less overall — it takes fewer of them to hold your party.
@@ -264,7 +296,7 @@ const showChanges = ref(true)
         </ds-card>
 
         <!-- 5 · Extras ----------------------------------------------------- -->
-        <ds-card class="cst__sec" tag="section">
+        <ds-card id="cst-transport" class="cst__sec" :class="{ 'is-flashed': flashed === 'transport' }" tag="section">
           <h2 class="cst__sech">Getting there</h2>
           <p class="cst__secsub">One answer, because a coach seat and a parking space are the same decision.</p>
           <div class="cst__rows" role="radiogroup" aria-label="Getting there">
@@ -276,6 +308,10 @@ const showChanges = ref(true)
             />
           </div>
 
+          <!-- The add-ons live in the same card as Getting there but are a
+               separate decision, so a cart line pointing at an extra gets its own
+               anchor rather than dropping the guest on the transport radios. -->
+          <div id="cst-addons" class="cst__addons" :class="{ 'is-flashed': flashed === 'addons' }">
           <h2 class="cst__sech cst__sech--second">Add to your package</h2>
           <p class="cst__secsub">Add or drop any of these; each one prices itself against your party.</p>
           <div class="cst__rows">
@@ -285,6 +321,7 @@ const showChanges = ref(true)
               :price="`${e.price} ${unitWords(e)}`" :delta="e.delta"
               @toggle="toggleExtra(e.id)"
             />
+          </div>
           </div>
         </ds-card>
 
@@ -361,10 +398,22 @@ const showChanges = ref(true)
 
 /* The choices take the room; the rail is fixed-width so the price never reflows
    under a long hotel name. */
-.cst__cols { display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 26px; align-items: start; }
+/* NO `align-items: start` here. It shrinks each column to its content, which
+   makes the rail's grid cell exactly as tall as the rail — and `position:
+   sticky` can only travel inside its own containing block, so a cell with no
+   spare height renders the sticky rail indistinguishable from a static one.
+   Stretch (the default) gives the rail column the full row height, which is
+   the travel the rail sticks along as the options list scrolls past it. */
+.cst__cols { display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 26px; align-items: stretch; }
 .cst__main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 
-.cst__sec { display: block; }
+/* `scroll-margin-top` keeps a section arriving from a cart line's "Change" from
+   landing flush against the top of the viewport, where its heading would read as
+   a page header rather than as the thing that was pointed at. */
+.cst__sec { display: block; scroll-margin-top: 18px; }
+.cst__addons { scroll-margin-top: 18px; border-radius: var(--ds-radius-lg); }
+.is-flashed { box-shadow: 0 0 0 3px var(--ds-color-border-brand, #0b2545); transition: box-shadow .3s var(--ds-ease-standard, ease); }
+@media (prefers-reduced-motion: reduce) { .is-flashed { transition: none; } }
 .cst__sech { margin: 0; font-size: 1.125rem; font-weight: 800; color: var(--ds-color-text); }
 .cst__sech--second { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--ds-color-border); }
 .cst__secsub { margin: 4px 0 14px; font-size: .9375rem; color: var(--ds-color-text-subtle); }

@@ -17,7 +17,13 @@ import { HOTELS, getHotel } from './hotels.js'
 import { TICKETS_BY_ID, tierQty } from './tickets.js'
 import { ADD_ONS_BY_ID, addOnQty } from './addons.js'
 
-export const SCREENS = ['landing', 'hotels', 'hotelDetails', 'tickets', 'addons', 'checkout', 'confirmation']
+// FLOW is the linear journey — the thing Next/Back walk and the stepper labels.
+// SCREENS is everything `nav()` will accept, which is FLOW plus the full cart
+// page. The cart is deliberately NOT in FLOW: it is reachable from the nav on
+// every step, it is not a step, and dropping it into the array would put a
+// "cart" stop between Add-Ons and Checkout for anyone pressing Next.
+export const FLOW = ['landing', 'hotels', 'hotelDetails', 'tickets', 'addons', 'checkout', 'confirmation']
+export const SCREENS = [...FLOW, 'cart']
 export const STEP_LABELS = ['Stay', 'Tickets', 'Add-Ons', 'Review']
 const SCREEN_STAGE = {
   landing: -1,
@@ -25,6 +31,21 @@ const SCREEN_STAGE = {
   tickets: 1,
   addons: 2,
   checkout: 3, confirmation: 3,
+  // The cart page is out of the four stages, so it shows no stepper. It carries
+  // its own "back to where you were" link instead — a stepper highlighting a
+  // stage you are not standing on is worse orientation than none.
+  cart: -1,
+}
+
+// What the cart page's return link calls the screen you came from.
+export const RETURN_LABELS = {
+  landing: 'the event page',
+  hotels: 'hotel search',
+  hotelDetails: 'the hotel',
+  tickets: 'tournament passes',
+  addons: 'Orlando add-ons',
+  checkout: 'checkout',
+  confirmation: 'your itinerary',
 }
 
 // The default room. A tournament family books occupancy, not a bed type — two
@@ -53,6 +74,9 @@ export const journey = reactive({
   tickets: { weekend: 4 },
   addOns: {},
   tab: 'overview',           // active section tab on the Details screen (deep-linkable)
+  // Where "Back to …" on the cart page returns to. The cart is a detour off any
+  // step, so it has to remember the step rather than assume one.
+  returnScreen: 'hotels',
 })
 
 export const currentStage = computed(() => SCREEN_STAGE[journey.screen] ?? -1)
@@ -88,12 +112,26 @@ export function nav(screen, { push = true } = {}) {
   if (typeof window !== 'undefined' && !deepTab) requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
 }
 export function next() {
-  const i = SCREENS.indexOf(journey.screen)
-  if (i >= 0 && i < SCREENS.length - 1) nav(SCREENS[i + 1])
+  const i = FLOW.indexOf(journey.screen)
+  if (i >= 0 && i < FLOW.length - 1) nav(FLOW[i + 1])
 }
 export function back() {
-  const i = SCREENS.indexOf(journey.screen)
-  if (i > 0) nav(SCREENS[i - 1])
+  const i = FLOW.indexOf(journey.screen)
+  if (i > 0) nav(FLOW[i - 1])
+}
+
+// ── The cart page ──
+// Opened from the peek (and only from there — the nav cart icon opens the peek,
+// never the page, so a glance never costs you your place). The step you were on
+// is remembered so leaving the cart puts you back where the detour started
+// rather than at a fixed screen.
+export function goToCart() {
+  if (journey.screen !== 'cart') journey.returnScreen = journey.screen
+  nav('cart')
+}
+export function leaveCart() {
+  const to = FLOW.includes(journey.returnScreen) ? journey.returnScreen : 'hotels'
+  nav(to)
 }
 // Stepper tabs jump to the first screen of any stage (forward or back — the
 // stepper is the primary way to move around this feedback prototype).
@@ -177,6 +215,7 @@ export function resetJourney() {
   journey.tickets = { weekend: tierQty(TICKETS_BY_ID.weekend, 4) }
   journey.addOns = {}
   journey.tab = 'overview'
+  journey.returnScreen = 'hotels'
   nav('landing')
 }
 

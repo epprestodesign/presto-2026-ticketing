@@ -1,10 +1,18 @@
 <script setup>
 // Your trip — the cart, given a page and a price rail.
 //
-// Aug 25: this page is now the ONLY trip surface. TripFlyout used to mount the
-// same TripItems body in a DsSidePanel, which meant the cart had two addresses
-// and one of them was a scrim over whatever you were reading. "Review trip" in
-// the bar comes here instead.
+// AUG 25, SECOND LOOK: THIS PAGE IS THE CART'S ONLY ADDRESS, AND IT IS NOW READ
+// THROUGH A PEEK. The first round of that day deleted TripFlyout so that the
+// cart had one surface; the next review asked for the slide-over back, in front
+// of this page rather than instead of it. Both are here, and the split is:
+//
+//   • TripFlyout is a GLANCE — opened from the nav's cart icon over whatever
+//     screen you are on, dismissed with Esc or the scrim, in no URL.
+//   • THIS is the cart — linkable (`?screen=trip&trip=…`), the thing the peek's
+//     "View full trip" leads to, and where the price rail and checkout live.
+//
+// They render the SAME TripItems body, in two densities, so neither can start
+// disagreeing with the other about what is in the trip.
 //
 // It is a destination rather than a stage: nothing about it says "step 3 of 4",
 // and every screen can be reached from it in one press. The three entry points

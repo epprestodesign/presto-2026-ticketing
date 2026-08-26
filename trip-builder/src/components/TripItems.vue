@@ -2,10 +2,21 @@
 // TripItems — the trip, grouped and editable. The single most important surface
 // in this prototype, and deliberately the only one that can change a line.
 //
-// It used to be mounted twice — once inside TripFlyout, once on the Trip screen.
-// The fly-out is gone (Aug 25: no overlays), and with it the `variant` prop and
-// the panel-only footer that existed to get from the slide-over back to the page
-// it was duplicating. One cart body, one frame, one address.
+// It is mounted TWICE and is one component on purpose: the /trip page mounts it
+// as `page`, the cart peek (TripFlyout) mounts it as `peek`. The peek came back
+// in the second Aug 25 round after the first round deleted it, and the reason it
+// is safe to have both surfaces is that they are not two surfaces — a line says
+// the same thing, offers the same stepper and the same Remove in either frame,
+// because there is only one of it. The moment a "simpler summary" component is
+// written for the fly-out, the peek and the page start disagreeing about what is
+// in the cart. `variant` therefore changes DENSITY ONLY: no control appears in
+// one frame and not the other.
+//
+// IT IS ALSO, SINCE THE THIRD AUG 25 ROUND, THE ONLY PLACE A STAY IS PRICED.
+// The hotel page's stay band is gone and its nights toggle and rooms stepper are
+// on the stay line below — see the note above setNights(). That makes this the
+// one writer for every quantity in the trip: a ticket count, an add-on count and
+// now the two numbers that multiply a room rate. The hotel page reads them.
 //
 // WHY NOT the library's CartReview in 'ticketing' mode. It renders exactly this
 // shape (typed lines, section heads, live totals) and its ticket lines are even
@@ -19,12 +30,18 @@ import { useQuasar } from 'quasar'
 import QuantityStepper from '@lib/components/QuantityStepper.vue'
 import DsEmptyState from '@lib/components/DsEmptyState.vue'
 import {
-  itemsOf, isEmpty, setQty, removeItem, restoreItem, addMore, openStay,
+  itemsOf, isEmpty, setQty, updateItem, removeItem, restoreItem, addMore, openStay,
 } from '../store.js'
 import {
   stayById, roomById, tierById, addonById, lineTotal, money,
-  checkInLabel, checkOutLabel, MAX_TICKETS,
+  checkInLabel, checkOutLabel, MAX_TICKETS, MAX_NIGHTS, MAX_ROOMS,
 } from '../trip.js'
+
+const props = defineProps({
+  // 'page' is the Trip screen; 'peek' is the 520px fly-out. Spacing and the stay
+  // thumbnail, nothing else — see the note above.
+  variant: { type: String, default: 'page' },
+})
 
 const $q = useQuasar()
 
@@ -51,6 +68,25 @@ const room = (line) => roomById(line.hotelId, line.roomId)
 const tier = (line) => tierById(line.tierId)
 const addon = (line) => addonById(line.addonId)
 
+// ── Nights and rooms, rehomed here (Aug 25, third round) ──
+// They used to live in a band across the top of the hotel details page, which
+// the stakeholder asked to remove: that screen should be the property's detail
+// page and not much else. The band was the ONLY place either number could be
+// set, so they moved onto the line they price rather than disappearing with it.
+//
+// This is where they belonged anyway. Every other line in this cart is edited in
+// place — a ticket quantity, an add-on quantity — and nights and rooms are two
+// more numbers on a line. Bound straight to the line like those steppers: no
+// local draft, no Apply, so the line amount, the section subtotal, the trip bar
+// and the checkout rail all move on the press. The hotel page now READS these
+// two values to price its room cards, which makes the cart the single writer.
+//
+// The rejected alternative was a slimmer band back on the hotel page holding
+// just these two controls — the same band with fewer fields, still a second
+// place a stay is priced, still able to disagree with the cart.
+const setNights = (line, n) => updateItem(line.uid, { nights: n })
+const setRooms = (line, n) => updateItem(line.uid, { rooms: n })
+
 // Removing offers an exact undo. A cart that can be edited without fear is the
 // whole claim being made here, and a destructive action with no way back quietly
 // contradicts it — so removeItem() hands back the line AND its position, and the
@@ -67,7 +103,7 @@ function remove(line, label) {
 </script>
 
 <template>
-  <div class="ti">
+  <div class="ti" :class="`ti--${props.variant}`">
     <!-- Empty trip: three ways in, stated as offers rather than as an error. The
          cart being empty is a normal state on a landing-page-less flow. -->
     <ds-empty-state
@@ -104,21 +140,51 @@ function remove(line, label) {
               <h3 class="ti__name">{{ stay(line).name }}</h3>
               <span class="ti__amt">{{ money(lineTotal(line)) }}</span>
             </div>
-            <p class="ti__meta">{{ room(line).name }} · {{ room(line).bed }} · sleeps {{ room(line).sleeps }}</p>
+            <p class="ti__meta">
+              {{ room(line).name }} · {{ room(line).bed }} · sleeps {{ room(line).sleeps * line.rooms }}
+            </p>
             <p class="ti__meta">
               {{ checkInLabel() }} → {{ checkOutLabel(line.nights) }} ·
-              {{ line.nights }} night{{ line.nights === 1 ? '' : 's' }} ·
-              {{ line.rooms }} room{{ line.rooms === 1 ? '' : 's' }} ·
-              {{ money(room(line).rate) }}/night
+              {{ money(room(line).rate) }}/night ×
+              {{ line.nights }} night{{ line.nights === 1 ? '' : 's' }} ×
+              {{ line.rooms }} room{{ line.rooms === 1 ? '' : 's' }}
             </p>
+
+            <!-- The two quantities that price the stay, on the line they price.
+                 The check-out date, the sleeps count, the arithmetic above and
+                 the amount top-right all move on the press — nothing here waits
+                 for a Save. -->
+            <div class="ti__stay">
+              <div class="ti__field">
+                <span class="ti__fieldlabel">Nights</span>
+                <div class="ti__nights">
+                  <button
+                    v-for="n in MAX_NIGHTS" :key="n" type="button"
+                    class="ti__night" :class="{ 'is-on': n === line.nights }"
+                    :aria-pressed="n === line.nights"
+                    @click="setNights(line, n)"
+                  >{{ n }}</button>
+                </div>
+              </div>
+              <div class="ti__field">
+                <span class="ti__fieldlabel">Rooms</span>
+                <!-- Same stepper as the ticket and add-on lines, and `removable`
+                     is off for the same reason: Remove is already on this row. -->
+                <quantity-stepper
+                  :model-value="line.rooms" :min="1" :max="MAX_ROOMS" size="sm"
+                  @update:model-value="(n) => setRooms(line, n)"
+                />
+              </div>
+            </div>
+
             <div class="ti__ctrls">
-              <!-- Edit goes to the hotel's own details page, pre-filled — the
-                   same page the browse grid opens. Adding and editing were one
-                   dialog before this round and are one page after it, because a
-                   separate edit surface would make "change my room" mean
-                   re-entering the hotel flow. -->
+              <!-- Was "Edit stay", and it went to the hotel page to set exactly
+                   the two things now sitting above it. What that page still owns
+                   is the ROOM — Reserve Room on any card swaps it in place — so
+                   the link is renamed to what it can actually do rather than
+                   left pointing at controls that are no longer there. -->
               <button type="button" class="ti__edit" @click="openStay(line.hotelId)">
-                <q-icon name="edit" size="16px" /> Edit stay
+                <q-icon name="king_bed" size="16px" /> Change room
               </button>
               <button type="button" class="ti__rm" @click="remove(line, stay(line).name)">Remove</button>
             </div>
@@ -216,6 +282,17 @@ function remove(line, label) {
 .ti__amt { font-size: 1rem; font-weight: 700; color: var(--ds-color-text); white-space: nowrap; }
 .ti__meta { margin: 0; font-size: .8125rem; color: var(--ds-color-text-subtle); }
 
+/* Nights + rooms, on the stay line. Laid out as two labelled fields rather than
+   as bare controls: unlabelled, a 1·2·3 group and a stepper sitting side by side
+   read as one ambiguous quantity. */
+.ti__stay { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; margin-top: 10px; }
+.ti__field { display: flex; flex-direction: column; gap: 5px; }
+.ti__fieldlabel { font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ds-color-text-subtle); }
+.ti__nights { display: flex; gap: 6px; }
+.ti__night { width: 34px; height: 32px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-surface); font: inherit; font-size: .875rem; font-weight: 700; color: var(--ds-color-text); cursor: pointer; }
+.ti__night:hover { background: var(--ds-palette-slate-100, #f1f2f4); }
+.ti__night.is-on { background: var(--ds-color-background-brand-bold, #01113E); border-color: var(--ds-color-background-brand-bold, #01113E); color: #fff; }
+
 .ti__ctrls { display: flex; align-items: center; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
 .ti__edit { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-surface); font: inherit; font-size: .875rem; font-weight: 600; color: var(--ds-color-text); cursor: pointer; }
 .ti__edit:hover { background: var(--ds-palette-slate-100, #f1f2f4); }
@@ -231,5 +308,17 @@ function remove(line, label) {
 .ti__morelabel { font-size: .8125rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ds-color-text-subtle); }
 .ti__morebtn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border: 1px dashed var(--ds-color-border-bold); border-radius: 999px; background: none; font: inherit; font-size: .875rem; font-weight: 600; color: var(--ds-color-text); cursor: pointer; }
 .ti__morebtn:hover { background: var(--ds-palette-slate-100, #f1f2f4); }
+
+/* The peek is 520px wide with a price footer under it, so it buys its room back
+   from the gaps and the stay thumbnail — never from a control. */
+.ti--peek { gap: 18px; }
+.ti--peek .ti__line { padding: 12px; gap: 12px; }
+.ti--peek .ti__thumb { width: 64px; height: 64px; }
+.ti--peek .ti__name { font-size: .9375rem; }
+/* Density only, as everywhere else in this file: the nights group and the rooms
+   stepper are BOTH present in the peek, because a stay that can only be
+   re-timed on one of the two surfaces is exactly the drift this component
+   exists to prevent. */
+.ti--peek .ti__stay { gap: 14px; margin-top: 8px; }
 
 </style>

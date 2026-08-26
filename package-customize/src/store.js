@@ -5,9 +5,13 @@
 //   customize      → the components themselves, edited, priced live
 //   checkout ─ confirmation
 //
-// Plus one OPTIONAL reference view (hotelDetails), which is never a step: it
-// opens in its own tab from any hotel name, and its room list can push a room
-// back into the configuration.
+// Plus two OPTIONAL views, neither of which is a step:
+//   hotelDetails → opens in its own tab from any hotel name, and its room list
+//                  can push a room back into the configuration.
+//   cart         → the full cart page behind the nav's cart peek. Reachable
+//                  from anywhere the cart icon is, and it leads back to
+//                  customize or on to checkout, so it is a side door on the
+//                  flow rather than a station in it (see FLOW below).
 //
 // --- What this holds that Option D's store does not --------------------------
 // Option D's whole state is `people` plus which of two packages was clicked; the
@@ -26,9 +30,21 @@ import {
   priceConfiguration, extraById, resolveTier, TRANSPORT_OPTIONS,
 } from './packages.js'
 
-export const SCREENS = ['packages', 'packageDetails', 'customize', 'checkout', 'confirmation', 'hotelDetails']
-// The linear path next()/back() walk — the reference screen is excluded.
+export const SCREENS = ['packages', 'packageDetails', 'customize', 'checkout', 'confirmation', 'hotelDetails', 'cart']
+// The linear path next()/back() walk — the reference screens are excluded.
+//
+// `cart` is deliberately NOT in FLOW. Putting it between customize and checkout
+// would have made it a step every guest walks through, which is the opposite of
+// what a cart is: it is the thing you can always open and rarely need to. It
+// would also have redirected `next()` off the customize screen away from
+// checkout, quietly demoting the one CTA the Aug 25 review asked to punch up.
 const FLOW = ['packages', 'packageDetails', 'customize', 'checkout', 'confirmation']
+
+// Screens that mean the guest is holding a package. Reaching any of them fills
+// the cart; reaching confirmation empties it, because it has been bought. The
+// browse screens leave it alone — you can go back and look at the board while
+// still carrying what you built. See `journey.inCart`.
+const HOLDS_CART = ['customize', 'cart', 'checkout']
 
 // There is no stage model here any more. This file used to export STEP_LABELS,
 // currentStage, showStepper and goToStage to drive an `AppStepper` in the shell;
@@ -52,6 +68,28 @@ export const journey = reactive({
   activeHotelId: null, // the hotel shown on the read-only details page
   tab: 'overview',     // active section tab on that page
   skipPackage: false,  // the shared CheckoutScreen reads this; never set here
+
+  /**
+   * Is the guest HOLDING this package, or just looking at the board?
+   *
+   * `config` is always complete — it is seeded from the first preset so a cold
+   * deep link into any screen is priceable. That is right for pricing and wrong
+   * for a cart: without this flag the nav badge would read "4 items" on the
+   * landing page before the guest has clicked anything, which is a lie told by
+   * the one control whose entire job is to report what you have taken.
+   *
+   * Opening the customize screen is what takes a package. Browsing the board and
+   * reading a package's details page are not — those are the catalogue.
+   */
+  inCart: false,
+
+  /**
+   * The customize-screen section to scroll to on arrival, set by the cart page's
+   * per-line "Change" links and cleared as soon as it is used. It is transient
+   * intent, not state, so it stays out of the URL: a shared link should open the
+   * package, not somebody else's scroll position.
+   */
+  focus: null,
 })
 
 export const nights = NIGHTS
@@ -155,6 +193,11 @@ const setOrDrop = (params, key, value, presetValue) => {
 export function nav(screen, { push = true } = {}) {
   screen = REDIRECTS[screen] || screen
   if (!SCREENS.includes(screen)) return
+  // Derived here rather than at each call site so the browser's Back button gets
+  // the same answer as a click: walking back from confirmation to customize has
+  // to refill the cart, or the badge would read 0 over a full configuration.
+  if (screen === 'confirmation') journey.inCart = false
+  else if (HOLDS_CART.includes(screen)) journey.inCart = true
   journey.screen = screen
   writeUrl(screen, push)
   if (typeof window !== 'undefined') requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
@@ -199,6 +242,31 @@ export function customizePackage(pkgId) {
 
 /** The review CTA — the configuration goes to checkout as it stands. */
 export function checkout() { nav('checkout') }
+
+/** The nav cart peek's way through to the full cart page. */
+export function openCart() { nav('cart') }
+
+/**
+ * "Change" on a cart line — back to the customize screen, landing on the control
+ * that owns that line.
+ *
+ * This is how the cart page stays editable WITHOUT becoming a second editor. The
+ * five axes already have one screen that edits them, with every alternative
+ * priced against the package total; a tier picker or a room list rebuilt on the
+ * cart page would be a second implementation of the same choice, and the two
+ * would drift the first time one of them learned something the other didn't.
+ * Sending the guest to the real control — with their configuration intact and the
+ * page scrolled to the right section — is editing in place as far as the guest is
+ * concerned: nothing is lost and nothing restarts.
+ *
+ * The one exception is dropping an add-on, which the cart page does itself: it is
+ * a single call to the same `toggleExtra()` the customize screen calls, so there
+ * is no second implementation to drift.
+ */
+export function editSection(section) {
+  journey.focus = section || null
+  nav('customize')
+}
 
 // ── Editing the configuration ──
 // Every setter writes the URL without pushing history: a customize session is one
@@ -321,6 +389,11 @@ export function useRoomFromHotelPage(hotelId, roomId) {
 export function resetJourney() {
   journey.config = configFor(PACKAGES[0].id, DEFAULT_PARTY)
   journey.tab = 'overview'
+  journey.focus = null
+  // Start over means an empty cart. The wordmark and "Manage Booking" both land
+  // here, and a nav that dumped the guest on the catalogue while still claiming
+  // to hold four components would be the badge lying in the other direction.
+  journey.inCart = false
   nav('packages')
 }
 
@@ -356,6 +429,10 @@ export function bootstrapFromUrl() {
   const screen = REDIRECTS[q.get('screen')] || q.get('screen')
   if (screen && SCREENS.includes(screen)) journey.screen = screen
   if (journey.screen === 'hotelDetails' && !journey.activeHotelId) journey.activeHotelId = HOTELS[0].id
+  // This assignment bypasses nav(), so the cart rule has to be applied by hand.
+  // A deep link INTO the flow is somebody carrying a package; a deep link to the
+  // board or to a placed confirmation is not.
+  journey.inCart = HOLDS_CART.includes(journey.screen)
 
   writeUrl(journey.screen, false)
   window.addEventListener('popstate', () => {
