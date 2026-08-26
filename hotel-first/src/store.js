@@ -91,14 +91,70 @@ const TABBED = new Set(['hotelDetails'])
 // copy-paste shareable (works on GitHub Pages — it's a client-side query param,
 // the same index.html always loads). `push` adds a history entry so the browser
 // back/forward buttons walk the steps.
+// ── WHAT THE URL CARRIES (Aug 26) ──
+// It used to carry the SCREEN and nothing else, and that was a bug with teeth:
+// reload the confirmation — or open it in a second tab, or let an HMR reload
+// fire while reviewing — and every pass the guest had chosen was gone. Not
+// visibly gone: `bootstrapFromUrl` re-seeded the DEFAULT selection (one Weekend
+// pass), so the final screen came back looking plausible and quietly $484
+// cheaper. A summary that silently drops lines is worse than one that errors.
+//
+// So the URL now carries the whole selection. It stays short because PARTY SIZE
+// IS THE QUANTITY (see tickets.js): a tier is an in/out decision, so only the
+// IDs need encoding and `tierQty` re-derives every number on the way back in.
+// That also means the round-trip cannot invent a quantity that disagrees with
+// the party — the same guarantee `repriceForParty` gives the live app.
+//
+//   ?screen=confirmation&guests=4&hotel=rosen&tickets=weekend.sunday&addons=disney
+//
+// Dot-separated so it survives URLSearchParams without percent-encoding and the
+// link stays readable when it is pasted into a review thread.
+const idList = (map) => Object.entries(map || {}).filter(([, q]) => q > 0).map(([id]) => id).join('.')
+
 function writeUrl(screen, push) {
   if (typeof window === 'undefined' || !window.history) return
   const params = new URLSearchParams(window.location.search)
   params.set('screen', screen)
   if (TABBED.has(screen) && journey.tab && journey.tab !== 'overview') params.set('tab', journey.tab)
   else params.delete('tab')
+
+  // The selection. Written on every navigation, so the address bar is always a
+  // faithful link to the trip currently on screen.
+  params.set('guests', String(journey.guests))
+  params.set('hotel', journey.hotelId)
+  const tix = idList(journey.tickets)
+  // `tickets=` empty-but-present is meaningful: it is "the guest chose none",
+  // which must NOT be re-seeded with the default on the way back in. Only a
+  // completely absent param means "no selection was ever expressed".
+  params.set('tickets', tix)
+  const ads = idList(journey.addOns)
+  if (ads) params.set('addons', ads)
+  else params.delete('addons')
+
   const url = `${window.location.pathname}?${params.toString()}`
   window.history[push ? 'pushState' : 'replaceState']({ screen }, '', url)
+}
+
+/** URL params → the two selection maps, quantities re-derived from party size. */
+function readSelection(q) {
+  const tix = q.get('tickets')
+  if (tix !== null) {
+    journey.tickets = Object.fromEntries(
+      tix.split('.').filter(Boolean)
+        .filter((id) => TICKETS_BY_ID[id])
+        .map((id) => [id, tierQty(TICKETS_BY_ID[id], journey.guests)])
+        .filter(([, n]) => n > 0)
+    )
+  }
+  const ads = q.get('addons')
+  if (ads !== null) {
+    journey.addOns = Object.fromEntries(
+      ads.split('.').filter(Boolean)
+        .filter((id) => ADD_ONS_BY_ID[id])
+        .map((id) => [id, addOnQty(ADD_ONS_BY_ID[id], journey.guests)])
+        .filter(([, n]) => n > 0)
+    )
+  }
 }
 
 // ── Navigation ──
@@ -168,6 +224,7 @@ function repriceForParty() {
 export function setGuests(n) {
   journey.guests = Math.min(12, Math.max(1, n || 1))
   repriceForParty()
+  syncUrl()
 }
 export function setTab(name) { journey.tab = name || 'overview'; writeUrl(journey.screen, false) }
 
@@ -185,6 +242,14 @@ export function selectRoom(room) {
   nav('tickets')
 }
 
+// Every mutation above rewrites the address in place. Writing it only on nav()
+// left a window where the screen and the URL disagreed: pick two passes, reload
+// without moving on, and the picks were gone — the same defect the confirmation
+// had, one screen earlier. replaceState (not push) because choosing a tier is
+// not a history entry; the guest should not have to press Back three times to
+// undo three taps.
+function syncUrl() { writeUrl(journey.screen, false) }
+
 // Tiers and add-ons are toggled IN or OUT; the quantity is never passed in. The
 // old `setTicketQty(id, n)` / `setAddOnQty(id, n)` pair is gone on purpose —
 // while a caller could hand in an arbitrary n, a line could diverge from the
@@ -198,6 +263,7 @@ export function toggleTicket(id, on = !ticketOn(id)) {
   if (qty > 0) next[id] = qty
   else delete next[id]
   journey.tickets = next
+  syncUrl()
 }
 export function toggleAddOn(id, on = !addOnOn(id)) {
   const qty = on ? addOnQty(ADD_ONS_BY_ID[id], journey.guests) : 0
@@ -205,8 +271,9 @@ export function toggleAddOn(id, on = !addOnOn(id)) {
   if (qty > 0) next[id] = qty
   else delete next[id]
   journey.addOns = next
+  syncUrl()
 }
-export function clearAddOns() { journey.addOns = {} }
+export function clearAddOns() { journey.addOns = {}; syncUrl() }
 
 export function resetJourney() {
   journey.guests = 4
@@ -230,12 +297,20 @@ export function bootstrapFromUrl() {
   if (typeof window === 'undefined') return
   const q = new URLSearchParams(window.location.search)
   const g = parseInt(q.get('guests') || '0', 10)
-  if (g) { setGuests(g); journey.tickets = { weekend: tierQty(TICKETS_BY_ID.weekend, journey.guests) } }
+  // Party size first — every quantity below is derived from it.
+  //
+  // This line used to end with `journey.tickets = { weekend: … }`, which threw
+  // away whatever the guest had chosen and replaced it with the default. That
+  // was survivable when the URL held no selection to honour; now that it does,
+  // re-seeding here is exactly the bug. setGuests() already re-prices what is
+  // held, and readSelection() below supplies what the link asked for.
+  if (g) setGuests(g)
   const hotel = q.get('hotel')
   if (hotel && getHotel(hotel)) {
     journey.hotelId = hotel
     journey.room = { ...journey.room, nightly: getHotel(hotel).fromNightly + 30 }
   }
+  readSelection(q)
   if (q.get('demo') === '1') seedDemoAddOns()
   const tab = q.get('tab')
   if (tab) journey.tab = tab
@@ -248,6 +323,11 @@ export function bootstrapFromUrl() {
     const p = new URLSearchParams(window.location.search)
     const s = p.get('screen')
     journey.tab = p.get('tab') || 'overview'
+    // Back/forward moves through selections as well as screens — stepping back
+    // past the Tickets step should show the trip as it was there.
+    const g = parseInt(p.get('guests') || '0', 10)
+    if (g) setGuests(g)
+    readSelection(p)
     if (s && SCREENS.includes(s)) nav(s, { push: false })
   })
 }
