@@ -46,7 +46,7 @@
 // bar keeps only the three Add doors and the summary of what the trip holds. The
 // earlier "one action, two placements" argument is overruled, not forgotten; it
 // and what replaced it are written out in TripBar itself.
-import { computed, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import TripNav from './components/TripNav.vue'
 import TripBar from './components/TripBar.vue'
 import TripFlyout from './components/TripFlyout.vue'
@@ -78,6 +78,47 @@ const current = computed(() => screens[trip.screen] || LandingScreen)
 // finished purchase would be an invitation to a screen that can't honour it.
 const showBar = computed(() => trip.screen !== 'confirmation')
 
+// ── THE CHROME STICKS (Aug 26) ──
+// The nav and the trip bar now pin together as one block instead of the bar
+// pinning alone. This is a BUG FIX, not a new affordance, and it is worth
+// spelling out because it looks like a style tweak.
+//
+// The stakeholder's fourth-round call removed the trip bar's cart handle on the
+// grounds that "there is a cart button that already exists from the global nav."
+// That is right, and the handle stays gone. What it did not account for is that
+// the nav was `position: static` while the bar was sticky — so on a long screen
+// the one remaining cart control scrolled away and the sticky row that stayed
+// behind carried only the three Add doors. On the hotel detail page the Reserve
+// Room buttons sit ~1600px down, which put the cart icon 1200px above the fold
+// at the exact moment a guest used it. The trip could be added to and then not
+// reviewed: a dead end with a full cart behind it.
+//
+// Making the nav sticky is the fix that costs nothing elsewhere: no control is
+// added, no removed control returns, and the icon the stakeholder named as THE
+// cart button is simply always where they said it was. It also matches the
+// sticky chrome tickets-first was given for the same reason.
+//
+// The height is published as a custom property rather than hard-coded because
+// two things read it and both were already wrong-by-constant: HotelDetailPage's
+// own sticky section tabs (which offset by a magic 59px that was the bar's
+// height alone) and the tickets screen's viewport maths. A ResizeObserver keeps
+// it true when the bar wraps to two rows under 860px.
+const chrome = ref(null)
+function measureChrome() {
+  const h = chrome.value?.getBoundingClientRect().height || 0
+  document.documentElement.style.setProperty('--tb-chrome-h', `${Math.round(h)}px`)
+}
+let ro
+onMounted(() => {
+  measureChrome()
+  ro = new ResizeObserver(measureChrome)
+  if (chrome.value) ro.observe(chrome.value)
+})
+onBeforeUnmount(() => ro?.disconnect())
+// The bar is dropped on the confirmation, which shortens the block by its whole
+// height; the observer fires on that too, but only after the DOM settles.
+watch(showBar, () => nextTick(measureChrome))
+
 // CheckoutPage's final Book Now is the one CTA in the app with no event to bind
 // to, so it is caught here. Capture phase and document scope because the button
 // is inside a library page this app doesn't own. (The nav's own two intercepts —
@@ -96,8 +137,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
 
 <template>
   <div class="tbapp">
-    <trip-nav />
-    <trip-bar v-if="showBar" />
+    <!-- Nav and trip bar pin as ONE block: the cart icon is the app's only cart
+         control, so it may never scroll away from the screen that fills it. -->
+    <div ref="chrome" class="tbapp__chrome">
+      <trip-nav />
+      <trip-bar v-if="showBar" />
+    </div>
 
     <main class="tbapp__main">
       <component :is="current" />
@@ -116,6 +161,13 @@ html { scrollbar-gutter: stable both-edges; }
 body { background: var(--ds-palette-slate-100, #f1f2f4); }
 .tbapp { min-height: 100vh; background: var(--ds-color-surface, #fff); display: flex; flex-direction: column; }
 .tbapp__main { flex: 1; display: flex; flex-direction: column; }
+
+/* Sticky, not fixed: a fixed block leaves a hole the layout has to be padded to
+   fill, and every screen would have to know the padding. Sticky keeps the block
+   in flow, so nothing below it needs to compensate. z-index clears the trip
+   bar's own 1200 (the bar is inside this block now) and stays well under the
+   cart peek's 3000, which must cover the chrome it is opened from. */
+.tbapp__chrome { position: sticky; top: 0; z-index: 1300; background: var(--ds-color-surface, #fff); }
 
 /* Cap the global nav content to the shared column, edge-to-edge bar — the same
    treatment the sibling prototypes use. The wordmark reads as a link home. */
