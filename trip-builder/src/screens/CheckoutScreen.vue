@@ -218,6 +218,14 @@ const summary = computed(() => {
    reaches the bottom-right corner itself, so the page gets the same clearance
    below its last element instead. */
 .cs :deep(.ck__railwrap) { padding-bottom: 84px; }
+
+/* AUG 26: clear the sticky app chrome. CheckoutPageExpanded pins its rail at
+   `top: 20px`, which assumes nothing is docked above it — so the rail's head was
+   already tucking ~31px under the old sticky trip bar, and the nav joining that
+   block (see App.vue) would have taken it to ~104px. The library file is not
+   touched; the offset is applied from here, reading the same height the chrome
+   publishes. */
+.cs :deep(.ck__railwrap) { top: calc(var(--tb-chrome-h, 124px) + 20px); }
 @media (max-width: 880px) { .cs { padding-bottom: 84px; } }
 
 .cs__empty { max-width: 520px; margin: 60px auto; text-align: center; font-family: var(--ds-font-family); }

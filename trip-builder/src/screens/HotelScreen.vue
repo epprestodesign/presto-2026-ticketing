@@ -88,10 +88,13 @@ function pickRoom(roomId) {
   $q.notify({
     message: had ? `Changed to ${name}.` : `${hotel.value.name} · ${name} added to your trip.`,
     icon: 'check_circle', color: 'grey-9', position: 'bottom', timeout: 3200,
-    // The one place a guest is told where nights and rooms went, at the moment
-    // they would go looking — and it opens the peek rather than navigating, so
-    // the page they were reading is still behind it.
-    actions: [{ label: 'Nights & rooms', color: 'white', handler: () => openPeek() }],
+    // Opens the peek rather than navigating, so the page they were reading is
+    // still behind it. The label used to read "Nights & rooms", which named the
+    // destination's contents instead of the move — it was the only forward
+    // pointer on this screen and it read like a settings link. The peek it opens
+    // is unchanged and the NIGHTS/ROOMS steppers are the first thing in it, so
+    // nothing is lost by saying the trip rather than the two fields.
+    actions: [{ label: 'Review trip', color: 'white', handler: () => openPeek() }],
   })
 }
 
@@ -110,6 +113,48 @@ function onPageClick(e) {
   const i = all.indexOf(item)
   if (i >= 0 && hotel.value.rooms[i]) pickRoom(hotel.value.rooms[i].id)
 }
+
+// ── THE WAY ON (Aug 26) ──
+// THE BUG THIS FIXES. Of the three entry paths this prototype offers, two hand
+// the guest forward once they have chosen and one did not:
+//
+//   • Tickets — TicketsScreen's `continue` calls nav('trip'). Automatic.
+//   • Add-ons — AddonsScreen ends in a footer whose primary is "Go to your trip",
+//     disabled until something is chosen. Explicit.
+//   • Hotel   — added the stay, raised a 3.2-second toast, and STAYED PUT.
+//
+// So reserving a room left a guest on an unchanged-looking page: the three
+// Reserve Room buttons still read "Reserve Room" (the library hard-codes that
+// label and takes no prop for it), the only forward control was a 22px cart icon
+// that had scrolled 1200px out of view, and the toast's one action expired. The
+// trip was real and the total was right — there was simply nothing on screen
+// that said so or moved you on. That is the dead end.
+//
+// THE FIX IS THE SIBLING'S PATTERN, NOT A NEW ONE. This footer is AddonsScreen's
+// `as__foot` — same shape, same disabled-until-chosen primary, same two lateral
+// alternatives — because "browse, pick, then continue" is a problem this app had
+// already solved one screen over. Copying it makes the third path match the
+// other two instead of inventing a fourth idea.
+//
+// WHY THIS IS NOT THE DELETED STAY BAND COMING BACK. The band the stakeholder
+// removed in the third round sat ABOVE the detail page and carried a NIGHTS
+// toggle, a ROOMS stepper and a stay total — a second place the stay was priced,
+// which is what made it wrong. This is below the page, sets nothing, and prices
+// nothing: it names the room that is in the trip and offers a way on. Money is
+// still the cart's alone.
+const footNote = computed(() => {
+  const l = line.value
+  if (!l) {
+    return soldOut.value
+      ? { title: 'Nothing to reserve here', sub: `${hotel.value.name} has no availability for ${checkInLabel()} — the other properties in the block do.` }
+      : { title: 'No room reserved yet', sub: 'Pick a room above and it goes straight into your trip — nothing is held and nothing is charged.' }
+  }
+  const room = roomById(l.hotelId, l.roomId)
+  return {
+    title: `${room.name} at ${hotel.value.name} is in your trip`,
+    sub: `${l.nights} night${l.nights === 1 ? '' : 's'} · ${l.rooms} room${l.rooms === 1 ? '' : 's'} · change either on the stay line in your trip.`,
+  }
+})
 
 // ── The data HotelDetailPage is handed ──
 const ABOUT = computed(() => {
@@ -215,18 +260,51 @@ const args = computed(() => {
        tabs, summary, about, rooms, amenities, policies. -->
   <div ref="root" class="hs" @click="onPageClick">
     <hotel-detail-page v-bind="args" @back="nav('stays')" />
+
+    <!-- The way on. See THE WAY ON above: this is AddonsScreen's footer, so the
+         hotel path ends the way the add-on path already did. -->
+    <footer class="hs__foot">
+      <div class="hs__footinfo">
+        <strong>{{ footNote.title }}</strong>
+        <span>{{ footNote.sub }}</span>
+      </div>
+      <div class="hs__footacts">
+        <button type="button" class="hs__alt" @click="nav('stays')">Other hotels</button>
+        <button type="button" class="hs__alt" @click="nav('tickets')">Add tickets</button>
+        <button type="button" class="hs__cta" :disabled="!line" @click="nav('trip')">
+          Go to your trip <q-icon name="arrow_forward" size="17px" />
+        </button>
+      </div>
+    </footer>
   </div>
 </template>
 
 <style scoped>
 .hs { display: flex; flex-direction: column; flex: 1; }
 
-/* The detail page's section tabs are sticky at top:0, and so is TripBar — which
-   is taller and wins on z-index, so the tabs would pin themselves underneath it.
-   Offsetting by the bar's height is the fix that keeps both docked; hiding the
+/* The detail page's section tabs are sticky at top:0, and so is the app chrome —
+   which is taller and wins on z-index, so the tabs would pin themselves
+   underneath it. Offsetting by the chrome's height keeps both docked; hiding the
    trip bar on this screen was the alternative, and it is the one surface a guest
-   most needs to see change when they add a room. */
-.hs :deep(.hdp__tabs) { top: 59px; }
+   most needs to see change when they add a room.
+   The offset used to be a hard-coded 59px, which was the trip bar's height back
+   when the bar was the only sticky thing. The nav pins with it now (see App.vue:
+   the cart icon may not scroll away), so the number is read from the block that
+   actually sets it. The fallback covers the first paint before the observer has
+   published a value. */
+.hs :deep(.hdp__tabs) { top: var(--tb-chrome-h, 124px); }
+
+/* AddonsScreen's `as__foot`, to the pixel — the same component in a second
+   place, not a variation on it. If one is restyled the other should be. */
+.hs__foot { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; max-width: min(1440px, 92%); margin: 24px auto 40px; padding: 18px 20px; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg, 12px); background: var(--ds-palette-slate-100, #f1f2f4); font-family: var(--ds-font-family); }
+.hs__footinfo { display: flex; flex-direction: column; gap: 2px; }
+.hs__footinfo strong { font-size: 1.0625rem; color: var(--ds-color-text); }
+.hs__footinfo span { font-size: .875rem; color: var(--ds-color-text-subtle); }
+.hs__footacts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hs__alt { height: 42px; padding: 0 16px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-surface); font: inherit; font-weight: 600; color: var(--ds-color-text); cursor: pointer; }
+.hs__alt:hover { background: var(--ds-palette-slate-100, #f1f2f4); }
+.hs__cta { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border: 0; border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-background-brand-bold, #01113E); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.hs__cta:disabled { background: var(--ds-palette-slate-200, #e2e4e8); color: var(--ds-color-text-subtlest); cursor: not-allowed; }
 
 /* HotelDetailPage's OWN "Back to Hotel listing" button is now the way back to
    browse — it used to be hidden here because the stay band carried an "All

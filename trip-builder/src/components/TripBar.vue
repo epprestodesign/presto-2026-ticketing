@@ -97,7 +97,12 @@ const chips = computed(() => {
 </template>
 
 <style scoped>
-.tb { position: sticky; top: 0; z-index: 1200; background: var(--ds-color-surface); border-bottom: 1px solid var(--ds-color-border); box-shadow: 0 1px 0 rgba(0,0,0,.02); }
+/* AUG 26: the bar no longer pins itself. It sits inside `.tbapp__chrome`, which
+   pins the nav and this row together — see App.vue for why the nav had to join
+   it. A sticky child inside a sticky parent has no travel room of its own, so
+   the old `position: sticky; top: 0; z-index: 1200` here was doing nothing but
+   inviting a stacking-order question. Removed rather than left inert. */
+.tb { background: var(--ds-color-surface); border-bottom: 1px solid var(--ds-color-border); box-shadow: 0 1px 0 rgba(0,0,0,.02); }
 .tb__inner { max-width: min(1440px, 92%); margin: 0 auto; padding: 10px 0; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; font-family: var(--ds-font-family); }
 
 .tb__left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }

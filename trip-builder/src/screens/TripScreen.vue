@@ -78,7 +78,10 @@ const summary = computed(() => `${count.value} item${count.value === 1 ? '' : 's
 .tp__grid--solo { grid-template-columns: minmax(0, 1fr); }
 .tp__main { background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg, 12px); padding: 20px; }
 
-.tp__rail { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 14px; }
+/* 20px below the app chrome. This was a hard-coded 76 — the trip bar's 51px
+   plus a gap — from when the bar was the only thing pinned. The nav pins with it
+   now, so the offset is read from the block that publishes its own height. */
+.tp__rail { position: sticky; top: calc(var(--tb-chrome-h, 124px) + 20px); display: flex; flex-direction: column; gap: 14px; }
 .tp__card { background: var(--ds-color-surface); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg, 12px); padding: 18px; }
 .tp__cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border: 0; border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-background-brand-bold, #01113E); color: #fff; font: inherit; font-weight: 700; font-size: 1rem; cursor: pointer; }
 .tp__note { display: flex; align-items: flex-start; justify-content: center; gap: 6px; margin: 0; font-size: .8125rem; color: var(--ds-color-text-subtle); }
