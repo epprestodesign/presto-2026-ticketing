@@ -1,5 +1,5 @@
 <script setup>
-// Hotel details — one property, its rooms, and the stay that goes in the trip.
+// Hotel details — one property, its rooms, and the room that goes in the trip.
 //
 // AUG 25 FEEDBACK, and the reason this file exists at all: "I never want to have
 // this as a pop-up … we're always going to want a clean page", and "I definitely
@@ -8,28 +8,49 @@
 // That dialog is gone; this page replaced it, so choosing a hotel now goes to a
 // page exactly the way choosing an add-on stays on one.
 //
-// The page itself is the library's HotelDetailPage, mounted as shipped —
-// gallery, sticky section tabs, summary header, About, Amenities, Policies and
-// the "Select Your Room" carousel in `reserve` flow. Matching the real booking
-// site was the other half of this round's ask, so nothing here is re-styled;
-// only the data is this event's.
+// THAT DID NOT CHANGE when the cart fly-out came back in the following review.
+// The one overlay this prototype sanctions is the cart peek, for reasons that
+// are specific to a cart (see TripFlyout). Room selection is not a glance at
+// something with an address elsewhere — it IS the surface — so StayEditDialog
+// stays deleted.
 //
-// ADDING AND EDITING ARE STILL THE SAME SURFACE, which was the whole point of
-// the old dialog and is preserved deliberately. Arriving from the browse grid
-// with an empty trip and arriving from the cart's "Edit stay" land on the same
-// page with the same controls in the same places; the only difference is that
-// the second one arrives pre-filled and its controls write straight through to
-// the line. That is the same bargain AddonCard makes — press Add once, and from
-// then on the number on the surface IS the number in the cart.
-import { ref, reactive, computed, watch } from 'vue'
+// ── THE STAY BAND IS GONE (Aug 25, third round) ──
+// This screen used to carry a band above the detail page holding the back link,
+// the room name, a NIGHTS 1·2·3 toggle, a ROOMS stepper, a stay total and an
+// "Add to trip · $329" button. The stakeholder, looking at this page, asked for
+// it removed: the screen should be the hotel's detail page and not much else.
+//
+// The band was the only place nights and rooms could be set, so deleting it
+// outright would have quietly removed the ability to book two nights or two
+// rooms. They were REHOMED rather than dropped, to the stay line in TripItems —
+// the cart body both the peek and /trip render. Three reasons that is the right
+// home and not a consolation prize:
+//
+//   • The cart is this prototype's spine and every other line is already edited
+//     in place there. Nights and rooms are two more numbers on a line; a ticket
+//     quantity has never needed its own page and neither do these.
+//   • The figure they move is the stay total, which lives in the cart next to
+//     the trip total they roll into. On this page it was a fourth price
+//     competing with the three on every room card.
+//   • It is reachable from here without navigating: the cart peek opens from the
+//     nav on every screen, and the toast this page raises on a Reserve offers it
+//     directly.
+//
+// ADDING still happens here, and only here: RoomCardReserve's "Reserve Room" is
+// the one control that puts a property in the trip. What this page no longer
+// does is price the stay — it REFLECTS the nights and rooms the trip already
+// holds, so every room card's total is the total that line would charge.
+//
+// The alternative considered and rejected: keep a slimmer band with just the two
+// steppers. That is the same band with fewer fields — still a second place a
+// stay is priced, still contradicting the cart the moment one of them is wrong.
+import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import HotelDetailPage from '@lib/components/details/HotelDetailPage.vue'
-import QuantityStepper from '@lib/components/QuantityStepper.vue'
 import { getAmenities, amenityGroups } from '@lib/lib/amenities.js'
-import { stayView, editingStay, replacingStay, commitStay, removeItem, restoreItem, nav } from '../store.js'
+import { stayView, editingStay, replacingStay, stayLine, commitStay, openPeek, nav } from '../store.js'
 import {
-  stayById, money, checkInLabel, checkOutLabel, lineTotal,
-  MAX_NIGHTS, MAX_ROOMS, EVENT, EVENT_DATE,
+  stayById, roomById, money, checkInLabel, checkOutLabel, EVENT,
 } from '../trip.js'
 
 const $q = useQuasar()
@@ -39,60 +60,38 @@ const hotel = computed(() => stayById(stayView.hotelId))
 const line = computed(() => editingStay.value)
 const replacing = computed(() => replacingStay.value)
 
-// The draft is what the page is proposing. When a line already exists it is a
-// mirror of that line, not a second copy of it — every control writes through on
-// the press, so there is no Save button to forget and no way for the page and
-// the cart to disagree about a room.
-const draft = reactive({ roomId: 'standard', nights: 1, rooms: 1 })
-watch(
-  [() => stayView.hotelId, line],
-  () => {
-    const l = line.value
-    draft.roomId = l ? l.roomId : hotel.value.rooms[0].id
-    draft.nights = l ? l.nights : 1
-    draft.rooms = l ? l.rooms : 1
-  },
-  { immediate: true },
-)
-
-const room = computed(() => hotel.value.rooms.find((r) => r.id === draft.roomId) || hotel.value.rooms[0])
-const subtotal = computed(() => room.value.rate * draft.nights * draft.rooms)
-// The banner price when the stay is already in the trip is read off the LINE, so
-// this page can never quote a figure the cart isn't charging.
-const committed = computed(() => (line.value ? lineTotal(line.value) : 0))
+// Nights and rooms are READ from the trip, never held here. There is no local
+// draft any more because there is no control on this page that could move one —
+// a mirror with no writer is just a stale copy waiting to disagree with the
+// cart. StaysScreen already prices its browse cards off the same two values, so
+// all three surfaces multiply by the same numbers.
+//
+// They are read off `stayLine` (the stay in the trip, whichever property it is
+// at) rather than off `editingStay` (the stay at THIS property), so a guest who
+// booked two nights elsewhere and is now comparing sees two-night totals here —
+// and a swap carries the length of the stay across instead of silently resetting
+// it to one night.
+const nights = computed(() => stayLine.value?.nights || 1)
+const rooms = computed(() => stayLine.value?.rooms || 1)
 
 // A property with no availability for the dates still has a details page — the
 // booking site shows one, and a guest who filtered it into view deserves to see
-// why it is greyed out. What it doesn't have is a way into the cart.
+// why it is greyed out. What it doesn't have is a way into the cart, which the
+// room cards enforce themselves by rendering their Unavailable state.
 const soldOut = computed(() => hotel.value.soldOut)
 
-/** Push the draft at the trip: patches the line if there is one, adds if not. */
-function commit(message) {
-  commitStay({ roomId: draft.roomId, nights: draft.nights, rooms: draft.rooms })
-  if (message) $q.notify({ message, icon: 'check_circle', color: 'grey-9', position: 'bottom', timeout: 2600 })
-}
-// Nights and rooms only write through once the stay is IN the trip. Before that
-// they are a proposal, because a page that added a hotel the moment someone
-// nudged a stepper would put a $600 line in the cart as a side effect of looking.
-function setNights(n) { draft.nights = n; if (line.value) commit() }
-function setRooms(n) { draft.rooms = n; if (line.value) commit() }
-
+/** Reserve puts this room in the trip: patches the line if there is one, adds if not. */
 function pickRoom(roomId) {
   const had = !!line.value
-  draft.roomId = roomId
   const name = hotel.value.rooms.find((r) => r.id === roomId)?.name || 'Room'
-  commit(had ? `Changed to ${name}.` : `${hotel.value.name} added to your trip.`)
-}
-
-function remove() {
-  const l = line.value
-  if (!l) return
-  const removed = removeItem(l.uid)
-  if (!removed) return
+  commitStay({ roomId, nights: nights.value, rooms: rooms.value })
   $q.notify({
-    message: `Removed ${hotel.value.name}.`,
-    icon: 'undo', color: 'grey-9', position: 'bottom', timeout: 4000,
-    actions: [{ label: 'Undo', color: 'white', handler: () => restoreItem(removed.item, removed.index) }],
+    message: had ? `Changed to ${name}.` : `${hotel.value.name} · ${name} added to your trip.`,
+    icon: 'check_circle', color: 'grey-9', position: 'bottom', timeout: 3200,
+    // The one place a guest is told where nights and rooms went, at the moment
+    // they would go looking — and it opens the peek rather than navigating, so
+    // the page they were reading is still behind it.
+    actions: [{ label: 'Nights & rooms', color: 'white', handler: () => openPeek() }],
   })
 }
 
@@ -112,10 +111,6 @@ function onPageClick(e) {
   if (i >= 0 && hotel.value.rooms[i]) pickRoom(hotel.value.rooms[i].id)
 }
 
-function scrollToRooms() {
-  root.value?.querySelector('#hdp-rooms')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
 // ── The data HotelDetailPage is handed ──
 const ABOUT = computed(() => {
   const h = hotel.value
@@ -129,10 +124,10 @@ const ABOUT = computed(() => {
 
 const POLICIES = computed(() => [
   { title: 'Check-in', body: `Check-in from 3:00 PM on ${checkInLabel()}. Guests must be 18 or older with a valid photo ID and a credit card. Early check-in is subject to availability — game weekends run tight.` },
-  { title: 'Check-out', body: `Check-out by 11:00 AM on ${checkOutLabel(draft.nights)}. Bag storage is complimentary for block guests, so a late flight doesn't cost you the morning.` },
+  { title: 'Check-out', body: `Check-out by 11:00 AM on ${checkOutLabel(nights.value)}. Bag storage is complimentary for block guests, so a late flight doesn't cost you the morning.` },
   { title: 'Cancellation Policy', body: 'Free cancellation until 48 hours before check-in. Cancellations after that are charged one night plus tax. No-shows are charged the full stay.' },
   { title: 'Deposit', body: 'A credit-card authorization of one night plus tax is held at check-in for incidentals and released at check-out.' },
-  { title: 'Nothing is held yet', body: 'A stay sitting in your trip is not a reservation and is not on a clock. The hold starts when you check out, and until then every part of the trip stays editable.' },
+  { title: 'Nothing is held yet', body: 'A stay sitting in your trip is not a reservation and is not on a clock. The hold starts when you check out, and until then every part of the trip — including how many nights and how many rooms — stays editable on the stay line in your trip.' },
 ])
 
 // Availability is read from the SAME per-night record the browse card's
@@ -140,29 +135,50 @@ const POLICIES = computed(() => [
 // screen and sold out on the next.
 function availabilityOf(i) {
   if (soldOut.value) return 'soldout'
-  const left = hotel.value.availByRoom[i].nights.slice(0, draft.nights).map((n) => n.roomsLeft)
+  const left = hotel.value.availByRoom[i].nights.slice(0, nights.value).map((n) => n.roomsLeft)
   if (left.some((n) => n <= 0)) return 'soldout'
   return Math.min(...left) <= 3 ? 'limited' : 'available'
 }
 
-// The band's Add button can only ever add the room the band is showing, so it
-// answers to that room's availability rather than the property's — otherwise a
-// bookable hotel whose selected room happens to be gone would offer a button the
-// room card two sections below has already disabled.
-const roomSoldOut = computed(() => availabilityOf(hotel.value.rooms.findIndex((r) => r.id === draft.roomId)) === 'soldout')
-
 const roomArgs = computed(() => hotel.value.rooms.map((r, i) => ({
   roomType: r.name,
   bedConfig: `${r.bed} · sleeps ${r.sleeps}`,
-  maxOccupancy: r.sleeps * draft.rooms,
+  maxOccupancy: r.sleeps * rooms.value,
+  // The per-night rate is the card's own, and with the band's total gone it is
+  // now the only place the room's price is stated on this page — so it stays
+  // visible and unstyled, exactly as the library ships it.
   pricePerNight: r.rate,
-  // The card's total prices the ROOMS the guest asked for, not one room, so the
-  // figure on the card is the figure that lands in the cart when it is pressed.
-  total: r.rate * draft.nights * draft.rooms,
-  roomCount: draft.rooms,
+  // The card's total prices the ROOMS and NIGHTS the trip is holding, not one
+  // room for one night, so the figure on the card is the figure that lands on
+  // the stay line when it is pressed.
+  total: r.rate * nights.value * rooms.value,
+  roomCount: rooms.value,
   availability: availabilityOf(i),
-  nights: hotel.value.availByRoom[i].nights.slice(0, draft.nights),
+  nights: hotel.value.availByRoom[i].nights.slice(0, nights.value),
 })))
+
+// Everything the band used to say in labels, said once in the carousel's own
+// subtitle instead. It is a library prop, so none of it is extra chrome: what
+// the totals below cover, what pressing Reserve does, which room is already in
+// the trip, what a swap would displace, and where the two quantities now live.
+const roomsSubtitle = computed(() => {
+  const n = nights.value
+  const r = rooms.value
+  const span = `${checkInLabel()} → ${checkOutLabel(n)} · ${n} night${n === 1 ? '' : 's'} · ${r} room${r === 1 ? '' : 's'} · totals below are for the whole stay.`
+  if (soldOut.value) {
+    return `${span} This property has no availability for ${checkInLabel()} — you can read the details, but there is nothing to add.`
+  }
+  // Said BEFORE the swap, not after, and the second sentence is the one that
+  // matters: the rest of the trip is not part of this decision.
+  if (replacing.value) {
+    return `${span} Reserving here replaces ${replacing.value.name} in your trip — your tickets and add-ons stay exactly as they are. Nights and rooms are set on the stay line in your trip.`
+  }
+  if (line.value) {
+    const current = roomById(line.value.hotelId, line.value.roomId)
+    return `${span} ${current.name} at ${money(current.rate)}/night is in your trip — reserve another room to change it. Nights, rooms and the stay total are on the stay line in your trip.`
+  }
+  return `${span} Pressing Reserve puts that room in your trip — it doesn't start a checkout. Nights and rooms are then set on the stay line in your trip.`
+})
 
 const args = computed(() => {
   const h = hotel.value
@@ -189,128 +205,21 @@ const args = computed(() => {
     rooms: roomArgs.value,
     roomsFlow: 'reserve',
     roomsTitle: 'Select Your Room',
-    roomsSubtitle: `Per room per night for ${checkInLabel()} → ${checkOutLabel(draft.nights)}. Pressing Reserve puts this room in your trip — it doesn't start a checkout.`,
+    roomsSubtitle: roomsSubtitle.value,
   }
 })
 </script>
 
 <template>
+  <!-- The screen is the library's HotelDetailPage and nothing else: gallery,
+       tabs, summary, about, rooms, amenities, policies. -->
   <div ref="root" class="hs" @click="onPageClick">
-    <!-- The stay band. It sits ABOVE the detail page rather than floating over
-         it, which is the whole change this round asked for: the nights and the
-         room count are page furniture now, not dialog fields. -->
-    <section class="hs__band" :class="{ 'is-in': !!line }">
-      <div class="hs__bandinner">
-        <div class="hs__ctx">
-          <button type="button" class="hs__crumb" @click="nav('stays')">
-            <q-icon name="chevron_left" size="18px" /> All hotels
-          </button>
-          <p class="hs__event">{{ EVENT.name }} · {{ EVENT_DATE }}</p>
-        </div>
-
-        <div class="hs__fields">
-          <div class="hs__field">
-            <span class="hs__label">Room</span>
-            <div class="hs__room">
-              <strong>{{ room.name }}</strong>
-              <button type="button" class="hs__link" @click="scrollToRooms">Change room</button>
-            </div>
-            <span class="hs__hint">{{ room.bed }} · {{ money(room.rate) }}/night</span>
-          </div>
-
-          <div class="hs__field">
-            <span class="hs__label">Nights</span>
-            <div class="hs__nights">
-              <button
-                v-for="n in MAX_NIGHTS" :key="n" type="button"
-                class="hs__night" :class="{ 'is-on': n === draft.nights }"
-                @click="setNights(n)"
-              >{{ n }}</button>
-            </div>
-            <span class="hs__hint">{{ checkInLabel() }} → {{ checkOutLabel(draft.nights) }}</span>
-          </div>
-
-          <div class="hs__field">
-            <span class="hs__label">Rooms</span>
-            <quantity-stepper :model-value="draft.rooms" :min="1" :max="MAX_ROOMS" size="sm" @update:model-value="setRooms" />
-            <span class="hs__hint">Sleeps {{ room.sleeps * draft.rooms }} in total</span>
-          </div>
-
-          <div class="hs__field hs__field--act">
-            <span class="hs__label">{{ line ? 'In your trip' : 'Stay total' }}</span>
-            <strong class="hs__total">{{ money(line ? committed : subtotal) }}</strong>
-            <span class="hs__hint">before taxes · nothing held until checkout</span>
-          </div>
-
-          <div class="hs__acts">
-            <template v-if="line">
-              <span class="hs__in"><q-icon name="check_circle" size="18px" /> Added</span>
-              <button type="button" class="hs__alt" @click="nav('trip')">View trip</button>
-              <button type="button" class="hs__rm" @click="remove">Remove stay</button>
-            </template>
-            <template v-else>
-              <button type="button" class="hs__cta" :disabled="roomSoldOut" @click="pickRoom(draft.roomId)">
-                Add to trip · {{ money(subtotal) }}
-              </button>
-              <button type="button" class="hs__alt" @click="scrollToRooms">See all rooms</button>
-            </template>
-          </div>
-        </div>
-
-        <!-- Said before the swap, not after, and the second sentence is the one
-             that matters: the rest of the trip is not part of this decision. -->
-        <p v-if="replacing" class="hs__swap">
-          <q-icon name="swap_horiz" size="18px" />
-          Adding this replaces <strong>{{ replacing.name }}</strong> in your trip. Your tickets and add-ons stay exactly as they are.
-        </p>
-        <p v-else-if="soldOut" class="hs__swap hs__swap--out">
-          <q-icon name="event_busy" size="18px" />
-          This property has no availability for {{ checkInLabel() }}. You can read the details, but there is nothing to add.
-        </p>
-      </div>
-    </section>
-
     <hotel-detail-page v-bind="args" @back="nav('stays')" />
   </div>
 </template>
 
 <style scoped>
 .hs { display: flex; flex-direction: column; flex: 1; }
-
-/* ── The stay band ── */
-.hs__band { background: var(--ds-color-surface); border-bottom: 1px solid var(--ds-color-border); }
-.hs__band.is-in { background: var(--ds-palette-slate-100, #f1f2f4); }
-.hs__bandinner { max-width: 1180px; margin-inline: auto; padding: 14px 24px 18px; font-family: var(--ds-font-family); }
-
-.hs__ctx { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
-.hs__crumb { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--ds-color-text); cursor: pointer; }
-.hs__crumb:hover { color: var(--ds-color-text-brand); }
-.hs__event { margin: 0; font-size: .875rem; color: var(--ds-color-text-subtle); }
-
-.hs__fields { display: flex; align-items: flex-start; gap: 28px; flex-wrap: wrap; }
-.hs__field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.hs__label { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ds-color-text-subtle); }
-.hs__hint { font-size: .8125rem; color: var(--ds-color-text-subtle); }
-.hs__room { display: flex; align-items: baseline; gap: 10px; }
-.hs__room strong { font-size: 1.0625rem; color: var(--ds-color-text); }
-.hs__link { appearance: none; padding: 0; border: 0; background: none; font: inherit; font-size: .8125rem; font-weight: 600; color: var(--ds-color-link, #1b4ed8); text-decoration: underline; cursor: pointer; }
-
-.hs__nights { display: flex; gap: 6px; }
-.hs__night { width: 38px; height: 34px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-surface); font: inherit; font-weight: 700; color: var(--ds-color-text); cursor: pointer; }
-.hs__night.is-on { background: var(--ds-color-background-brand-bold, #01113E); border-color: var(--ds-color-background-brand-bold, #01113E); color: #fff; }
-
-.hs__field--act .hs__total { font-size: 1.375rem; font-weight: 800; color: var(--ds-color-text); }
-
-.hs__acts { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-left: auto; padding-top: 18px; }
-.hs__cta { height: 46px; padding: 0 22px; border: 0; border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-background-brand-bold, #01113E); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
-.hs__cta:disabled { background: var(--ds-palette-slate-200, #e2e4e8); color: var(--ds-color-text-subtlest); cursor: not-allowed; }
-.hs__alt { height: 46px; padding: 0 18px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button, 8px); background: var(--ds-color-surface); font: inherit; font-weight: 700; color: var(--ds-color-text); cursor: pointer; }
-.hs__in { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--ds-color-text-success, #17672f); }
-.hs__rm { appearance: none; padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--ds-color-text-subtle); text-decoration: underline; cursor: pointer; }
-.hs__rm:hover { color: var(--ds-color-text-danger, #b3261e); }
-
-.hs__swap { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; padding: 10px 14px; border-radius: var(--ds-radius-md, 8px); background: var(--ds-palette-amber-100, #fff5db); font-size: .9375rem; color: var(--ds-color-text); }
-.hs__swap--out { background: var(--ds-palette-slate-200, #e2e4e8); }
 
 /* The detail page's section tabs are sticky at top:0, and so is TripBar — which
    is taller and wins on z-index, so the tabs would pin themselves underneath it.
@@ -319,27 +228,27 @@ const args = computed(() => {
    most needs to see change when they add a room. */
 .hs :deep(.hdp__tabs) { top: 59px; }
 
-/* HotelDetailPage ships its own "Back to Hotel listing" button; the band above
-   already carries one, and two back links stacked 40px apart is one too many. */
-.hs :deep(.hdp__back) { display: none; }
+/* HotelDetailPage's OWN "Back to Hotel listing" button is now the way back to
+   browse — it used to be hidden here because the stay band carried an "All
+   hotels" crumb 40px above it and two back links stacked is one too many. The
+   band is gone, so the library's link is let through and wired to the browse
+   screen via @back rather than hand-rolling a second one. */
 
-/* Same reason the browse card's caption is hidden: the trip levies tax once, on
-   the whole trip, so a per-room "incl. taxes & fees" would be contradicted by
-   the rail two screens later. The room count it also carries is stated in the
-   band above, where it is the control rather than a caption. */
+/* The room count and the "incl. taxes & fees" caption under each price. The tax
+   half is the reason it stays hidden even now that the band is gone: this trip
+   levies tax ONCE, on the whole trip, so a per-room "incl. taxes & fees" would
+   be contradicted by the checkout rail two screens later. The room count it also
+   carries is stated in the carousel's subtitle above the cards, where it is one
+   statement for the section rather than the same number on three cards. */
 .hs :deep(.rcr__sub) { display: none; }
 
 /* The LAST pop-up reachable from this prototype, closed. RoomCardReserve's
    "Price Details ›" link opens the library's PriceDetailsDialog — a DsModal —
    and "no modal pop-ups, anywhere" is not honoured by a page that still has one
    sitting on its primary card. The breakdown it shows (rate × nights × rooms,
-   then taxes) is already spelled out in the band above and owned, to the dollar,
-   by the trip rail; hiding the link removes a duplicate, not an answer. The
-   library file is untouched — this is a style rule in this app. */
+   then taxes) is now spelled out on the stay line in the cart and owned, to the
+   dollar, by the trip rail; hiding the link removes a duplicate, not an answer.
+   The library file is untouched — this is a style rule in this app. */
 .hs :deep(.rcr__pricelink) { display: none; }
 .hs :deep(.rcr__actions) { justify-content: flex-end; }
-
-@media (max-width: 900px) {
-  .hs__acts { margin-left: 0; width: 100%; }
-}
 </style>

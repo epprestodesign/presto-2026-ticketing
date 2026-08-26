@@ -32,10 +32,21 @@
 // what the guest adds here is visible in the nav cart fly-out immediately.
 import { computed } from 'vue'
 import { ADD_ONS, addOnLines, addOnCount, addOnSubtotal } from '../addons.js'
-import { COMP_DAYS } from '../event.js'
+import { COMP_DAYS, EVENT } from '../event.js'
+import { eventLogo, EVENT_LOGO_ALT, bandStyle } from '../brand.js'
 import { journey, toggleAddOn, addOnOn, clearAddOns, setGuests, nav } from '../store.js'
 import AddOnCard from '../components/AddOnCard.vue'
 import PartySizeField from '../components/PartySizeField.vue'
+
+// Same hero band Landing, Browse Hotels and Tickets carry. Add-Ons was the only
+// mid-flow step without it, which made it read as a different site once the
+// guest crossed from tickets into extras — the one place in this flow where a
+// guest is most likely to wonder whether they've left the tournament booking.
+// Identical composition rather than a variant: a second treatment of the same
+// band is how two hotel pages end up looking like two products. That sameness is
+// now enforced rather than copied: the band's image and scrim come from
+// `bandStyle` in `../brand.js`, the one expression Browse Hotels and Tickets also
+// bind, so the three cannot drift when the artwork changes.
 
 const lines = computed(() => addOnLines(journey.addOns))
 const count = computed(() => addOnCount(journey.addOns))
@@ -53,6 +64,14 @@ function continueWithout() {
 
 <template>
   <div class="ao">
+    <section class="ao__hero" :style="bandStyle">
+      <div class="ao__hero-inner">
+        <img :src="eventLogo" :alt="EVENT_LOGO_ALT" class="ao__hero-logo" />
+        <h1 class="ao__hero-title">{{ EVENT.name }}</h1>
+        <p class="ao__hero-sub">{{ EVENT.dates }} · {{ EVENT.venue }}</p>
+      </div>
+    </section>
+
     <div class="ao__inner">
       <header class="ao__head">
         <p class="ao__eyebrow"><q-icon name="place" size="16px" /> While you're in Orlando</p>
@@ -114,6 +133,22 @@ function continueWithout() {
 </template>
 
 <style scoped>
+.ao__hero { background-color: #000; background-size: cover; background-position: center; color: #fff; }
+.ao__hero-inner { max-width: 1180px; margin-inline: auto; padding: 30px 24px; text-align: center; }
+/* Crest sized and treated exactly as on Browse Hotels — see the note there, and
+   `../brand.js` for why 110 rather than the 30px the wordmark used. */
+.ao__hero-logo {
+  height: 110px;
+  width: auto;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+@media (max-width: 1100px) {
+  .ao__hero-logo { height: 96px; }
+}
+.ao__hero-title { margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.15; }
+.ao__hero-sub { margin: 6px 0 0; opacity: 0.85; }
+
 .ao { display: flex; flex-direction: column; flex: 1; background: var(--ds-palette-slate-50, #f8fafc); }
 .ao__inner { width: 100%; max-width: 1180px; margin-inline: auto; padding: 28px 24px 56px; }
 

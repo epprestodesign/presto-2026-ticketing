@@ -1,7 +1,29 @@
 <script setup>
-// Step 6 — CHECKOUT. Aug 25, verbatim: "can there be a checkout? Like, I want
-// to pay." Until this round the cart handed straight to the confirmation and
-// nothing in the flow ever asked for a name or a card.
+// Step 3 — REVIEW, WHICH IS THE CHECKOUT. Aug 25, verbatim: "can there be a
+// checkout? Like, I want to pay." Until this round the cart handed straight to
+// the confirmation and nothing in the flow ever asked for a name or a card.
+//
+// AUG 25, THAT EVENING — THIS SCREEN BECAME THE STEPPER'S THIRD STEP:
+//
+//   "make sure the review screen is the checkout. i want the review to be the
+//    cart flyout."
+//
+// The separate cart page is deleted, so this page is both the review and the
+// payment. It can carry that because CheckoutPageExpanded already states the
+// order twice: the "Review your order" section in the open form, and the
+// itemised CartReview rail beside it, whose lines include the bundle credit as
+// its own row (see buildCheckoutCart). Nothing the deleted screen said about
+// what is being bought was only said there.
+//
+// THE "BACK TO YOUR TRIP" BAR IS GONE, by instruction — "the top of checkout
+// clean". It was a strip above the page carrying a back button and a sentence
+// explaining that quantities, rooms and extras were changed somewhere else.
+// Both halves died with the cart page: the button pointed at a screen that no
+// longer exists, and the sentence described a separation between "your trip" and
+// "the checkout" that no longer exists either. What replaces it is nothing: the
+// stepper above (Review, lit) is the orientation, the rail is the statement of
+// charges, and the Global Nav's cart button — visible on this screen — opens the
+// peek, where the trip is edited in place. No substitute bar, banner or note.
 //
 // The page is the library's CheckoutPageExpanded in `ticketing` mode — the
 // EXPANDED variant, not the stepped CheckoutPage, and that is the other half of
@@ -23,21 +45,41 @@
 //    navigating to the real confirmation is the same news twice, in two places,
 //    one of which disappears.
 //
-// 2. EDITING STOPS HERE. The rail is `readonly` and its lines carry no
-//    unitPrice (see buildCheckoutCart), so nothing on this page can move a
-//    number. CartReview edits a deep copy of whatever it is handed, so an
+// 2. EDITING STOPS HERE — on the page. The rail is `readonly` and its lines
+//    carry no unitPrice (see buildCheckoutCart), so nothing on this page can
+//    move a number. CartReview edits a deep copy of whatever it is handed, so an
 //    editable rail would change a total the trip never sees — the cart, this
-//    page and the receipt have to agree to the dollar. The way back to the one
-//    surface that owns those numbers is a link, not a stepper.
+//    page and the receipt have to agree to the dollar. The one surface that owns
+//    those numbers is the cart peek, and it is a cart-button click away from
+//    here rather than a screen away.
+//
+// 3. THE HOLD COUNTDOWN FLOATS. "Time left to book" shipped inside the rail
+//    (CheckoutPageExpanded's own .ck__timer block, under the cart card), which
+//    means it scrolls off the moment the guest starts filling in the form —
+//    the one screen where the number actually matters. The stakeholder asked for
+//    it pinned and always visible, so the library's own HoldTimerPill is mounted
+//    bottom-right and THE RAIL'S COPY IS HIDDEN: two countdowns for one hold, on
+//    one screen, would be the same number in two places and would drift the
+//    moment either was re-seeded. The rail's is the one that goes, because the
+//    pill is the one that must exist.
+//
+//    A FIXED PILL IS NOT A POP-UP. The no-modals rule is about surfaces that
+//    interrupt — something that takes the screen, traps focus and has to be
+//    dismissed before the guest can carry on. This takes no click, blocks
+//    nothing, dismisses nothing and can be ignored: it is page furniture that
+//    happens to be anchored to the viewport instead of to the document, the same
+//    class of thing as a sticky rail. It needs no exception and is NOT a second
+//    overlay — the cart peek is still the only one of those.
 import { computed } from 'vue'
 import CheckoutPageExpanded from '@lib/components/checkout/CheckoutPageExpanded.vue'
+import HoldTimerPill from '@lib/components/HoldTimerPill.vue'
 import { buildCheckoutCart } from '../addons.js'
 
 const props = defineProps({
   cart: { type: Object, required: true },   // buildTripCart() result
   event: { type: Object, required: true },
 })
-const emit = defineEmits(['submit', 'back'])
+const emit = defineEmits(['submit'])
 
 const checkoutCart = computed(() => buildCheckoutCart(props.cart))
 
@@ -86,28 +128,52 @@ function onClickCapture(e) {
 
 <template>
   <div class="tco" @click.capture="onClickCapture">
-    <div class="tco__bar">
-      <button type="button" class="tco__back" @click="emit('back')">
-        <q-icon name="arrow_back" size="17px" /> Back to your trip
-      </button>
-      <span class="tco__note">Quantities, rooms and extras are changed in your trip — this page states what's being charged.</span>
-    </div>
-
     <CheckoutPageExpanded mode="ticketing" :cart="checkoutCart" :summary="summary" />
+
+    <!-- The hold, pinned. `seconds` comes off the same cart object that feeds
+         the rail's (now hidden) copy, so there is one starting number in the app
+         — a fixed 895, not a clock reading, so a demo opens on the same time
+         every run. `running` lets the pill tick it down itself, which is how the
+         ticketing stories mount it.
+         Rendered here rather than in App.vue so it cannot outlive the screen: a
+         hold countdown over the landing page, the ticket map or — worst — the
+         receipt for an order already paid for would be alarming and untrue. -->
+    <HoldTimerPill
+      :seconds="checkoutCart.heldSeconds" running position="bottom-right"
+      label="Time left to book" sub="Your seats and rate are held while it runs"
+    />
   </div>
 </template>
 
 <style scoped>
 .tco { display: flex; flex-direction: column; font-family: var(--ds-font-family); }
-.tco__bar {
-  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  max-width: 1040px; width: 100%; margin: 16px auto 0; padding: 0 24px;
-}
-.tco__back {
-  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px;
-  border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button);
-  background: var(--ds-color-surface); font: inherit; font-weight: var(--ds-font-weight-bold);
-  color: var(--ds-color-text); cursor: pointer;
-}
-.tco__note { font-size: var(--ds-font-size-sm); color: var(--ds-color-text-subtle); }
+
+/* THE RAIL'S OWN COUNTDOWN, HIDDEN — the floating pill is the same hold and one
+   hold gets one clock. Hidden here rather than removed there: the library is
+   read-only, and this is the same technique HotelDetails.vue uses on the hotel
+   page's two modal triggers. The block is rendered inline in the rail (not
+   teleported), so a scoped :deep() rule reaches it. */
+.tco :deep(.ck__timer) { display: none; }
+
+/* Clearance for the pill, so nothing important can come to rest under it.
+   At 1440×900 and 1280×720 the two-column grid keeps the submit button in the
+   left column (the pill is right-anchored, ~300px wide) and the sticky rail's
+   card ends well above the pill's 84px band — nothing overlaps. The rail
+   padding is for the tall case: a four-extra trip whose rail card runs past the
+   fold, where the last totals row would otherwise stop right behind the pill.
+   Under 880px the library collapses the grid to one column and the full-width
+   submit button reaches the bottom-right corner, so the page gets the same
+   clearance below its last element. Neither rule moves anything on the page —
+   they only guarantee the last row can be scrolled clear. */
+.tco :deep(.ck__railwrap) { padding-bottom: 84px; }
+@media (max-width: 880px) { .tco { padding-bottom: 84px; } }
+
+/* The order rail pins itself at `top: 20px`, which was 20px from the top of the
+   window and is now 20px UNDER the pinned header's row — the rail would come to
+   rest with its "Your order" heading and the first line or two of the itemised
+   trip hidden behind the step bar, on the one screen whose whole job is letting
+   a guest check what they are about to be charged for. Re-based on the measured
+   header height, it keeps the same 20px of air, just below the chrome instead of
+   behind it. See the `.bapp__chrome` note in App.vue. */
+.tco :deep(.ck__railwrap) { top: calc(var(--tf-chrome-h, 0px) + 20px); }
 </style>

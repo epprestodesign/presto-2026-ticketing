@@ -25,7 +25,7 @@ import { cardPropsFor, STAY } from '../hotels.js'
 const props = defineProps({
   hotels: { type: Array, required: true },
   eventName: { type: String, default: '' },
-  // The stay already in the trip, if the guest is coming back from the cart.
+  // The stay already in the trip, if the guest doubled back from the cart peek.
   chosen: { type: Object, default: null },   // { hotel, room }
 })
 const emit = defineEmits(['open', 'skip', 'remove'])
@@ -46,7 +46,7 @@ const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency:
       <span class="hpick__mode"><q-icon name="verified" size="14px" /> Partner rates</span>
     </header>
 
-    <!-- Coming back from the cart, the first question is "which one did I
+    <!-- Doubling back from the cart, the first question is "which one did I
          pick?" — the cards themselves have no selected state, so the answer is
          stated once, above them, with the room and the rate that are actually
          in the trip. -->

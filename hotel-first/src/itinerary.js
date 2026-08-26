@@ -46,6 +46,10 @@ const HOTEL_CART_POLICIES = [
 function hotelItem(hotel, room) {
   const nights = DETAIL_NIGHTS.map((date) => ({ date, price: room.nightly }))
   return {
+    // `id` exists for the cart page, which needs to name the line it is removing
+    // (see CartScreen.vue). CartReview ignores fields it doesn't know, so this
+    // costs the library surfaces nothing.
+    id: 'hotel',
     type: 'hotel',
     label: `${hotel.name} · ${room.type}`,
     sublabel: `${STAY.nights} nights · ${STAY.range}`,
@@ -82,6 +86,7 @@ function hotelItem(hotel, room) {
  */
 function ticketItems(selection, guests) {
   return ticketLines(selection).map((t) => ({
+    id: t.id,
     type: 'ticket',
     label: t.name,
     sublabel: `${EVENT.venueShort} · ${t.days} · ${partyNote(t.qty, guests)}`,
@@ -101,6 +106,7 @@ function ticketItems(selection, guests) {
  */
 function addOnItems(selection, guests) {
   return addOnLines(selection).map((a) => ({
+    id: a.id,
     type: 'experience',
     label: a.name,
     sublabel: `${a.vendor} · ${a.qty} × ${unitLabel(a)}`,
@@ -146,6 +152,28 @@ export function buildCart(journey, hotel) {
       { icon: 'event_available', title: 'Free hotel cancellation until Feb 10', text: 'Change or cancel the room without touching the rest of the itinerary.' },
       { icon: 'family_restroom', title: 'Your party stays together', text: 'Everyone on this order is booked into the same property and the same entry group — passes and add-ons are bought for the whole party, not line by line.' },
     ],
+  }
+}
+
+/**
+ * The nav cart PEEK's view of the same cart.
+ *
+ * Same items, same order, same subtotal / fees / taxes / total to the dollar —
+ * with `details`, `hotelDetail` and `ticketDetails` dropped. Those three fields
+ * are what turn a CartReview ticketing row into an expandable panel and hang a
+ * four-row guarantees block off the bottom; useful on the checkout rail and on
+ * the cart page, far too much for a slide-over whose whole job is "what's in
+ * here, roughly, without leaving this screen".
+ *
+ * Doing it as a PROJECTION rather than a second row template is the point: the
+ * peek renders the real library component off the real cart, so the only way it
+ * can disagree with checkout is if the cart itself is wrong.
+ */
+export function peekCart(cart) {
+  return {
+    ...cart,
+    ticketDetails: [],
+    items: (cart.items || []).map(({ details, hotelDetail, ...rest }) => rest),
   }
 }
 

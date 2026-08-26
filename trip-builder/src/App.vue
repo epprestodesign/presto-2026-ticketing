@@ -19,22 +19,37 @@
 //     room card's Reserve Room — and each is caught where it happens: Book Now
 //     here, Reserve Room inside HotelScreen. Neither is a routing layer.
 //
-// GlobalNav is mounted with its cart hidden. Its cart button opens CartFlyout,
-// whose body can't remove a line; a cart icon that opens a cart you can't edit
-// would quietly contradict the prototype. The trip lives in TripBar instead.
+// AUG 25, SECOND LOOK: THE SHELL MOUNTS EXACTLY ONE OVERLAY, AND ONLY ONE MAY
+// EVER BE ADDED BACK. The first Aug 25 round emptied this file of two of them —
+// a DsSidePanel trip fly-out and a DsModal stay editor — on the note "I never
+// want to have this as a pop-up … we're always going to want a clean page". The
+// next review asked for the cart specifically to be reachable as a peek with a
+// full page behind it, so TripFlyout is back, hung here (the only place that is
+// above every screen) and opened from the nav's cart icon.
 //
-// AUG 25: THE SHELL NO LONGER MOUNTS ANY OVERLAY. It used to carry two — a
-// DsSidePanel trip fly-out and a DsModal stay editor — both hung here precisely
-// so they could open over any screen. Stakeholder feedback was blunt about it:
-// "I never want to have this as a pop-up … we're always going to want a clean
-// page", and "I definitely wouldn't want it to be inconsistent between add-on
-// and add hotel." Both are now screens (`hotel` and the `trip` page that already
-// existed), so the shell is a nav, a bar and a page. What is left docked is
-// TripBar, which is not an overlay: it takes up its own row, scrolls nothing
-// under a scrim, and is the cart spine this prototype is built on.
+// The rest of that round stands, and the difference matters to anyone editing
+// this file:
+//
+//   • THE CART PEEK IS THE ONLY SANCTIONED OVERLAY. It is the cart, it is a view
+//     of a page that still exists at `trip`, and it is opened from a control
+//     that is visible on every screen.
+//   • EVERYTHING ELSE IS STILL A PAGE. `hotel` is the HotelDetailPage screen —
+//     StayEditDialog is NOT coming back; `stays` is the full Browse Hotels
+//     experience. Adding a second modal here would be a regression, not a
+//     symmetry.
+//
+// TripBar stays docked and is not an overlay: it takes its own row and scrolls
+// nothing under a scrim. AUG 25, FOURTH ROUND: IT NO LONGER CARRIES A CART
+// HANDLE. The stakeholder looked at the bar's "4 items / $803" button beside the
+// nav's cart icon and called it — "there is a cart button that already exists
+// from the global nav" — so the icon is the one cart control in this app and the
+// bar keeps only the three Add doors and the summary of what the trip holds. The
+// earlier "one action, two placements" argument is overruled, not forgotten; it
+// and what replaced it are written out in TripBar itself.
 import { computed, onMounted, onBeforeUnmount } from 'vue'
-import GlobalNav from '@lib/components/GlobalNav.vue'
+import TripNav from './components/TripNav.vue'
 import TripBar from './components/TripBar.vue'
+import TripFlyout from './components/TripFlyout.vue'
 import { trip, nav } from './store.js'
 
 import LandingScreen from './screens/LandingScreen.vue'
@@ -65,11 +80,12 @@ const showBar = computed(() => trip.screen !== 'confirmation')
 
 // CheckoutPage's final Book Now is the one CTA in the app with no event to bind
 // to, so it is caught here. Capture phase and document scope because the button
-// is inside a library page this app doesn't own.
+// is inside a library page this app doesn't own. (The nav's own two intercepts —
+// wordmark and cart icon — used to live here too; they moved into TripNav, where
+// they can listen on the nav subtree instead of on every click in the app.)
 function onClickCapture(e) {
   const t = e.target
   if (!(t instanceof Element)) return
-  if (t.closest('.gnav__brand')) { e.preventDefault(); nav('landing'); return }
   if (trip.screen !== 'checkout') return
   const btn = t.closest('button')
   if (btn && /book now|place order|pay now|confirm & pay/i.test((btn.textContent || '').trim())) nav('confirmation')
@@ -80,12 +96,17 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
 
 <template>
   <div class="tbapp">
-    <global-nav brand="EventPipe" :show-cart="false" @manage="nav('trip')" />
+    <trip-nav />
     <trip-bar v-if="showBar" />
 
     <main class="tbapp__main">
       <component :is="current" />
     </main>
+
+    <!-- The peek. Hung at the shell because it opens over every screen — which
+         is the one thing a page cannot do, and the reason this single overlay
+         earns its place. -->
+    <trip-flyout />
   </div>
 </template>
 

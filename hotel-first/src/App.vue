@@ -9,10 +9,16 @@
 //    The stepper sits inside the frame, under the nav, because a four-stage
 //    journey needs an orientation the booking site's own screens don't carry.
 //
-//    The nav cart runs in `ticketing` mode against the live itinerary, so the
-//    fly-out shows the room, the passes and the add-ons together from the moment
-//    the first thing is chosen — the combined cart is visible three screens
-//    before checkout, not revealed at it.
+//    THE CART, in three pieces that are the same cart: the nav's cart button
+//    with a live count of the lines on the order (GlobalNav, `ticketing` mode,
+//    fed the live itinerary) → CartPeek, the slide-over summary → the full cart
+//    PAGE, where the order can actually be changed. The combined cart is visible
+//    three screens before checkout, not revealed at it.
+//
+//    CartPeek is the ONLY overlay in this prototype and it is sanctioned: the
+//    map is an in-page panel, the clear-cart confirmation is an in-page bar, and
+//    both were converted away from modals on Aug 25. See CartPeek.vue for why
+//    the exception was asked back in — and do not add a second one.
 //
 // 2. THE ROUTER. The library page components emit no navigation events (we make
 //    ZERO library changes), so navigation is driven by ONE document-level,
@@ -22,10 +28,11 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import PageFrame from '@lib/components/PageFrame.vue'
 import AppStepper from '@lib/components/AppStepper.vue'
-import { journey, activeHotel, STEP_LABELS, currentStage, showStepper, goToStage, openHotel, selectRoom, nav, resetJourney } from './store.js'
+import { journey, activeHotel, STEP_LABELS, currentStage, showStepper, goToStage, openHotel, selectRoom, nav, goToCart, resetJourney, setGuests } from './store.js'
 import { getHotelByName, getHotel } from './hotels.js'
 import { buildCart } from './itinerary.js'
 
+import CartPeek from './components/CartPeek.vue'
 import LandingScreen from './screens/LandingScreen.vue'
 import HotelBrowseScreen from './screens/HotelBrowseScreen.vue'
 import HotelDetailsScreen from './screens/HotelDetailsScreen.vue'
@@ -33,6 +40,7 @@ import TicketsScreen from './screens/TicketsScreen.vue'
 import AddOnsScreen from './screens/AddOnsScreen.vue'
 import CheckoutScreen from './screens/CheckoutScreen.vue'
 import ConfirmationScreen from './screens/ConfirmationScreen.vue'
+import CartScreen from './screens/CartScreen.vue'
 
 const screens = {
   landing: LandingScreen,
@@ -42,14 +50,22 @@ const screens = {
   addons: AddOnsScreen,
   checkout: CheckoutScreen,
   confirmation: ConfirmationScreen,
+  cart: CartScreen,
 }
 const current = computed(() => screens[journey.screen] || LandingScreen)
 const isLanding = computed(() => journey.screen === 'landing')
 const cart = computed(() => buildCart(journey, activeHotel.value))
 
-// GlobalNav's badge is fed by the cart fly-out, which only mounts when opened —
-// so the badge reads 0 until you click it. Patch the number directly instead:
-// it's the no-library-change way to keep the count honest as items are added.
+// THE COUNT. GlobalNav's badge is fed by whatever cart body it has open, and it
+// has none until you click — so left alone it reads 0 for the whole flow. Patch
+// the number directly instead: it is the no-library-change way to keep the count
+// honest, and it is doubly required here because the nav's own fly-out is never
+// the thing that opens (see the click handler below).
+//
+// The number is LINES ON THE ORDER, not units. A family of four with a room, a
+// weekend pass and two park days is "4", not "13" — 13 is a number that is true
+// of nothing the guest recognises, and it is the same call addons.js already
+// made for `addOnCount`.
 function syncBadge() {
   const n = cart.value.items.length
   nextTick(() => requestAnimationFrame(() => {
@@ -78,6 +94,25 @@ function confirmClear() {
   confirmClearOpen.value = false
   resetJourney()
 }
+// Asked from inside the peek, the peek has to get out of the way first — the bar
+// lives in the page, and the peek's scrim would have hidden the question.
+function requestClear() {
+  peekOpen.value = false
+  confirmClearOpen.value = true
+}
+
+// The cart peek. Opened by the nav cart button (intercepted below), and the only
+// route to the full cart page — so a glance at the order never costs the guest
+// the step they were on.
+const peekOpen = ref(false)
+function openFullCart() {
+  peekOpen.value = false
+  goToCart()
+}
+function peekToCheckout() {
+  peekOpen.value = false
+  nav('checkout')
+}
 
 // Read the chosen room off the library room card's own DOM. RoomCardReserve emits
 // `reserve` with no payload, and HotelDetailPage doesn't forward it — so the card
@@ -94,6 +129,34 @@ function readRoom(card) {
   }
 }
 
+// The landing page's Travelers field is the first number the guest types, and
+// until now it was thrown away: BookingWidget keeps `rooms` in local state and
+// exposes NO v-model and NO emit, so a parent cannot read it. Search therefore
+// navigated with the party still at its default, and the guest had to say how
+// many people were coming a second time on the Tickets step — having already
+// answered on the screen before.
+//
+// Party size is the ONE quantity in this flow (see `journey.guests`), so the
+// landing's answer has to become that value or it means nothing. With no event
+// to listen to, the number is read off the rendered control at the moment Search
+// is pressed — the same technique this app already uses for the room CTA, and
+// the one `/prototype` uses for the same class of library gap.
+//
+// Rejected: overriding BookingWidget through the OVERRIDES map. It would give a
+// clean prop, but forks a 300-line library component with a date picker and a
+// teams block to reach one integer — and the fork then silently stops tracking
+// the real widget. Reading the label costs one selector and stays honest about
+// which component owns the field.
+function carryTravelers() {
+  if (typeof document === 'undefined') return
+  // "1 traveler, 1 room" / "4 travelers, 2 rooms" — the label BookingWidget
+  // renders from its own `travelersTotal`.
+  for (const input of document.querySelectorAll('.bw__input input')) {
+    const m = /(\d+)\s+traveler/.exec(input.value || '')
+    if (m) { setGuests(parseInt(m[1], 10)); return }
+  }
+}
+
 function onClickCapture(e) {
   const t = e.target
   if (!(t instanceof Element)) return
@@ -101,12 +164,22 @@ function onClickCapture(e) {
   // Global: the top-left wordmark → Landing.
   if (t.closest('.gnav__brand')) { e.preventDefault(); nav('landing'); return }
 
-  // Global: the cart fly-out's "Clear Cart" → confirm first. Stop the library
-  // handler so nothing is cleared while the dialog is still a question.
-  const menuItem = t.closest('.q-item')
-  if (menuItem && /clear cart/i.test(menuItem.textContent || '')) {
+  // Global: the nav's cart button opens OUR peek, not GlobalNav's own fly-out.
+  //
+  // GlobalNav hard-wires that button to the library CartFlyout and exposes no
+  // prop or event to redirect it, so the click is caught here in the capture
+  // phase and stopped before it ever reaches the button's own Vue listener.
+  // GlobalNav's `cartOpen` therefore stays false for the life of the app and its
+  // CartFlyout never renders — which is what guarantees the peek is the only
+  // overlay rather than one of two stacked ones.
+  //
+  // The rejected alternative was passing `show-cart="false"` and building a nav
+  // of our own. That trades one intercepted click for a forked component, and
+  // the nav is exactly the thing that is supposed to be identical across these
+  // prototypes.
+  if (t.closest('.gnav__iconbtn')) {
     e.preventDefault(); e.stopPropagation()
-    confirmClearOpen.value = true
+    peekOpen.value = true
     return
   }
 
@@ -121,7 +194,7 @@ function onClickCapture(e) {
 
   const screen = journey.screen
   if (screen === 'landing') {
-    if (t.closest('.bw__search')) nav('hotels')
+    if (t.closest('.bw__search')) { carryTravelers(); nav('hotels') }
     return
   }
   if (screen === 'hotels') {
@@ -150,7 +223,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
 </script>
 
 <template>
-  <div class="hfapp">
+  <!-- `hfapp--held` only while the checkout screen is up: that is the one screen
+       that mounts the fixed HoldTimerPill, and the class buys the page footer
+       clearance so the pill never comes to rest on the legal line. See the rule
+       at the bottom of this file. -->
+  <div class="hfapp" :class="{ 'hfapp--held': journey.screen === 'checkout' }">
     <!-- Landing brings its own nav and footer (LandingPage is a whole page). -->
     <component :is="current" v-if="isLanding" />
 
@@ -177,9 +254,18 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickCapture, true
         <app-stepper :steps="STEP_LABELS" :current="currentStage" clickable allow-ahead @navigate="goToStage" />
       </div>
       <main class="hfapp__main">
-        <component :is="current" />
+        <!-- `request-clear` is the cart page asking for the confirmation bar.
+             Screens that don't emit it just ignore the listener. -->
+        <component :is="current" @request-clear="requestClear" />
       </main>
     </page-frame>
+
+    <!-- The one sanctioned overlay. Mounted outside PageFrame so it survives a
+         screen change, and teleported to <body> by the component itself. -->
+    <cart-peek
+      :open="peekOpen" :cart="cart" :guests="journey.guests"
+      @close="peekOpen = false" @view-cart="openFullCart" @checkout="peekToCheckout" @clear="requestClear"
+    />
   </div>
 </template>
 
@@ -206,4 +292,26 @@ body { background: var(--ds-palette-slate-100, #f1f2f4); }
 .hfapp__confirm-actions { display: flex; gap: 10px; flex: none; }
 .hfapp__confirm-btn { height: 40px; padding: 0 16px; border: 1px solid var(--ds-color-border-bold); border-radius: var(--ds-radius-button); background: var(--ds-color-surface); color: var(--ds-color-text); font: inherit; font-weight: 700; font-size: 0.875rem; cursor: pointer; }
 .hfapp__confirm-btn--danger { background: var(--ds-color-background-danger-bold, #a1242b); border-color: var(--ds-color-background-danger-bold, #a1242b); color: #fff; }
+
+/* CLEARANCE FOR THE HOLD PILL (checkout only). CheckoutScreen mounts the fixed
+   HoldTimerPill bottom-right; at full scroll the last thing in the document is
+   PageFrame's footer, whose right-aligned "© 2026 EventPipe · Terms · Privacy ·
+   Contact" line lands inside the pill's band and is covered by it. Everything
+   the guest acts on is already clear — Book Now and the whole form sit in the
+   left column, the rail's totals stop above the band — so this is the only
+   collision, and it is a resting one rather than a passing one: no amount of
+   scrolling reveals the line again.
+   Fixed by making the footer taller ON THIS SCREEN, not by moving the pill: the
+   stakeholder asked for the corner, and lifting the pill off it would just park
+   it on top of the rail instead. Padding the footer is also why this rule lives
+   here rather than in CheckoutScreen's scoped block — the footer is PageFrame's,
+   a sibling of the screen slot, so no :deep() from inside the screen reaches it.
+   Applied via a class rather than globally so no other screen carries dead space
+   below its footer. */
+/* 96px, not 76: at 1440x900 the legal line's baseline landed 2px inside the
+   pill's top edge — clear to the eye, but an actual intersection, and the
+   kind that reappears the moment the pill's copy wraps to a third line.
+   Sized to clear the pill's 59px band plus a real gap rather than to just
+   miss it. */
+.hfapp--held .pf__footer-inner { padding-bottom: 96px; }
 </style>

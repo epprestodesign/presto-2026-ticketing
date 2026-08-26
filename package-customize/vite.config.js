@@ -17,13 +17,31 @@ const quasarVariables = fileURLToPath(new URL('../src/css/quasar.variables.scss'
 // inside library pages, which import by RELATIVE path (so a plain `resolve.alias`
 // wouldn't catch them). The library itself is never touched.
 //
-// EMPTY HERE, and deliberately so. This app renders its own browse board and its
-// own customize screen, and mounts PackageDetailPage, HotelDetailPage,
+// Nearly empty, and deliberately so. This app renders its own browse board and
+// its own customize screen, and mounts PackageDetailPage, HotelDetailPage,
 // CheckoutPageExpanded and ConfirmationPage exactly as the library ships them.
 // Where a library component couldn't carry package semantics — the room card, the
 // option rows, the price rail — the answer was a NEW component under
 // src/components/, never a redirected library file.
-const OVERRIDES = {}
+//
+// THE ONE ENTRY: the cart slide-over.
+//
+// `GlobalNav` is mounted exactly as the library ships it, cart button and all,
+// and it imports its own `CartFlyout` by relative path — no slot, no cart event,
+// nothing a prop can reach. Redirecting that one import is the only way to give
+// the library nav a cart that belongs to this prototype, and it is precisely what
+// this mechanism is for. The library file is not edited, and every other app in
+// the repo still gets the library's flyout.
+//
+// Why the library flyout is the wrong body here is argued in full at the top of
+// CartPeek.vue; the short version is that `CartFlyout` only mounts its contents
+// while it is OPEN, so the count `GlobalNav` shows on its badge is 0 until the
+// guest opens the cart — a live count is unreachable with it in place.
+const localComponent = (name) => fileURLToPath(new URL(`./src/components/${name}`, import.meta.url))
+
+const OVERRIDES = {
+  'src/components/CartFlyout.vue': localComponent('CartPeek.vue'),
+}
 
 const overrideLibraryComponents = () => ({
   name: 'pkgcustomize-local-overrides',

@@ -1,4 +1,12 @@
-// The gameday extras offered after the hotel step, and the cart they feed.
+// The gameday extras, and the cart they feed.
+//
+// Aug 25 (evening): these used to be a STEP between the hotel and the cart.
+// They are now sold from inside the cart itself — the nav's peek and the review
+// screen, both through TripCartBody → CartAddOns — because the stepper was cut
+// to three labels (Tickets · Hotel · Review). NOTHING IN THIS FILE CHANGED for
+// that move: same four offers, same prices, same units, same hotel dependency,
+// same cart arithmetic. The offers outlived the screen that introduced them,
+// which is the point of keeping the model here rather than in the step.
 //
 // PROTOTYPE DATA. The library ships hotels (CONTRACTED_HOTELS) and pre-baked
 // ticket+hotel+experience SKUs (generateExperiencePackages), but nothing for
@@ -19,10 +27,13 @@
 //   unit: 'vehicle' → its own count, because cars don't follow headcount: four
 //                     people can arrive in one car or three.
 //
-// `requiresHotel` is the one dependency between steps: a round-trip transfer
-// leaves from the hotel lobby, so with no hotel in the trip there is nowhere
-// for it to leave from. That is why extras come AFTER the hotel step rather
-// than beside the tickets — the hotel answer changes what can be offered.
+// `requiresHotel` is the one dependency between the parts of a trip: a
+// round-trip transfer leaves from the hotel lobby, so with no hotel in the trip
+// there is nowhere for it to leave from. It used to be why extras came AFTER the
+// hotel step; with the step gone, the ordering no longer states it and the offer
+// has to. CartAddOns renders the transfer disabled with that reason and a link
+// to the hotel step — never absent — and setHotel(null) in App.vue drops it back
+// off the trip when the stay is removed.
 import { hotelCartDetail, ticketDetails } from '@lib/lib/bundles.js'
 
 // Kickoff is Sun Dec 6, 2026 at 4:25 PM ET (the event fixture's real start
@@ -155,8 +166,10 @@ export function buildTripCart({
     })
   }
 
-  // Extras keep source order (ADD_ONS), not click order, so the cart doesn't
-  // reshuffle as a guest adds and removes things at the extras step.
+  // Extras keep source order (ADD_ONS), not click order. That mattered on the
+  // old extras step and matters more now that they are added FROM the cart: a
+  // list that reshuffled itself as you added to it would move the next row out
+  // from under the cursor.
   const chosen = ADD_ONS.filter((a) => addOns.includes(a.id) && isOfferable(a, { hotel }))
   let addOnTotal = 0
   for (const addOn of chosen) {

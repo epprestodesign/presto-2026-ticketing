@@ -2,8 +2,8 @@
 //
 // The parent /bundle app has none of this — it starts at the intro every time,
 // which is fine for a two-minute demo and useless when the point of the review
-// IS one screen. Six screens in, "click through tickets, seats, hotel and
-// extras to see the cart" is a worse ask each time it's made.
+// IS one screen. Five screens in, "click through tickets, hotel and extras to
+// see the cart" is a worse ask each time it's made.
 //
 // It is deliberately NOT a store like option-d's: App.vue still owns the trip
 // in plain refs. This module only serializes what's there and parses what comes
@@ -19,6 +19,12 @@ export function readDeepLink() {
   if (screen) out.screen = screen
   const tier = q.get('tier')
   if (tier) out.tier = tier
+  // The exact listing taken off the ticket map. It supersedes `tier` (a listing
+  // knows its own level and price), and it is a separate key rather than a
+  // replacement so every link written before the map existed — `tier=club` and
+  // nothing else — still prices the trip it always priced.
+  const seat = q.get('seat')
+  if (seat) out.seat = seat
   const hotel = q.get('hotel')
   if (hotel) out.hotel = hotel
   // The room the property was booked at. Meaningless without a hotel, and
@@ -43,12 +49,16 @@ export function readDeepLink() {
  * are the flow's own history, and pushing a second history stack behind them
  * makes the browser Back button contradict them.
  */
-export function writeDeepLink({ screen, tier, quantity, hotel, room, addOns, vehicles }) {
+export function writeDeepLink({ screen, tier, quantity, seat, hotel, room, addOns, vehicles }) {
   if (typeof window === 'undefined' || !window.history) return
   const q = new URLSearchParams()
   q.set('screen', screen)
   if (tier) q.set('tier', tier)
   if (quantity && quantity !== 2) q.set('qty', String(quantity))
+  // Written alongside `tier`, not instead of it: the tier is what a reviewer
+  // reads at a glance ("club, 2 tickets"), and it is also what the link falls
+  // back to if the seat id ever stops resolving.
+  if (seat) q.set('seat', seat)
   if (hotel) q.set('hotel', hotel)
   if (hotel && room) q.set('room', room)
   if (addOns?.length) q.set('addons', addOns.join(SEP))

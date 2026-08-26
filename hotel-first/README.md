@@ -7,7 +7,10 @@ the Monday after finals, and pay for all three once.
 
 Forked from [`experience/`](../experience) on **August 25, 2026**. Like every prototype
 here it's a self-contained Vite app importing the **real library components** via the
-`@lib` alias — nothing is copied or forked from the library, and no library file is changed.
+`@lib` alias — nothing is copied or forked from the library, and **no library file on disk
+is changed**. (One is *rewritten as it is read*, for this app only, so the landing hero can
+carry the event's own artwork — see [The event's own
+artwork](#the-aug-26-round-the-events-own-artwork).)
 
 Deployed at `https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/`
 (local dev on port **6900**).
@@ -24,6 +27,16 @@ Four stepper stages, seven screens. The room is chosen **before any ticket exist
 is the reverse of every other ticketing flow in this repo and the whole reason this case
 was worth building.
 
+Hanging off every one of those screens, reachable from the nav, is the cart:
+
+```
+[nav cart · live count] ──▶ Cart peek (slide-over) ──▶ Cart page (?screen=cart)
+                             what's in the order          where it's changed
+```
+
+The cart page is **not** a stepper stage. It is a detour you can take from any step and be
+returned to the step you left — see [Nav, peek, page](#nav-peek-page).
+
 **Two exits, both first-class.** Tickets can be skipped entirely (`Skip — I only need the
 room`), and so can add-ons (`Continue without add-ons`, sitting in the rail from the moment
 the screen loads, not buried under six cards). Hotel-first means the room is allowed to be
@@ -39,6 +52,184 @@ signed off as-is — what came back was about *controls*, not structure.
 | *"I don't want this next. I want one big form… we're definitely getting rid of that step, step, step for a full open."* | Checkout mounts **`CheckoutPageExpanded`** instead of the stepped `CheckoutPage`. Contact, Payment, Review your order and Policies are all open at once, every field in its input state, **one Book Now at the bottom**. The right-hand rail is byte-identical — the expanded page shares it. |
 | *"If I select two people, these numbers should default to two."* | **Party size is now the only quantity in the flow.** Every pass and every add-on follows it and nothing can diverge from it — the per-line steppers are gone. |
 | *"I never want to have this as a pop-up… we're always going to want a clean page."* | **Zero pop-up layers.** The map's fullscreen `DsModal` became an in-page view of Browse, and the Clear Cart `q-dialog` became an in-page confirmation bar. |
+| *(follow-up)* — the cart should be a **slide-over peek with a full page behind it** | **One overlay, added back on purpose.** The nav cart opens [`CartPeek`](src/components/CartPeek.vue); the peek hands you to a real [cart page](src/screens/CartScreen.vue) where the order is edited. Nothing else became a pop-up: the map is still an in-page panel and Clear Cart is still an in-page bar. |
+| *(follow-up)* — the **"Time left to book" countdown should be pinned and always in the viewport**, on all four prototypes | **The hold floats.** Checkout mounts the library's [`HoldTimerPill`](../src/components/HoldTimerPill.vue) fixed bottom-right, and **the rail's own copy of the countdown is hidden** — see [The hold countdown is pinned](#the-hold-countdown-is-pinned). |
+
+## The Aug 26 round: the event's own artwork
+
+The prototype now wears the real event's brand — the **Varsity Spirit National School
+Spirit Championships** shield, over the supplied cheer-squad banners — on all four
+screens the guest sees before checkout.
+
+| File supplied | Copied to | Used on |
+| --- | --- | --- |
+| `01-logo_200x200.png` (actually **400×400**, transparent) | [`src/assets/event/spirit-logo.png`](src/assets/event) | All four screens |
+| `01-BANNER_1440x400.png` (actually **2880×800**, i.e. @2x) | [`src/assets/event/spirit-banner-hero.png`](src/assets/event) | **Landing** hero |
+| `01-BANNER_1440x240.png` (**1440×240**, 1×) | [`src/assets/event/spirit-banner-band.png`](src/assets/event) | **Stay**, **Tickets**, **Add-Ons** headers |
+
+The files are **copied into the app**, not imported from `references/` — that folder is
+gitignored, so an import from it builds on the machine that has it and breaks everywhere
+else. [`src/brand.js`](src/brand.js) is the one place they are named; new artwork is a
+three-file swap with no other edits.
+
+**One assumption to confirm.** The stakeholder's note named the hotels screen against
+*both* banners. The tall 400 is a landing hero and the short 240 is a header band, so the
+split above is the reading applied: landing gets the 400, the three in-flow screens get the
+240. If Stay was meant to carry the tall banner too, it is a one-line change.
+
+### The landing hero, and why it needed a build-time patch
+
+`LandingPage` is a library component and it **hardcodes both** its hero background and its
+hero logo as module imports, with no prop for either. Three ways in were considered:
+
+| Approach | Verdict |
+| --- | --- |
+| Scoped `:deep()` from `LandingScreen.vue` | **Rejected.** It reaches the background and (via `img { content: url(…) }`) even the logo — but *not* the `alt`, which would have stayed `"EventPipe"`. Sighted guests would see the Spirit shield while a screen reader announced the wrong organisation. On a *branding* round that is the exact failure the work exists to prevent. It also fails **silently** if the library renames a class. |
+| The `OVERRIDES` map — fork the whole component | **Rejected.** ~250 lines forked to change three. The nav, the widget, five prose sections, the ads and the footer would all stop tracking upstream. `OVERRIDES` earns that when a component's whole *body* is wrong for the app; here only three literals are. |
+| **`PATCHES` — rewrite the three literals as the file is read** | **Chosen.** The two image imports and the hero `alt` are swapped in [`vite.config.js`](vite.config.js). The component still tracks the library for everything else, and the alt text is real: *"Varsity Spirit National School Spirit Championships"*. |
+
+**What it costs:** this app now depends on three exact strings in a library file it does
+not own. When the library moves them **the build fails**, naming the file and the missing
+string — verified, not assumed. That loud failure is the thing being bought; a
+silently-wrong hero is the thing being traded away. The second cost is discoverability, so
+`LandingScreen.vue` carries a comment pointing at the patch.
+
+The library file on disk is still **not edited**, and no other app in the repo sees the
+rewrite — the plugin is scoped to this app's config, the same mechanism `package-customize`
+declares next door.
+
+### Sizing the crest
+
+The mark it replaced was the EventPipe **wordmark**: wide, one line, white, legible at
+30–44px. The Spirit artwork is a near-square **shield stacking four tiers of type**. At the
+wordmark's height those tiers fall under a pixel and the crest is a blue smudge — so it
+gets its own scale, and the two contexts get **different** numbers:
+
+| Context | ≥1101px | ≤1100px | Why |
+| --- | --- | --- | --- |
+| Landing hero (400px band) | **156px** | 132px | The only bound is the booking widget, which tucks 48px up onto the hero; at 156 the centred stack still clears it |
+| Stay / Tickets / Add-Ons band | **110px** | 96px | 110 makes the header section exactly **240px** — the natural height of the 1440×240 banner, so at 1440 it renders **1:1 with no crop** |
+
+**Sharpness.** The source is 400×400, so at a 2× device pixel ratio 156px asks for 312
+device px and 110px asks for 220 — both inside 400. Neither context upscales. The ceiling
+is 200px CSS.
+
+**Treatment.** The crest is full-colour on transparency, unlike the white wordmark, so it
+was checked against the scrimmed photograph rather than assumed. Its outermost stroke is a
+dark navy that *does* sink into a dark hero — but the bright yellow rim immediately inside
+it carries the silhouette on its own, so **no plaque is needed**. A white plaque was tried
+and dropped: it reads as a sticker on the photograph and puts a second white rectangle
+directly above the booking widget's white card. A `drop-shadow` does the same separation
+job for the dark stroke at a fraction of the weight. `opacity: .95` was removed with the
+wordmark — knocking a white logotype back a hair stops it shouting; doing it to a colour
+crest just makes the brand look faded.
+
+**Scrim.** The three in-flow screens carried two different values (50% and 55%) for no
+recorded reason; that is now one, **52% black**, in `brand.js`. A navy tint suits the
+duotone artwork better and was tried — but the landing hero's scrim is a literal inside the
+library and would have needed a *fourth* patched string. The screen that cannot be tuned
+decides the value, because the four have to look like one site.
+
+**Checked at 1440 and 1100** on all four screens: nothing wraps, nothing overflows, the
+event name and dates stay legible over the artwork, and the Add-Ons band is re-skinned
+rather than removed. One known limit: the 240 band is a **1× file**, so above 1440 (and on
+retina) it softens. Only new artwork fixes that — the hero banner, being @2x, does not.
+
+### The landing lockup: "bring in the logo with the text"
+
+The first pass got the crest's **size** right and then left it floating. The stakeholder's
+follow-up — *"bring in the logo with the text … and make it more vertically aligned and
+vertically centered"* — is two separate faults, and both were measured on the rendered page
+rather than eyeballed.
+
+**Fault 1 — the crest read as a logo with a caption.** At 1440 the gap from the shield's
+lowest **ink** to the cap line of *"Sunshine State Spirit Nationals 2027"* was **40px**:
+1.2× the heading's own 33.6px cap height. Only half of that was declared. The rest was
+space nobody had written down:
+
+| Contribution | px at 156 | Where it came from |
+| --- | --- | --- |
+| `margin-bottom` | 20.0 | The stylesheet — the only part that was visible to whoever tuned it |
+| Transparent PNG below the shield | 9.75 | `spirit-logo.png`'s alpha box is inset **25/400** at the bottom |
+| Heading half-leading above its cap line | 10.4 | `text-h3` at 48px/1.1 |
+| **Apparent gap** | **40.15** | |
+
+So 20px of margin was buying 40px of apparent space. The margin is now written as a
+**target optical gap minus the two invisible contributions**, because a raw number here is
+a lie and the next person to nudge it would be tuning something that means nothing on
+screen:
+
+```css
+--crest-trim-b: calc(var(--crest-h) * 0.0625);   /* 25/400 of transparent PNG */
+--h1-lead: 10.4px;                               /* measured, not derived     */
+margin-bottom: calc(18px - var(--h1-lead) - var(--crest-trim-b));
+```
+
+**Why 18px**, judged against the type rather than picked: it is **0.53× the heading's cap
+height**, and it lands on the same value as the gap already sitting between the heading's
+ink and the dates' ink (**17.96px**, measured). Crest, name and dates therefore share one
+rhythm — one stack, not a mark plus a two-line block. Against the ~57px of clear
+photograph above and below the pair, the spacing inside the lockup is roughly **1:3** to
+the space around it, which is what makes the eye take it as a single mark.
+
+**Fault 2 — the crest was off the vertical axis.** The shield is **not centred in its own
+canvas**: the opaque pixels span x 47–374 of 400, i.e. 11/400 right of centre. `margin: 0
+auto` centres the *box*, so at 156px the mark sat **4.3px right** of the axis the heading
+and dates are centred on. Corrected with `transform: translateX(-2.75%)` — a percentage of
+the element's own width, so it is right at 156, 132 and 104 without being restated.
+Measured axis error after: **0.01px**.
+
+**Fault 3 — centred on the wrong box.** The booking widget's card is pulled onto the hero
+with `margin-top: -48px`, so the bottom 48px of the 400px band is covered. The **visible**
+band is 352px and its centre is 24px above the box's. The lockup's ink centre measured
+**y=273** against a visible centre of **y=249** — 24px low, exactly as the box-centring
+predicts, and not something crest sizing could ever fix.
+
+The fix declares the occlusion instead of nudging past it:
+
+```css
+:deep(.lp__hero-inner) { --widget-overlap: 48px; padding-bottom: var(--widget-overlap); }
+```
+
+The library's own `align-items: center` then lands the **content** centre on the visible
+centre. Rejected: `translateY(-24px)` or a negative margin — both are a constant guess
+bolted onto a centring that is still wrong, and both break when the lockup grows (the
+heading wraps to two lines below ~700). The card is 992px wide and the lockup at most
+820px, both centred, so the lockup sits entirely inside the covered column — 352px is the
+right band for it, not an average across the full 1440.
+
+**Measured after, at three viewports:**
+
+| | 1440×900 | 1100×900 | 1440×700 |
+| --- | --- | --- | --- |
+| Crest height | 156 | 132 | 156 |
+| Crest ink → heading cap | 18.01px | 18.01px | 18.01px |
+| Heading ink → dates cap | 18.20px | 18.20px | 18.20px |
+| Axis error (crest ink vs text centre) | −0.01px | −0.01px | −0.01px |
+| Lockup ink centre vs visible centre | −0.08px | −0.53px | −0.08px |
+| Clear above shield / below dates | 57.5 / 57.7 | 67.9 / 68.9 | 57.5 / 57.7 |
+| Hero height (must stay 400) | 400 | 400 | 400 |
+
+Nothing overflows the band and nothing pushes the widget down: `1440×700` is identical to
+`1440×900` because the hero is a fixed 400px band, and the widget card still ends at
+y=529, well inside a 700px viewport. Also checked at 680 (the ≤700 breakpoint) where the
+heading wraps to two lines — the lockup still centres to within ~1px and still clears the
+card by 55px. The crest's four tiers of type stay legible at 156 and 132, and at an 18px
+gap the shield's lowest ink clears the heading's ascenders with no collision.
+`.bw__input input` still renders three fields, so `carryTravelers` is untouched.
+
+**Scope.** This is a **landing-only** change. Both rules are scoped `:deep()` selectors in
+[`LandingScreen.vue`](src/screens/LandingScreen.vue) hitting `.lp__hero-logo` and
+`.lp__hero-inner`; the in-flow bands use their own `tix__` / `ao__` / `bhero` classes and
+cannot be reached from there. **No shared value in `brand.js` changed** — the only edit
+there is a comment recording that the artwork's alpha-box fractions are now depended on, so
+a future artwork drop knows to re-measure them. The bands were re-measured anyway and are
+unchanged: crest still 110px, band still 242.6px at 1440.
+
+**No fourth `PATCHES` entry was needed.** Spacing and alignment are CSS's job; new markup
+would have bought another exact-string dependency on a library file this app does not own,
+for nothing. Both rules degrade harmlessly if the library renames a class — the crest falls
+back to the library's 44px, the lockup to box-centring — rather than failing the build.
 
 ## Party size is the quantity
 
@@ -79,10 +270,85 @@ now deliberately omits `unitPrice` and `maxQty` on ticket items. It was the last
 line could still break away from the party size — a guest arriving at payment with four
 park tickets and three passes — and dropping one field closes it with no library change.
 
-## No pop-ups
+## Nav, peek, page
 
-`hotel-first/` contains **zero** `DsModal` and `DsSidePanel` usages, and no `q-dialog`.
-Two surfaces changed:
+<a id="nav-peek-page"></a>
+
+Three surfaces, one cart object, no duplicated markup.
+
+**1. The nav.** Every screen but Landing renders inside the library's real `PageFrame` →
+`GlobalNav`, with the cart button forced on (`show-cart`) and `cart-mode="ticketing"`
+against the live itinerary. The badge carries a **live count of the lines on the order** —
+a room, a pass tier and two add-ons reads **4**. Not units: a party of four with those same
+four lines would read 13, a number that is true of nothing the guest recognises, and
+[`addons.js`](src/addons.js) had already made that call for `addOnCount`.
+
+> `GlobalNav`'s badge is fed by whatever cart body it has open, and it has none until you
+> click — so left alone it reads `0` for the whole flow. `App.vue` patches the number
+> directly. It is a DOM patch because the alternative is editing the library, and the
+> library is read-only here.
+
+Landing is the one screen with no cart button: `LandingPage` hard-codes `show-cart="false"`
+on its own nav, and that is the right answer anyway — the cart button is for an order in
+progress.
+
+**2. The peek** — [`CartPeek.vue`](src/components/CartPeek.vue). A right-hand slide-over:
+the lines under their three section headings, `Subtotal · Fees · Taxes · Total`, and two
+ways out — **View full cart** and **Go to checkout $x** — plus Clear cart. Escape closes it
+and the page behind stops scrolling.
+
+Its body is the library's real `CartReview` in `ticketing` mode — *the same component the
+checkout rail renders*. What makes it a peek rather than a second copy of the cart page is
+the **data**: it is fed `peekCart()` ([`itinerary.js`](src/itinerary.js)), the same items and
+the same totals to the dollar with `details`, `hotelDetail` and `ticketDetails` stripped, so
+the rows stay one line high and nothing expands. Compact by projection, not by a second row
+template that could drift.
+
+The library's own `CartFlyout` was tried first and rejected for two reasons: its footer is a
+single hard-coded "Go to checkout" CTA with no event and no slot, so it could never offer the
+route to the full cart page — which is the whole point of the change — and it carries a
+15-minute "time left to book" countdown, a group-block hold device this flow does not obey.
+Since `GlobalNav` hard-wires its cart button to `CartFlyout` and exposes no way to redirect
+it, `App.vue` catches that click in the **capture phase** and stops it before it reaches the
+button's own listener. `GlobalNav`'s `cartOpen` therefore never becomes true and its
+`CartFlyout` never renders — which is what guarantees the peek is *the* overlay rather than
+one of two stacked ones.
+
+**3. The page** — [`CartScreen.vue`](src/screens/CartScreen.vue), at `?screen=cart`. A real
+screen: the party control, then **Stay · Tournament admission · Orlando add-ons** as editable
+rows, beside the library's real `OrderSummary` rail fed the *same* `buildSummary()` the
+checkout page passes it. It carries no stepper — it is not a stage — and instead opens with
+"Back to *the step you came from*", which it remembers (`journey.returnScreen`).
+
+### Editing in place, under a locked quantity
+
+Party size locks every quantity (`setTicketQty` / `setAddOnQty` were deleted so no caller can
+pass an arbitrary number). So "editable in place" here means the two edits that **cannot make
+the order disagree with itself**:
+
+| Edit | Control | Why it's safe |
+| --- | --- | --- |
+| How many people | The party stepper, at the top of the page | `setGuests` re-derives *every* remaining line in one pass — four passes and four park days become two and two together |
+| What's on the order | **Remove**, per line | It is `toggleTicket(id, false)` / `toggleAddOn(id, false)` — the same in/out toggle the Tickets and Add-Ons cards already expose, just placed where the guest is looking |
+
+There is **no per-line stepper and no quantity dropdown anywhere in the cart**, and a removed
+line does not leave a `0 ×` row you can nudge back up: the section falls back to an empty
+state that links to the step it came from. An "add" affordance in the cart is one product
+decision away from being a quantity affordance again.
+
+The **room has no Remove**. Hotel-first means the stay is allowed to be the whole purchase,
+but the purchase is never allowed to be everything *except* the stay — so the room offers
+**Change room** and **Change hotel**, and the way to end up with no room is the same
+*Clear cart & start over* that has always meant that. Rejected: a Remove that silently empties
+the cart — a destructive action wearing the same word as the two beside it that only drop a
+$59 breakfast.
+
+## One overlay, on purpose
+
+`hotel-first/` contains **zero** `DsModal` and `DsSidePanel` usages, and no `q-dialog`. The
+**cart peek is the only overlay in the prototype**, and it is a deliberate, scoped reversal —
+the stakeholder asked for it back by name. A cart you have to leave the page to look at is a
+cart nobody checks mid-flow. Everything else stayed a page:
 
 - **The block map.** "View Map" in the filter rail used to open a fullscreen `DsModal`.
   Browse now *switches*: the results column becomes
@@ -96,9 +362,67 @@ Two surfaces changed:
   [`src/mapdata.js`](src/mapdata.js) so the pins can't disagree.
 - **Clear Cart.** Still confirmed rather than immediate — the cart holds a room, passes and
   attraction bookings, so an accidental clear costs three decisions — but the confirmation
-  is now a bar at the top of the frame instead of a `q-dialog`. Clearing immediately with an
-  Undo toast was rejected: Undo suits actions that are cheap to redo, and re-picking a
-  property, a room, five tiers and three add-ons is not.
+  is a bar at the top of the frame, not a `q-dialog`. Asked from inside the peek, the peek
+  closes first, because its scrim would otherwise have hidden the question. Clearing
+  immediately with an Undo toast was rejected: Undo suits actions that are cheap to redo,
+  and re-picking a property, a room, five tiers and three add-ons is not.
+
+Verified by sweeping all eight screens with the app running and counting
+`.q-dialog / .ds-modal / .ds-sidepanel / [role="dialog"] / .cf__panel` plus any viewport-sized
+fixed element: zero on every screen, and exactly one (`.peek__panel`) once the nav cart is
+clicked — never the library `CartFlyout` alongside it. The checkout screen's hold pill is
+fixed but is not viewport-sized, takes no click and dismisses nothing, so it is not one of
+these — the next section says why.
+
+## The hold countdown is pinned
+
+`CheckoutPageExpanded` ships *Time left to book* **inside the rail**, under the cart card.
+That is exactly where it stops being useful: the moment the guest starts filling in contact
+details and a card, the number scrolls off the top of the viewport — on the one screen where
+it decides whether the room is still theirs. The stakeholder asked for it pinned and always
+visible, on this prototype and its three siblings.
+
+- **The library's own component, not a hand-rolled box.**
+  [`HoldTimerPill`](../src/components/HoldTimerPill.vue) is mounted in
+  [`CheckoutScreen.vue`](src/screens/CheckoutScreen.vue) exactly as the *Checkout Experience*
+  stories mount it — `position="bottom-right"`, `running`, a `seconds` seed — with copy that
+  fits this flow: **"Your room and rate are held while it runs."** It's a room and a
+  contracted block rate being held here, not seats.
+- **One hold, one clock.** The rail's `.ck__timer` block is **hidden** with a scoped
+  `:deep()` rule in `CheckoutScreen.vue`. Two countdowns for one hold on one screen would be
+  the same number printed twice — and they are two *separate* intervals (one inside
+  `CheckoutPageExpanded`, one inside `HoldTimerPill`), so they start together and drift.
+  Hidden in this app rather than removed from the library, which is read-only and shared
+  with five other prototypes; a `showTimer` prop was rejected for the same reason.
+- **Checkout only.** The pill is rendered by the checkout screen, not by
+  [`App.vue`](src/App.vue), so it cannot outlive that screen. A hold countdown over the
+  landing page, the hotel list, the cart page or — worst — the **confirmation** for an order
+  already paid for would be alarming and untrue: nothing is being held once the receipt
+  exists.
+- **Fixed, and therefore free.** It reserves no space and pushes nothing; the layout is
+  identical with it and without it.
+- **Deterministic.** `seconds` is the same `cart.heldSeconds` that used to feed the rail — a
+  fixed `895` in [`itinerary.js`](src/itinerary.js), never seeded off `Date.now()`, so every
+  demo opens on the same 14:55.
+- **A fixed pill is not a pop-up**, so it needs none of the cart peek's exception treatment.
+  The no-pop-ups rule is about surfaces that *interrupt*: something that takes the screen,
+  traps focus and must be dismissed before the guest can carry on. This takes no click,
+  blocks nothing, dismisses nothing and can be ignored — page furniture anchored to the
+  viewport instead of to the document, the same class of thing as the rail's own
+  `position: sticky`. The cart peek is still the only overlay in this app.
+
+**What it covers.** Measured at 1440×900 and 1440×700, scrolled to the bottom: the pill's
+band is the bottom-right ~342×59px, and everything the guest acts on is clear of it. *Book
+Now* and every form field are in the left column, which ends ~266px to the left of the pill;
+the sticky rail's bottom — *Total* included — is clamped to the bottom of the checkout grid
+and lands ~100px above the band at both heights. Mid-scroll the rail's text passes behind the
+pill the way it would behind any fixed element, and scrolling on reveals it. The one thing
+that came to **rest** underneath was `PageFrame`'s footer legal line (*© 2026 EventPipe ·
+Terms · Privacy · Contact*), which is right-aligned into the same corner; the footer is given
+76px of bottom padding **on this screen only**, via the `hfapp--held` class in `App.vue` — the
+footer is a sibling of the screen slot, so no `:deep()` from inside the screen reaches it.
+The pill was not moved off the corner: the corner is what was asked for, and lifting it would
+only park it on the rail instead.
 
 ## What the case asked for
 
@@ -232,8 +556,12 @@ hands its rail to `CartReview`, which already groups an itemized cart by line ty
 holding a room, four passes and three attraction bookings prints as three named sections
 under one total, each line expandable into its nights or its inclusions.
 
-The same cart feeds the nav fly-out, so the combined itinerary is visible **three screens
-before checkout**, not revealed at it.
+The same cart feeds the nav badge, the peek (via `peekCart()`, the detail-stripped
+projection) and the cart page's `OrderSummary` rail — so the combined itinerary is visible
+**three screens before checkout**, not revealed at it, and the four surfaces cannot print
+different money. Checked live at a party of 3 with the add-ons cleared: peek `$1,170.00`,
+cart page rail `$1,170.00`, checkout rail `$1,170.00`, confirmation "Total charged"
+`$1,170.00`. Room-only (both exits taken): `$847.00` end to end.
 
 ## How it's priced
 
@@ -271,6 +599,8 @@ drifts and two screenshots taken a week apart agree.
 | Path | What it is |
 | --- | --- |
 | [`src/event.js`](src/event.js) | The tournament, the venue, the three nights |
+| [`src/brand.js`](src/brand.js) | The event's artwork — the two banners, the crest, the band scrim, the alt text |
+| [`src/assets/event/`](src/assets/event) | The three supplied files, copied in so they are tracked |
 | [`src/hotels.js`](src/hotels.js) | The 14-hotel Orlando block + filter/sort logic |
 | [`src/tickets.js`](src/tickets.js) | The five admission tiers |
 | [`src/addons.js`](src/addons.js) | The six destination add-ons |
@@ -279,6 +609,9 @@ drifts and two screenshots taken a week apart agree.
 | [`src/screens/HotelBrowseScreen.vue`](src/screens/HotelBrowseScreen.vue) | Browse, composed from the booking site's parts |
 | [`src/screens/TicketsScreen.vue`](src/screens/TicketsScreen.vue) | Passes, laid against the schedule |
 | [`src/screens/AddOnsScreen.vue`](src/screens/AddOnsScreen.vue) | The destination step |
+| [`src/screens/CartScreen.vue`](src/screens/CartScreen.vue) | The full cart page — the only place the order is edited |
+| [`src/components/CartPeek.vue`](src/components/CartPeek.vue) | The cart slide-over — **the one sanctioned overlay** |
+| [`src/screens/CheckoutScreen.vue`](src/screens/CheckoutScreen.vue) | The expanded checkout + the pinned `HoldTimerPill` |
 | [`src/components/AddOnCard.vue`](src/components/AddOnCard.vue) | One add-on — Add / Added, no stepper |
 | [`src/components/TicketTierCard.vue`](src/components/TicketTierCard.vue) | One admission tier — `TicketCategoryCard`'s grammar, minus the stepper |
 | [`src/components/PartySizeField.vue`](src/components/PartySizeField.vue) | The one quantity control left in the flow |
@@ -290,8 +623,18 @@ drifts and two screenshots taken a week apart agree.
 Library components mounted as shipped: `PageFrame`, `GlobalNav`, `AppStepper`,
 `LandingPage`, `BookingWidget`, `ResultsToolbar`, `HotelCardReserve`, the eight
 `filter-rail` fields, `HotelMap`, `HotelDetailPage`, `AvailabilityBadge`, `QuantityStepper`,
-`CheckoutPageExpanded`, `CartReview`, `ConfirmationPage`. Library overrides: **0**.
+`CheckoutPageExpanded`, `CartReview`, `ConfirmationPage`, `HoldTimerPill`. Library files
+changed: **0**. One library *element* is suppressed from this app with a scoped CSS rule —
+`CheckoutPageExpanded`'s in-rail *Time left to book* block, replaced by the fixed
+`HoldTimerPill` (see [The hold countdown is pinned](#the-hold-countdown-is-pinned)). It is
+not a pop-up, and it is the only such suppression.
 No `DsModal`, no `DsSidePanel`, no `q-dialog` anywhere in this app.
+
+One library file is *rewritten as it is read*, for this app only and without touching the
+file on disk: `LandingPage.vue`'s two hardcoded hero image imports and its hero `alt`, so
+the landing can carry the event's own artwork. The `PATCHES` block in
+[`vite.config.js`](vite.config.js) argues it, and the build fails loudly if the library
+moves those lines — see [The event's own artwork](#the-aug-26-round-the-events-own-artwork).
 
 ## Run it
 
@@ -309,6 +652,7 @@ Build check: `cd hotel-first && node ../node_modules/vite/bin/vite.js build`.
 - [Hotel details · Hyatt Regency, Rooms tab](https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/?screen=hotelDetails&hotel=h1&tab=rooms)
 - [Tickets · party of 6](https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/?screen=tickets&guests=6)
 - [Destination add-ons](https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/?screen=addons)
+- [The full cart page](https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/?screen=cart&demo=1)
 - [Checkout · the combined cart](https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/?screen=checkout&demo=1)
 - [Confirmation · the itinerary](https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/?screen=confirmation&demo=1)
 
