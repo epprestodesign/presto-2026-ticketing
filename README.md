@@ -12,8 +12,74 @@ booking**, checkout, and confirmation.
 - **Shape:** uniform **4px** radius system (pills reserved for chips / rounded buttons)
 - **Color system:** Tailwind-based 3-tier tokens (primitives → semantic → Quasar bridge)
 
+## 🌐 Where this is hosted — and what to use when Pages is down
+
+**GitHub Pages is the primary.** Every link in this README points at it, and it is
+the URL to share.
+
+| | Host | Base URL |
+| --- | --- | --- |
+| **① Primary** | GitHub Pages | **https://epprestodesign.github.io/presto-2026-ticketing/** |
+| **② Fallback** | Netlify (mirror) | **https://ep-presto-2026-ticketing.netlify.app/** |
+
+Both are built from `main` by the **same command** — `npm run build:site` — so the
+mirror is not a stale copy or a separate deployment to keep in step. Pages runs it
+through `.github/workflows/deploy.yml`; Netlify runs it through `netlify.toml` on
+the same push. What they serve is byte-identical apart from the base path below.
+
+### Translating any link on this page to the mirror
+
+The one difference is the path prefix: Pages serves this repo from a sub-path,
+Netlify serves it from the domain root. So **drop `/presto-2026-ticketing`**:
+
+```
+Pages     https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/
+Netlify   https://ep-presto-2026-ticketing.netlify.app/hotel-first/
+                                                      ^ no repo prefix
+```
+
+That rule holds for every path in this document — prototypes, the hub, the imagery
+gallery, and Storybook deep links (`?path=/docs/…` query strings carry over
+unchanged).
+
+### The current prototypes, on both hosts
+
+| Prototype | Primary (Pages) | Fallback (Netlify) |
+| --- | --- | --- |
+| **Storybook** | [open](https://epprestodesign.github.io/presto-2026-ticketing/) | [mirror](https://ep-presto-2026-ticketing.netlify.app/) |
+| **Tickets-first** — tickets → hotel → review | [open](https://epprestodesign.github.io/presto-2026-ticketing/tickets-first/) | [mirror](https://ep-presto-2026-ticketing.netlify.app/tickets-first/) |
+| **Hotel-first** — room → passes → add-ons | [open](https://epprestodesign.github.io/presto-2026-ticketing/hotel-first/) | [mirror](https://ep-presto-2026-ticketing.netlify.app/hotel-first/) |
+| **Package-customize** — swap what's in a package | [open](https://epprestodesign.github.io/presto-2026-ticketing/package-customize/) | [mirror](https://ep-presto-2026-ticketing.netlify.app/package-customize/) |
+| **Trip-builder** — the cart is the trip | [open](https://epprestodesign.github.io/presto-2026-ticketing/trip-builder/) | [mirror](https://ep-presto-2026-ticketing.netlify.app/trip-builder/) |
+| **Experience Hub** — directory of every prototype | [open](https://epprestodesign.github.io/presto-2026-ticketing/hub/) | [mirror](https://ep-presto-2026-ticketing.netlify.app/hub/) |
+
+### Why the fallback is written down *here*
+
+Because this file is the only place that still works. The Storybook Introduction
+and the Experience Hub both carry the same note, but **they are themselves hosted
+on Pages** — when Pages is down, so are they, and a fallback link nobody can reach
+is not a fallback. GitHub serves this README from github.com, which is a separate
+system from Pages, so it stays readable through an outage. Check here first.
+
+### Is Pages actually down, or just this repo?
+
+Two things fail in ways that look identical from a browser, and they have
+different answers:
+
+- **Pages itself is down** → https://www.githubstatus.com/ shows a Pages incident.
+  Use the mirror; nothing to do in the repo.
+- **The deploy never ran** → Pages is serving an older build and the site loads
+  fine, just stale. Check
+  [Actions](https://github.com/epprestodesign/presto-2026-ticketing/actions) for a
+  run that is queued with no jobs, or a push to `main` with no run at all — that
+  is usually an Actions capacity or account-quota problem, not Pages. Netlify
+  deploys independently of Actions, so **the mirror is current even when this
+  happens** (it did on 2026-08-26). Re-run the workflow with
+  `gh workflow run deploy.yml --ref main` once runners are available.
+
 ## 🎯 Start here
-The primary links, all deployed from this repo.
+The primary links, all deployed from this repo — on Pages, per the table above.
+Any of them can be read on the mirror by dropping `/presto-2026-ticketing`.
 
 ### ⭐ Options A, B, C & D
 The current work: four takes on the same brief, built side by side so they can be

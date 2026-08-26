@@ -435,7 +435,33 @@ on the left; section content on the right — **Profile**, **Communications**,
 3. Use the **Controls** / **Docs** tabs on each story to QA props and variants.
 4. When happy, `pnpm build-storybook` produces a static site in `storybook-static/`.
 
-## Deploy
+## Deploy — and the fallback
 
-The build output is a plain static site. Pushing to `main` deploys to GitHub
-Pages via `.github/workflows/deploy.yml`. See `README.md` for details.
+The build output is a plain static site. A push to `main` deploys it **twice**,
+from the same `npm run build:site` command, so the two are not separate
+deployments to keep in step:
+
+| | Host | Base URL |
+| --- | --- | --- |
+| **① Primary** | GitHub Pages, via `.github/workflows/deploy.yml` | <a href="https://epprestodesign.github.io/presto-2026-ticketing/" target="_blank">epprestodesign.github.io/presto-2026-ticketing/</a> |
+| **② Fallback** | Netlify mirror, via `netlify.toml` | <a href="https://ep-presto-2026-ticketing.netlify.app/" target="_blank">ep-presto-2026-ticketing.netlify.app/</a> |
+
+**Pages is the primary and the URL to share.** If it is down or serving a stale
+build, use the mirror — the only difference is the path prefix, which Netlify
+does not have:
+
+```
+Pages     …github.io/presto-2026-ticketing/hotel-first/
+Netlify   …netlify.app/hotel-first/          ← no repo prefix
+```
+
+Netlify deploys independently of GitHub Actions, so the mirror stays current even
+when an Actions outage or quota limit stops the Pages workflow from running at
+all — which is the failure this project has actually hit.
+
+> **Reading this page during a Pages outage?** Then you are already on the
+> mirror, because this page is served by Pages too. The copy that survives an
+> outage is `README.md` on github.com — it carries the same table plus how to
+> tell a Pages incident apart from a deploy that never ran.
+
+See `README.md` for details.
