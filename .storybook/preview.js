@@ -56,6 +56,13 @@ const preview = {
       storySort: {
         order: [
           'Getting Started', ['Introduction', 'Architecture & Conventions', 'User Journey & Build Spec', 'Story Template'],
+          // Demo Scripts sits second on purpose. Everything below it documents
+          // what a thing IS — props, states, the spec it was built from. This
+          // documents how to SHOW one, out loud, in sixty seconds, and its
+          // reader is someone about to present (often about to share their
+          // screen). That is worth finding fast, so it sits above the reference
+          // material rather than filed among it.
+          'Demo Scripts', ['Four Prototypes, Four Minutes'],
           'Foundations', [
             'Colors', 'Palette', 'Typography', 'Icons', 'Imagery', 'Gameday Imagery', 'Hotel Imagery',
             'Spacing', 'Border Radius', 'Elevation', 'Breakpoints', 'Motion',
