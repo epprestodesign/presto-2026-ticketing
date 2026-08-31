@@ -1,0 +1,317 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Demo Scripts/Four Prototypes, Four Minutes" />
+
+{/*
+  Demo Scripts — a presenting aid, not component documentation.
+
+  WHY THIS IS ITS OWN TOP-LEVEL CATEGORY rather than a page under Getting
+  Started. Everything else in this Storybook documents what a thing IS: props,
+  states, variants, the spec it was built from. This documents how to SHOW one,
+  out loud, to a room, in sixty seconds. That is a different kind of document
+  with a different reader — someone who is about to present, often about to
+  share their screen — so it gets its own home near the top where it can be
+  found under pressure rather than being filed among the orientation docs.
+
+  The four scripts are ONE PAGE on purpose. These prototypes are demoed back to
+  back far more often than singly, and a presenter mid-demo wants to scroll, not
+  navigate. One page is also one file to keep true when a prototype changes.
+
+  THE CONTENT IS GROUNDED IN THE CODE, not in the surface. Every figure quoted
+  below — $259/night, the 6-credential cap, the $0 "make your own way" option —
+  was read out of the prototype's own data files, so the script survives a
+  follow-up question. If a prototype's pricing or flow changes, these numbers
+  are the part that goes stale; check them against the app before presenting.
+*/}
+
+export const C = {
+  amber: 'var(--ds-palette-amber-700, #9A5B06)',
+  payoff: 'var(--ds-color-text-success, #1B6340)',
+  payoffBg: 'var(--ds-palette-green-50, #E4F0E9)',
+  navy: 'var(--ds-color-background-brand-bold, #01113E)',
+  text: 'var(--ds-color-text, #171A24)',
+  sub: 'var(--ds-color-text-subtle, #5A6072)',
+  faint: 'var(--ds-color-text-subtlest, #868B99)',
+  rule: 'var(--ds-color-border, #DFDDD8)',
+  ruleBold: 'var(--ds-color-border-bold, #C4C1BA)',
+  sunken: 'var(--ds-color-surface-sunken, #F2F1EE)',
+}
+
+{/*
+  WHY THIS STYLE BLOCK EXISTS — don't delete it, the page silently loses its
+  typography without it.
+
+  MDX applies markdown processing to the children of a block-level JSX element
+  when they sit on their own lines, so this:
+
+      <h1 style={{ fontSize: '2.5rem' }}>
+        Four Prototypes, Four Minutes
+      </h1>
+
+  compiles to an <h1> containing a <p>. The <h1> keeps the 2.5rem, but the text
+  lives in that inner <p>, and Storybook's own docs stylesheet (.sbdocs p) sets
+  it to 14px — so the headline rendered at body size while the element measured
+  40px. Every multi-line block on this page hits the same trap, including all
+  twenty spoken lines.
+
+  One rule fixes the class of problem rather than each instance: inside this
+  page, a generated <p> inherits from whatever styled element wraps it. Put the
+  intent on the container, as the components below do, and it now lands.
+*/}
+<style>{`
+  .ds-doc p { font: inherit; color: inherit; margin: 0; line-height: inherit; letter-spacing: inherit; }
+  .ds-doc p + p { margin-top: 0.7em; }
+  .ds-doc h1, .ds-doc h2 { border: 0; padding: 0; }
+  .ds-doc a { text-decoration: none; border-bottom: 1px solid currentColor; }
+`}</style>
+
+export const label = {
+  fontFamily: 'var(--ds-font-family)',
+  fontWeight: 700,
+  fontSize: '0.6875rem',
+  letterSpacing: '0.14em',
+  textTransform: 'uppercase',
+}
+
+{/* One numbered beat: a timing mark, a stage direction, and the line to say. */}
+export const Beat = ({ t, does, children, key: _k, isKey = false }) => (
+  <>
+    <div style={{
+      ...label, fontSize: '0.8125rem', letterSpacing: '0.04em', color: C.amber,
+      fontVariantNumeric: 'tabular-nums', textAlign: 'right', textTransform: 'none',
+      padding: '16px 14px 16px 0', borderTop: `1px solid ${C.rule}`, whiteSpace: 'nowrap',
+    }}>{t}</div>
+    <div style={{
+      padding: isKey ? '16px 0 16px 19px' : '16px 0 16px 20px',
+      borderTop: `1px solid ${C.rule}`,
+      borderLeft: isKey ? `2px solid ${C.payoff}` : `1px solid ${C.rule}`,
+      background: isKey ? C.payoffBg : 'transparent',
+    }}>
+      {isKey && (
+        <span style={{
+          ...label, fontSize: '0.625rem', color: C.payoff, border: '1px solid currentColor',
+          borderRadius: '2px', padding: '1px 6px', display: 'inline-block', marginBottom: '8px',
+        }}>The point</span>
+      )}
+      <p style={{
+        margin: '0 0 8px', fontFamily: 'var(--ds-font-family)', fontWeight: 600,
+        fontSize: '0.9rem', color: C.sub, display: 'flex', gap: '9px', alignItems: 'baseline',
+      }}>
+        <span style={{ color: isKey ? C.payoff : C.amber, fontSize: '0.75rem', flex: 'none' }}>▸</span>
+        <span>{does}</span>
+      </p>
+      <div style={{ margin: 0, fontSize: '1.0625rem', lineHeight: 1.58, color: C.text }}>{children}</div>
+    </div>
+  </>
+)
+
+export const Close = ({ children }) => (
+  <div style={{
+    gridColumn: 2, padding: '15px 0 0 20px',
+    borderLeft: `1px solid ${C.rule}`, borderTop: `1px solid ${C.ruleBold}`,
+  }}>
+    <span style={{ ...label, color: C.faint, display: 'block', marginBottom: '6px' }}>Land on</span>
+    <p style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 600, color: C.navy, maxWidth: '60ch' }}>{children}</p>
+  </div>
+)
+
+export const Script = ({ n, name, port, title, premise, children }) => (
+  <section style={{ margin: '0 0 52px' }}>
+    <div style={{ borderTop: `2px solid ${C.navy}`, paddingTop: '15px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '8px 16px', marginBottom: '8px' }}>
+        <span style={{ ...label, fontSize: '0.8125rem', letterSpacing: '0.1em', color: C.amber }}>Script {n}</span>
+        <span style={{ ...label, fontWeight: 600, fontSize: '0.8125rem', letterSpacing: '0.05em', color: C.faint, textTransform: 'none' }}>
+          <a href={port} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>localhost:{port.match(/:(\d+)/)[1]}</a>
+          {' · '}{name}
+        </span>
+      </div>
+      <h2 style={{ margin: '0 0 8px', fontSize: '1.625rem', lineHeight: 1.15, color: C.navy, textWrap: 'balance' }}>{title}</h2>
+      <p style={{ margin: '0 0 22px', fontSize: '1.0625rem', fontStyle: 'italic', color: C.sub, maxWidth: '64ch' }}>{premise}</p>
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: '74px 1fr' }}>{children}</div>
+  </section>
+)
+
+<div className="ds-doc">
+
+<div style={{ borderBottom: `2px solid ${C.navy}`, paddingBottom: '18px', marginBottom: '10px' }}>
+  <p style={{ ...label, color: C.amber, letterSpacing: '0.16em', margin: '0 0 8px' }}>Presto · Aug 25 prototype round</p>
+  <h1 style={{ margin: '0 0 12px', fontSize: '2.5rem', lineHeight: 1.05, letterSpacing: '-0.02em', color: C.navy }}>
+    Four Prototypes, Four Minutes
+  </h1>
+  <p style={{ margin: 0, fontSize: '1.125rem', color: C.sub, maxWidth: '62ch' }}>
+    One-minute demo scripts — one per prototype. Each is built to be read aloud at pace while you
+    click, or skimmed as an outline if you'd rather use your own words.
+  </p>
+</div>
+
+<div style={{
+  display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+  border: `1px solid ${C.rule}`, borderRadius: '3px', margin: '24px 0 44px', overflow: 'hidden',
+}}>
+  {[
+    ['Timing', 'Marks are cumulative. Each script lands at 1:00 at a comfortable pace.'],
+    ['▸ Stage direction', "What to click. Don't read these out."],
+    ['Plain text', 'What to say. Written for the ear, not the page.'],
+    ['The green beat', "The one moment that makes the case. If you're cut short, cut everything else."],
+  ].map(([t, d], i) => (
+    <div key={t} style={{ padding: '14px 17px', borderRight: i < 3 ? `1px solid ${C.rule}` : 0 }}>
+      <div style={{ ...label, fontSize: '0.71rem', color: C.faint, marginBottom: '4px' }}>{t}</div>
+      <div style={{ fontSize: '0.9rem', lineHeight: 1.45, color: C.sub }}>{d}</div>
+    </div>
+  ))}
+</div>
+
+<Script
+  n="01"
+  name="tickets-first"
+  port="http://localhost:6800/?screen=landing"
+  title="Sell the seat first"
+  premise={<>For the guest who <strong style={{ fontStyle: 'normal', color: C.text }}>already knows the game they want.</strong> Tickets lead, the hotel follows, and everything else gets out of the way.</>}
+>
+  <Beat t="0:00" does={<>Open on the <strong>landing screen</strong>.</>}>
+    This is the ticket-led route. The guest arrives already sold on the game — Patriots and Bills at
+    Gillette — so the page doesn't try to sell them the trip. It asks one question and gets out of the way.
+  </Beat>
+  <Beat t="0:12" does={<>Click through to <strong>Tickets</strong>. Hover a few price pins on the map.</>}>
+    Seats first. Every section carries its own price on the map, so you're comparing where you'll sit
+    and what it costs in the same glance — not on two separate screens.
+  </Beat>
+  <Beat t="0:26" does={<>Continue to <strong>Hotel</strong>. Point at the walk times.</>}>
+    Now the hotel. Once we know the seats, the rooms sort by what actually matters on game day — how far
+    you are from the gates. Every listing is priced against a walk time, not a map pin you have to interpret.
+  </Beat>
+  <Beat t="0:40" isKey does={<>Open the <strong>cart flyout</strong> from the nav. Add parking or the tailgate party.</>}>
+    And here's the move that shortened the whole flow. Parking, transfers, the tailgate party — these
+    used to be a fourth step everyone clicked past. They now live inside the cart. Extras are something
+    you add while reviewing, not a checkpoint on the way.
+  </Beat>
+  <Beat t="0:53" does={<>Go to <strong>Review</strong>.</>}>
+    Which leaves three steps — tickets, hotel, review — and review is the checkout. One form,
+    everything open, nothing hidden behind a Next button.
+  </Beat>
+  <Close>Three steps instead of five, because the extras stopped being a step.</Close>
+</Script>
+
+<Script
+  n="02"
+  name="hotel-first"
+  port="http://localhost:6900/?screen=landing"
+  title="One number prices the trip"
+  premise={<>A cheer family travelling to Orlando for Spirit Nationals. The room is the anchor; <strong style={{ fontStyle: 'normal', color: C.text }}>party size drives every quantity in the order.</strong></>}
+>
+  <Beat t="0:00" does={<>Open the <strong>landing screen</strong>.</>}>
+    This one starts with the room, because for a tournament family that's the real decision — the event
+    is fixed, the question is where you sleep and what it costs.
+  </Beat>
+  <Beat t="0:11" does={<>Browse hotels, open <strong>Rosen Centre</strong>, reserve a room.</>}>
+    Rosen Centre, a tenth of a mile from the Convention Center, two-fifty-nine a night across three
+    nights. That's seven seventy-seven, and it's the anchor the rest of the trip hangs off.
+  </Beat>
+  <Beat t="0:24" isKey does={<>On <strong>Tickets</strong>, add a pass. Point at the party note on the card.</>}>
+    Now watch the passes. There's no quantity stepper here — a tier is in or out. Party size is four,
+    so adding the weekend pass adds four of them. That's deliberate: the old build let a family of four
+    leave checkout holding three passes and four park tickets, an order nobody at the door could
+    explain. One number now prices the whole trip, and it can't drift.
+  </Beat>
+  <Beat t="0:43" does={<>Point at the <strong>athlete credential</strong> — capped at six.</>}>
+    With one honest exception. Credentials are rationed, so a party of eight gets six — and the card
+    says so out loud rather than quietly under-buying.
+  </Beat>
+  <Beat t="0:52" does={<>Jump to the <strong>confirmation</strong>.</>}>
+    And the receipt reconciles. Room, every pass, fees, taxes — the lines you can see add up to the
+    total you're charged, to the cent.
+  </Beat>
+  <Close>Change the party size and the entire itinerary re-prices — passes, add-ons, tax, all of it.</Close>
+</Script>
+
+<Script
+  n="03"
+  name="trip-builder"
+  port="http://localhost:7100/?screen=landing"
+  title="There is no step one"
+  premise={<>The awkward guest: parking only, or tickets without a room. <strong style={{ fontStyle: 'normal', color: C.text }}>The cart is the state</strong> — there's no stepper to be halfway through.</>}
+>
+  <Beat t="0:00" does={<>Open the <strong>landing screen</strong>. Gesture across the three doors.</>}>
+    Three ways in — hotel, tickets, or an add-on. Each one is a first step and none of them is the
+    first step. That's the whole idea: this flow has no order to be out of.
+  </Beat>
+  <Beat t="0:13" does={<>Choose <strong>Start with an add-on</strong>. Add a shuttle.</>}>
+    So let's do the awkward one on purpose. A shuttle pass, no room, no tickets. In a stepper this
+    guest has skipped two steps and looks broken. Here they've just got a trip with one thing in it —
+    which is a real thing people buy.
+  </Beat>
+  <Beat t="0:29" does={<>Point at the <strong>trip bar</strong>, then add a hotel from it.</>}>
+    The bar across the top replaces the progress rail. It doesn't tell you how far along you are — it
+    tells you what you're holding, and offers all three doors on every screen. Adding a hotel is the
+    same gesture from anywhere.
+  </Beat>
+  <Beat t="0:44" isKey does={<>Open the <strong>cart peek</strong> from the nav. Then point at the address bar.</>}>
+    Nights and rooms are edited on the line itself, next to the total they move — same as every other
+    quantity in the cart. And the whole trip is in the URL. So a half-built trip is a link: send someone
+    tickets-only at checkout and they open exactly that, which is the state worth arguing about in a review.
+  </Beat>
+  <Beat t="0:56" does={<>Continue to <strong>checkout</strong>.</>}>
+    Checkout takes whatever's in the cart. One item or six.
+  </Beat>
+  <Close>Nothing here can be half-finished, because there was never an order to finish.</Close>
+</Script>
+
+<Script
+  n="04"
+  name="package-customize"
+  port="http://localhost:7200/?screen=packages"
+  title="A package you can argue with"
+  premise={<>The guest who wants the bundle but not all of it. <strong style={{ fontStyle: 'normal', color: C.text }}>Swap a component, watch the price move</strong> — including downward.</>}
+>
+  <Beat t="0:00" does={<>Open on <strong>Packages</strong>.</>}>
+    Three packages — the Foxborough Inn, the Westin, the Ritz-Carlton. Same game, three levels of stay.
+    Normally this is where it ends: you take the bundle as written or you don't.
+  </Beat>
+  <Beat t="0:12" does={<>Open one, then go to <strong>Customize</strong>.</>}>
+    But a package is a starting point, not a fixed SKU. This screen opens it up — the room, how you get
+    there, what you do before kickoff.
+  </Beat>
+  <Beat t="0:24" isKey does={<>Swap the coach transfer for <strong>Make your own way</strong>. Point at the rail.</>}>
+    Here's the part worth watching. Drop the coach transfer and make your own way — and the price rail
+    moves down, with the credit in green. That's the thing most bundle builders won't show you. If a
+    guest doesn't want a component, they should be able to see what declining it is worth, not just be
+    told the package is the package.
+  </Beat>
+  <Beat t="0:44" does={<>Add the <strong>hospitality tent</strong>, then upgrade the room.</>}>
+    It works in both directions — hospitality tent on, better room, and the rail keeps up in real time.
+  </Beat>
+  <Beat t="0:53" does={<>Continue to <strong>checkout</strong>.</>}>
+    And every one of those numbers comes from a single price source, so the rail, the cart and the
+    checkout can't disagree with each other.
+  </Beat>
+  <Close>The guest builds the package they'd actually buy, and sees the cost of every choice in both directions.</Close>
+</Script>
+
+<div style={{ marginTop: '46px', paddingTop: '18px', borderTop: `1px solid ${C.rule}`, fontSize: '0.9rem', color: C.sub }}>
+  <h3 style={{ ...label, fontSize: '0.75rem', color: C.faint, margin: '0 0 10px' }}>Running these</h3>
+  <ul style={{ margin: 0, paddingLeft: '18px' }}>
+    <li style={{ marginBottom: '7px' }}>
+      The <code>localhost</code> links above open each prototype on the local dev server. If a port
+      doesn't answer, that server isn't running.
+    </li>
+    <li style={{ marginBottom: '7px' }}>
+      Live copies are on <a href="https://epprestodesign.github.io/presto-2026-ticketing/" target="_blank" rel="noreferrer">GitHub Pages</a>,
+      mirrored on <a href="https://ep-presto-2026-ticketing.netlify.app/" target="_blank" rel="noreferrer">Netlify</a> at
+      the same paths minus the <code>/presto-2026-ticketing</code> prefix.
+    </li>
+    <li style={{ marginBottom: '7px' }}>
+      <strong>Trip-builder is the one to demo from a link</strong> — its full cart lives in the URL, so
+      you can pre-load any starting state before you present.
+    </li>
+    <li style={{ marginBottom: '7px' }}>
+      The other three keep their state in memory. Set them up before you share your screen, not during.
+    </li>
+    <li>
+      Every figure quoted in these scripts was read out of the prototypes' own data. If a flow or price
+      changes, that's the part that goes stale — check it against the app before presenting.
+    </li>
+  </ul>
+</div>
+
+</div>
