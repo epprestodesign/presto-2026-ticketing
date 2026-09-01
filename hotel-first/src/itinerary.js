@@ -28,10 +28,17 @@ import { addOnLines, addOnCount, addOnSubtotal, unitLabel } from './addons.js'
 // Every line's quantity is the party size (see store.js). The cart says so on
 // each line rather than assuming the guest remembers the rule from two screens
 // back — and it says it in the same words the cards use.
+// A line covering fewer people than the party is now the NORMAL case for
+// admission — three spectator passes and one athlete wristband is what a cheer
+// family actually buys. It used to be read as a shortfall ("limited
+// availability"), which was true when every tier was pinned to the party size
+// and the only way to fall short was inventory. It is not true of an allocation,
+// and telling a guest their deliberate split is a limitation is worse than
+// saying nothing.
 const partyNote = (qty, guests) =>
   (qty < guests
-    ? `${qty} of ${guests} in your party — limited availability`
-    : `${qty} guest${qty === 1 ? '' : 's'} — matches your party`)
+    ? `${qty} of ${guests} in your party`
+    : `${qty} guest${qty === 1 ? '' : 's'} — your whole party`)
 
 export const FEE_RATE = 0.12
 export const TAX_RATE = 0.09
@@ -93,7 +100,9 @@ function ticketItems(selection, guests) {
     amount: t.amount,
     details: [
       { icon: 'confirmation_number', title: `${t.qty} × ${t.name}`, text: t.desc },
-      { icon: 'group', title: partyNote(t.qty, guests), text: 'Pass quantities follow the party size on your room — change it on the Tickets step and the whole order re-prices.' },
+      // Admission is allocated per tier now, so this can no longer claim the
+      // quantity follows the party — it says what actually bounds it instead.
+      { icon: 'group', title: partyNote(t.qty, guests), text: 'Set on the Tickets step. Your party can split across passes — the quantities together can never cover more people than are staying in your room.' },
       { icon: 'qr_code_2', title: 'Mobile entry', text: 'Delivered to the EventPipe app and scanned at the West Building doors.' },
     ],
   }))

@@ -14,7 +14,7 @@
 // ticket exists, which is the reverse of the ticketing-first flows in this repo.
 import { reactive, computed } from 'vue'
 import { HOTELS, getHotel } from './hotels.js'
-import { TICKETS_BY_ID, tierQty } from './tickets.js'
+import { TICKETS_BY_ID, tierQty, tierMax } from './tickets.js'
 import { ADD_ONS_BY_ID, addOnQty } from './addons.js'
 
 // FLOW is the linear journey — the thing Next/Back walk and the stepper labels.
@@ -109,7 +109,21 @@ const TABBED = new Set(['hotelDetails'])
 //
 // Dot-separated so it survives URLSearchParams without percent-encoding and the
 // link stays readable when it is pasted into a review thread.
-const idList = (map) => Object.entries(map || {}).filter(([, q]) => q > 0).map(([id]) => id).join('.')
+// Ids AND quantities. This used to encode ids alone, because a tier's quantity
+// was always the party size and could be re-derived on the way back in. Since
+// admission became an allocation (3 spectators + 1 athlete), the quantity is no
+// longer derivable — dropping it would restore a 3+1 split as 4+4 on any reload,
+// which is precisely the silent-wrong-total bug this URL scheme was built to fix.
+//
+// `weekend:3.athlete:1` — colon inside a line, dot between lines. The dot
+// survives URLSearchParams as-is; the colon is percent-encoded to %3A in the
+// address bar, which is ugly but harmless — it round-trips exactly, and it is
+// the separator that reads most clearly when someone pastes the decoded link
+// into a review thread.
+const idList = (map) => Object.entries(map || {})
+  .filter(([, q]) => q > 0)
+  .map(([id, q]) => `${id}:${q}`)
+  .join('.')
 
 function writeUrl(screen, push) {
   if (typeof window === 'undefined' || !window.history) return
@@ -139,17 +153,31 @@ function writeUrl(screen, push) {
 function readSelection(q) {
   const tix = q.get('tickets')
   if (tix !== null) {
+    // Each entry is `id` or `id:qty`. A bare id (an older link, or one written
+    // by hand) still resolves — it falls back to whatever the party can spare,
+    // which is the pre-allocation behaviour and never over-assigns.
+    let budget = journey.guests
     journey.tickets = Object.fromEntries(
       tix.split('.').filter(Boolean)
-        .filter((id) => TICKETS_BY_ID[id])
-        .map((id) => [id, tierQty(TICKETS_BY_ID[id], journey.guests)])
-        .filter(([, n]) => n > 0)
+        .map((chunk) => {
+          const [id, raw] = chunk.split(':')
+          if (!TICKETS_BY_ID[id]) return null
+          const asked = raw === undefined ? tierQty(TICKETS_BY_ID[id], journey.guests) : (parseInt(raw, 10) || 0)
+          const take = Math.max(0, Math.min(asked, budget, TICKETS_BY_ID[id].count ?? 0))
+          budget -= take
+          return [id, take]
+        })
+        .filter((e) => e && e[1] > 0)
     )
   }
   const ads = q.get('addons')
   if (ads !== null) {
+    // Add-ons still follow the party size — everyone gets the same park ticket —
+    // so the quantity is re-derived and the encoded one is ignored. The `id:qty`
+    // shape is accepted only so both maps read the same way.
     journey.addOns = Object.fromEntries(
       ads.split('.').filter(Boolean)
+        .map((chunk) => chunk.split(':')[0])
         .filter((id) => ADD_ONS_BY_ID[id])
         .map((id) => [id, addOnQty(ADD_ONS_BY_ID[id], journey.guests)])
         .filter(([, n]) => n > 0)
@@ -208,10 +236,19 @@ export function goToStage(stage) {
 // guest didn't ask for.
 function repriceForParty() {
   const g = journey.guests
+  // Admission is an ALLOCATION now, so a party change rescales it rather than
+  // resetting every tier to the new number — which would undo a 3 + 1 split the
+  // moment anyone touched the party stepper. Tiers keep their share in
+  // catalogue order and the total is trimmed to fit the new party size.
+  let budget = g
   journey.tickets = Object.fromEntries(
     Object.entries(journey.tickets)
       .filter(([, q]) => q > 0)
-      .map(([id]) => [id, tierQty(TICKETS_BY_ID[id], g)])
+      .map(([id, q]) => {
+        const take = Math.max(0, Math.min(q, budget, TICKETS_BY_ID[id]?.count ?? 0))
+        budget -= take
+        return [id, take]
+      })
       .filter(([, q]) => q > 0)
   )
   journey.addOns = Object.fromEntries(
@@ -257,13 +294,46 @@ function syncUrl() { writeUrl(journey.screen, false) }
 export const ticketOn = (id) => (journey.tickets[id] || 0) > 0
 export const addOnOn = (id) => (journey.addOns[id] || 0) > 0
 
-export function toggleTicket(id, on = !ticketOn(id)) {
-  const qty = on ? tierQty(TICKETS_BY_ID[id], journey.guests) : 0
+// ── ADMISSION IS ALLOCATED ACROSS THE PARTY (Sep 1) ────────────────────────
+// See tickets.js for why the pinned in/out model was reversed. The rule here is
+// the whole of it: each tier carries its own number, and the numbers may not sum
+// past the party size.
+
+/** Admission seats currently assigned, optionally ignoring one tier. */
+export const admissionCount = (exceptId = null) =>
+  Object.entries(journey.tickets).reduce((n, [id, q]) => (id === exceptId ? n : n + (q || 0)), 0)
+
+/** People on the room who still have no admission of any kind. */
+export const remainingToCover = () => Math.max(0, journey.guests - admissionCount())
+
+/** The most this tier could be set to right now — inventory and party both. */
+export const maxForTier = (id) =>
+  tierMax(TICKETS_BY_ID[id], journey.guests, admissionCount(id))
+
+/**
+ * Set one tier's quantity. Clamped to what the party has left to assign, so a
+ * stepper can be pressed freely without ever producing an order for more people
+ * than are staying in the room.
+ */
+export function setTicketQty(id, n) {
+  const qty = Math.max(0, Math.min(Math.round(n) || 0, maxForTier(id)))
   const next = { ...journey.tickets }
   if (qty > 0) next[id] = qty
   else delete next[id]
   journey.tickets = next
   syncUrl()
+}
+
+/**
+ * Switching a tier ON claims whatever the party still has spare (bounded by
+ * inventory); switching it OFF returns it. The toggle is kept because it is
+ * still the fastest way to cover a whole party with one tier — the stepper is
+ * for splitting, not a replacement for the common case.
+ */
+export function toggleTicket(id, on = !ticketOn(id)) {
+  if (!on) { setTicketQty(id, 0); return }
+  const spare = maxForTier(id)
+  setTicketQty(id, spare > 0 ? spare : tierQty(TICKETS_BY_ID[id], journey.guests))
 }
 export function toggleAddOn(id, on = !addOnOn(id)) {
   const qty = on ? addOnQty(ADD_ONS_BY_ID[id], journey.guests) : 0

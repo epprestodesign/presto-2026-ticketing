@@ -48,6 +48,10 @@ const APPS = [
   'option-d',
   // Aug 25 round — one prototype per user-flow edge case.
   'tickets-first',
+  // Sep 1 — the tickets-first flow themed on a second fixture (Patriots v
+  // Steelers). Same journey, different event: it exists to show the flow is not
+  // welded to one game.
+  'tickets-first-steelers',
   'hotel-first',
   'package-customize',
   'trip-builder',

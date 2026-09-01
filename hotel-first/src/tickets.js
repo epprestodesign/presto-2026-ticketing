@@ -71,25 +71,49 @@ export const TICKET_TIERS = [
 
 export const TICKETS_BY_ID = Object.fromEntries(TICKET_TIERS.map((t) => [t.id, t]))
 
-// ── PARTY SIZE IS THE QUANTITY ──────────────────────────────────────────────
-// A tier is now an in/out decision, not a number: whatever the party size on the
-// room is, that is how many of the tier get bought. Two people means two passes.
+// ── PARTY SIZE IS THE BUDGET, NOT THE QUANTITY (Sep 1) ─────────────────────
+// Each admission tier carries its own quantity again, and the SUM of them is
+// capped at the party size.
 //
-// The rejected alternative was the per-tier stepper this screen used to carry.
-// It let a family of four leave checkout holding three weekend passes and four
-// park tickets — an order that is internally inconsistent and that nobody in the
-// room could explain at the doors. One number for the whole trip cannot drift.
+// WHAT THIS REVERSES, AND WHY. An earlier round made a tier a pure in/out
+// decision pinned to party size, to stop a family of four leaving checkout with
+// three weekend passes and four park tickets — an order nobody at the door
+// could explain. That reasoning holds for ADD-ONS, where every person needs the
+// same thing, and add-ons still follow the party size unchanged.
 //
-// The single honest exception is INVENTORY: the athlete credential is rationed
-// to 6, so a party of 8 gets 6. The card and the cart both say so out loud
-// rather than silently under-buying (see `tierQtyNote`).
+// It does not hold for ADMISSION, because one party needs DIFFERENT
+// credentials. A cheer family of four is normally one competing athlete and
+// three spectators: one athlete wristband, three spectator passes. Under the
+// pinned model that order could not be expressed at all — switching both tiers
+// on bought four of each. Reported directly: "When made for 4 people, I can't
+// actually make it work for 3 spectators and 1 participant. I can only do 4."
+//
+// The cap is what keeps the original guarantee. Quantities are free to differ
+// per tier, but they cannot sum past the number of people on the room, so the
+// order still describes a real party — and the screen says how many people are
+// still uncovered rather than leaving it to be discovered at the doors.
+//
+// INVENTORY still bounds a tier on its own: the athlete credential is rationed
+// to 6, so a party of 8 can buy at most 6 of them however the rest is split.
+/**
+ * The quantity a tier STARTS at when it is switched on — not the quantity it is
+ * pinned to. Capped by inventory, and never more than the party has people left
+ * to cover (see `remainingToCover` in store.js).
+ */
 export const tierQty = (t, guests) => (!t || t.count <= 0 ? 0 : Math.min(guests, t.count))
 
-/** The sentence a line prints where its stepper used to be. */
-export function tierQtyNote(t, guests) {
-  const q = tierQty(t, guests)
-  if (q < guests) return `${q} of ${guests} — only ${t.count} credential${t.count === 1 ? '' : 's'} left`
-  return `${q} guest${q === 1 ? '' : 's'} — matches your party`
+/** How many of a tier a guest may set: inventory, and the unassigned party. */
+export const tierMax = (t, guests, assignedElsewhere = 0) =>
+  !t || t.count <= 0 ? 0 : Math.max(0, Math.min(t.count, guests - assignedElsewhere))
+
+/** The sentence a line prints under its stepper. */
+export function tierQtyNote(t, guests, qty = 0, assignedElsewhere = 0) {
+  const max = tierMax(t, guests, assignedElsewhere)
+  if (t.count < guests && qty >= t.count) {
+    return `${qty} of ${guests} — only ${t.count} credential${t.count === 1 ? '' : 's'} left`
+  }
+  if (qty === 0) return max === 0 ? 'Everyone in your party already has admission' : `Up to ${max} available`
+  return `${qty} of ${guests} in your party`
 }
 
 // A tier is selectable only while it has inventory. TicketCategoryCard reads
