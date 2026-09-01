@@ -75,6 +75,11 @@
   status = 200
 
 [[redirects]]
+  from = "/tickets-first-steelers/*"
+  to = "/tickets-first-steelers/index.html"
+  status = 200
+
+[[redirects]]
   from = "/hotel-first/*"
   to = "/hotel-first/index.html"
   status = 200

@@ -22,9 +22,11 @@ import PartySizeField from '../components/PartySizeField.vue'
 import { eventLogo, EVENT_LOGO_ALT, bandStyle } from '../brand.js'
 import { EVENT, COMP_DAYS } from '../event.js'
 import { ticketCategories, ticketLines, ticketCount, ticketSubtotal } from '../tickets.js'
-import { journey, activeHotel, setGuests, toggleTicket, ticketOn, nav } from '../store.js'
+import { journey, activeHotel, setGuests, toggleTicket, setTicketQty, maxForTier, admissionCount, remainingToCover, ticketOn, nav } from '../store.js'
 
 const categories = computed(() => ticketCategories())
+const assigned = computed(() => admissionCount())
+const uncovered = computed(() => remainingToCover())
 const lines = computed(() => ticketLines(journey.tickets))
 const count = computed(() => ticketCount(journey.tickets))
 const subtotal = computed(() => ticketSubtotal(journey.tickets))
@@ -80,18 +82,35 @@ function skipTickets() {
             @update:guests="setGuests"
           />
 
+          <!-- COVERAGE, stated before the cards rather than discovered at the
+               doors. Admission is allocated across the party now (3 spectators +
+               1 athlete is the ordinary shape of a cheer family), so the one
+               thing the screen must never leave ambiguous is whether everyone
+               staying in the room can actually get in. -->
+          <div class="tix__cover" :class="{ 'is-done': uncovered === 0 }">
+            <q-icon :name="uncovered === 0 ? 'check_circle' : 'group'" size="18px" />
+            <span v-if="uncovered === 0"><strong>All {{ journey.guests }}</strong> in your party have admission.</span>
+            <span v-else>
+              <strong>{{ assigned }} of {{ journey.guests }}</strong> covered —
+              {{ uncovered }} {{ uncovered === 1 ? 'person' : 'people' }} still {{ uncovered === 1 ? 'needs' : 'need' }} admission.
+            </span>
+          </div>
+
           <div class="tix__list">
             <ticket-tier-card
               v-for="c in categories" :key="c.id"
               :tier="c" :guests="journey.guests" :selected="ticketOn(c.id)"
+              :qty="journey.tickets[c.id] || 0" :max="maxForTier(c.id)"
               @toggle="toggleTicket(c.id)"
+              @update:qty="(n) => setTicketQty(c.id, n)"
             />
           </div>
 
           <p class="tix__foot">
             Prototype pricing. Mat assignments and performance times are published two weeks before the event;
-            a weekend pass covers every mat on every day. Quantities follow your party size — change it above
-            and everything on this order re-prices together.
+            a weekend pass covers every mat on every day. Each tier carries its own quantity so a party can
+            split across credentials — three spectator passes and one athlete wristband, say — and the totals
+            can never add up to more people than are staying in your room.
           </p>
         </div>
 
@@ -127,6 +146,12 @@ function skipTickets() {
 </template>
 
 <style scoped>
+/* Coverage banner — the one thing this screen must not leave ambiguous. */
+.tix__cover { display: flex; align-items: center; gap: 9px; margin: 0 0 14px; padding: 11px 14px; border-radius: var(--ds-radius-lg, 12px); border: 1px solid var(--ds-color-border-warning, #E4B65C); background: var(--ds-palette-amber-50, #FDF6E7); font-family: var(--ds-font-family); font-size: 0.9375rem; color: var(--ds-color-text); }
+.tix__cover .q-icon { color: var(--ds-palette-amber-700, #9A5B06); flex: none; }
+.tix__cover.is-done { border-color: var(--ds-color-border-success, #7FB79A); background: var(--ds-palette-green-50, #EAF5EF); }
+.tix__cover.is-done .q-icon { color: var(--ds-color-text-success, #1B6340); }
+
 .tix { display: flex; flex-direction: column; flex: 1; background: var(--ds-palette-slate-50, #f8fafc); }
 
 .tix__hero { background-color: #000; background-size: cover; background-position: center; color: #fff; }

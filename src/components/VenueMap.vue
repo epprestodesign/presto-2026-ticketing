@@ -57,10 +57,37 @@ onMounted(() => {
 })
 onBeforeUnmount(() => ro && ro.disconnect())
 
-// Initial view: honour `initialScale`, and in fill mode also cover the viewport.
+// Initial view: honour `initialScale`, and in fill mode FIT the whole map into
+// the panel.
+//
+// THIS USED TO COVER, AND COVERING IS WHY THE MAP OPENED CROPPED.
+//
+//   const cover = props.fill ? Math.max(1, vh / worldH) : 1
+//
+// `Math.max(1, …)` can only ever scale UP, so fill mode always enlarged the
+// world until it filled the panel's height — which pushed its width past the
+// panel's edges. At 1440×900 that cropped 200px of stadium horizontally, so a
+// guest opening the seat map saw a bowl with its sides cut off and had to zoom
+// out before they could orient. Combined with TicketMap's old hard-coded 1.6 it
+// opened at 1.92× and the crop was severe. Reported as: "It defaults to ZOOMED
+// IN on the stadium seating chart. It should not do that."
+//
+// `Math.min(1, …)` fits instead: it scales DOWN when the panel is shorter than
+// the map and otherwise leaves the map at 1, where its width already equals the
+// panel's width. The whole chart is visible on open at any viewport, which is
+// the state a guest needs before they can choose anything. The cost is a little
+// letterboxing above and below when the panel is tall — the right trade against
+// hiding part of the thing being chosen from.
+//
+// SCOPE: TicketMap is the only component in the repo that passes `fill` (the
+// VenueMap stories and the bundle prototype all omit it, so their factor was
+// already 1). This changes that one surface and nothing else.
+//
+// `initialScale` still multiplies through, so a caller that genuinely wants to
+// open tight on a section can still ask for it.
 function initView() {
-  const cover = props.fill ? Math.max(1, vh.value / worldH.value) : 1
-  view.scale = Math.min(MAX, Math.max(MIN, (props.initialScale || 1) * cover))
+  const fit = props.fill ? Math.min(1, vh.value / worldH.value) : 1
+  view.scale = Math.min(MAX, Math.max(MIN, (props.initialScale || 1) * fit))
   centerView()
 }
 function centerView() {

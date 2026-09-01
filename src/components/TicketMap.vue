@@ -20,6 +20,21 @@ const props = defineProps({
   host: { type: String, default: 'EventPipe' },
   maxQuantity: { type: Number, default: 6 },
   initialQuantity: { type: Number, default: 2 },
+  // How far the venue map is zoomed on first paint. 1 = the whole bowl in
+  // view, which is what a guest needs before they can choose anything.
+  //
+  // THIS USED TO BE HARD-CODED AT 1.6 in the template below, and it was wrong.
+  // The map opened already zoomed two steps in, so the first thing a guest saw
+  // was a crop of the lower bowl with no sense of where it sat in the stadium —
+  // they had to zoom OUT before they could start. Reported directly: "It
+  // defaults to ZOOMED IN on the stadium seating chart. It should not do that."
+  //
+  // VenueMap's own default is already 1, so this now agrees with it rather than
+  // overriding it. It stays a prop rather than being deleted outright because
+  // opening tight on a section is legitimate for a small venue or a focused
+  // view — it just isn't right for a full NFL bowl, and it should be a caller's
+  // decision rather than something baked into the component.
+  initialScale: { type: Number, default: 1 },
 })
 const emit = defineEmits(['continue'])
 
@@ -249,9 +264,10 @@ const onMap = (pinId) => {
       </template>
     </aside>
 
-    <!-- RIGHT: interactive map (full height, zoomed in a couple steps) -->
+    <!-- RIGHT: interactive map, full height and showing the WHOLE bowl on open
+         (see `initialScale` above — it used to open zoomed two steps in). -->
     <div class="tm__mapwrap">
-      <VenueMap :pins="pins" fill :initial-scale="1.6" :focus-id="selectedId" v-model="mapSel" @update:modelValue="onMap" />
+      <VenueMap :pins="pins" fill :initial-scale="initialScale" :focus-id="selectedId" v-model="mapSel" @update:modelValue="onMap" />
 
       <!-- Location legend — orients the guest to the areas of the stadium. -->
       <div class="tm__legend" :class="{ 'is-open': legendOpen }">
